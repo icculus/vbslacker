@@ -52,9 +52,9 @@ void testFileIOFunctions(void)
 long errors = 0;
 long warnings = 0;
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
-    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv);
     testFileIOFunctions();
     return(0);
 } /* main */

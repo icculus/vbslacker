@@ -10,12 +10,13 @@ export GCLIBDIR = ../../libgc
 
 export OBJS = TestLib.o TestConversionFunctions.o TestOnError.o TestThreads.o \
               TestErrorFunctions.o TestStringFunctions.o TestMathFunctions.o \
-              TestGarbageCollector.o TestFileSystemFunctions.o
+              TestGarbageCollector.o TestFileSystemFunctions.o \
+              TestRandomFunctions.o
 
 export EXES = testconversionfunctions testonerror testthreads \
               testerrorfunctions teststringfunctions testmathfunctions \
               testgarbagecollector testfilesystemfunctions testconsole \
-              testsegfault teststackoverflow
+              testsegfault teststackoverflow testrandomfunctions
 
 about:
 	@cat ../../docs/about.txt

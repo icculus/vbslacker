@@ -22,6 +22,7 @@ void testStringFunctions(void);
 void testConversionFunctions(void);
 void testFileIOFunctions(void);
 void testMathFunctions(void);
+void testRandomFunctions(void);
 
 #ifdef __cplusplus
 }

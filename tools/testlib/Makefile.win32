@@ -46,6 +46,9 @@ TestFileIOFunctions.o : TestFileIOFunctions.c
 TestMathFunctions.o : TestMathFunctions.c
 	$(CC) $(COPTIONS) TestMathFunctions.o TestMathFunctions.c
 
+TestRandomFunctions.o : TestRandomFunctions.c
+	$(CC) $(COPTIONS) TestRandomFunctions.o TestRandomFunctions.c
+
 
 testconsole.exe : TestConsole.o
 	$(LINKER) $(LOPTIONS) testconsole TestConsole.o
