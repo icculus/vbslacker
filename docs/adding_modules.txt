@@ -36,13 +36,17 @@ Here's some details on adding new modules to BASIClib:
 - If you have init or deinit functions, add a call to them in the appropriate
   function in Initialize.c. There are functions for (de)init of program,
   threads, and special cases, like notification that the program is
-  shelling out, etc...
+  shelling out, etc...try to keep all communication between modules to a
+  minimum, but when necessary, try to gate it through Initialize.c by such
+  means...it makes it easier to find breaks later, and keeps the abstraction
+  going...
 
 - Add your header to BasicLib.h ... if you are writing internal-only modules,
   consider adding your header to StdBasic.h instead. Don't add it to both.
 
-- Compile with -D_REENTRANT on the command line, or better yet, read below
-  for how to add your module to the makefiles...
+- Compile with -D_REENTRANT, -DLANG_ENGLISH (or whatever) and -DLINUX (or
+  whatever) on the command line, or better yet, read below for how to add
+  your module to the makefiles...
 
 - Makefiles: Do this for each of the Makefile.platform files. (Like
    Makefile.linux, or Makefile.win32, etc...)

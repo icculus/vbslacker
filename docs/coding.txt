@@ -111,5 +111,5 @@
 - Keep it simple, stupid.
 
 
-/* end of CODING.txt ... */
+/* end of coding.txt ... */
 
