@@ -7,7 +7,16 @@
 #ifndef _INCLUDE_THREADS_H_
 #define _INCLUDE_THREADS_H_
 
+
+#ifndef WIN32
+
 #include <pthread.h>
+
+#else
+    typedef unsigned long pthread_t;
+    typedef unsigned long pthread_mutex_t;
+#endif
+
 
 #define ThreadLock pthread_mutex_t
 #define PThreadLock pthread_mutex_t *
