@@ -6,6 +6,8 @@
 
 #include <signal.h>
 
+#warning Get around to writing the signal handlers!
+
 static void __sigintHandler(int sig)
 {
     printf("sigint handler!\n");

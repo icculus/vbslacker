@@ -11,19 +11,14 @@
 
 #include "RegState.h"
 
-/* !!!
-mid$
-mid$ =
-*/
-
-PBasicString right_DC_(STATEPARAMS, PBasicString pStr, int count);
-PBasicString left_DC_(STATEPARAMS, PBasicString pStr, int count);
-PBasicString rtrim_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString ltrim_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString lcase_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString ucase_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString space_DC_(STATEPARAMS, int length);
-int len(STATEPARAMS, PBasicString pStr);
+PBasicString vbSSi_right_DC_(STATEPARAMS, PBasicString pStr, int count);
+PBasicString vbSSi_left_DC_(STATEPARAMS, PBasicString pStr, int count);
+PBasicString vbSS_rtrim_DC_(STATEPARAMS, PBasicString pStr);
+PBasicString vbSS_ltrim_DC_(STATEPARAMS, PBasicString pStr);
+PBasicString vbSS_lcase_DC_(STATEPARAMS, PBasicString pStr);
+PBasicString vbSS_ucase_DC_(STATEPARAMS, PBasicString pStr);
+PBasicString vbSi_space_DC_(STATEPARAMS, int length);
+int vbiS_len(STATEPARAMS, PBasicString pStr);
 
 #endif
 

@@ -10,7 +10,10 @@
  *    Copyright (c) Ryan C. Gordon and Gregory S. Read.
  */
 
-int pen(STATEPARAMS, int arg)
+#include "PenFunctions.h"
+#include "ErrorFunctions.h"
+
+int vbii_pen(STATEPARAMS, int arg)
 {
     switch (arg)
     {
@@ -28,7 +31,11 @@ int pen(STATEPARAMS, int arg)
     } /* switch */
 
     return(0);  /* should never hit this, but just in case... */
-} /* pen */
+} /* vbii_pen */
+
+
+void vbpO_pen(STATEPARAMS, OnOffStopType onOffStop) {}
+
 
 /* end of PenFunctions.c ... */
 

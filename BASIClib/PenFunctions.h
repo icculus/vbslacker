@@ -8,8 +8,10 @@
 #define _INCLUDE_PENFUNCTIONS_H_
 
 #include "RegState.h"
+#include "OnOffStopType.h"
 
-int pen(STATEPARAMS, int arg);
+int vbii_pen(STATEPARAMS, int arg);
+void vbpO_pen(STATEPARAMS, OnOffStopType onOffStop);
 
 #endif
 

@@ -21,7 +21,7 @@
 #define ERR_NO_ERROR                       0
 #define ERR_NEXT_WITHOUT_FOR               1
 #define ERR_SYNTAX_ERROR                   2
-#define ERR_RETURN_WIHTOUT_GOSUB           3
+#define ERR_RETURN_WITHOUT_GOSUB           3
 #define ERR_OUT_OF_DATA                    4
 #define ERR_ILLEGAL_FUNCTION_CALL          5
 #define ERR_OVERFLOW                       6
@@ -80,14 +80,13 @@
 
 extern int __basicErrno;
 
-void __fatalRuntimeError(STATEPARAMS, int errorNum);
+#define __runtimeError(w, x, y, z, errNum) vbpd_error(w, x, y, z, errNum)
+
 void __initErrorFunctions(STATEPARAMS);
-void __runtimeError(STATEPARAMS, int errorNum);    /* set and handle errors. */
-
-double func_err(STATEPARAMS);
-void proc_err(STATEPARAMS, double newErr);
-
-/* !!! update from ErrorFunctions.h !!! */
+void __fatalRuntimeError(STATEPARAMS, int errorNum);
+double vbd_err(STATEPARAMS);
+void vbpd_error(STATEPARAMS, double newErr);
+int vbi_erl(STATEPARAMS);
 
 #endif
 

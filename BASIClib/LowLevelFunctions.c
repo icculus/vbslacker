@@ -12,19 +12,19 @@
 static boolean portAccess = false;
 
 
-char peek(STATEPARAMS, long addr)
+int vbil_peek(STATEPARAMS, long addr)
 {
     return(*((char *) addr));
-} /* peek */
+} /* vbil_peek */
 
 
-void poke(STATEPARAMS, long addr, char newVal)
+void vbpli_poke(STATEPARAMS, long addr, int newVal)
 {
-    *((char *) addr) = newVal;
-} /* poke */
+    *((char *) addr) = (char) newVal;
+} /* vbpli_poke */
 
 
-void getPortAccess(STATEPARAMS)
+void __getPortAccess(STATEPARAMS)
 {
     int rc;
 
@@ -43,29 +43,56 @@ void getPortAccess(STATEPARAMS)
 } /* getPortAccess */
 
 
-char inp(STATEPARAMS, long ioport)
+int vbil_inp(STATEPARAMS, long ioport)
 {
-    getPortAccess(STATEARGS);
-    return(inb(ioport));
-} /* inp */
+    __getPortAccess(STATEARGS);
+    return((int) inb(ioport));
+} /* vbil_inp */
 
 
-void out(STATEPARAMS, long ioport, char byte)
+void vbpli_out(STATEPARAMS, long ioport, int byte)
 {
-    getPortAccess(STATEARGS);
-    outb(byte, ioport);
-} /* outp */
+    __getPortAccess(STATEARGS);
+    outb((char) byte, ioport);
+} /* vbpli_out */
 
+
+PBasicString vbSi_ioctl_DC_(STATEPARAMS, int devFileNum)
+{
+    return(__createString(""));
+} /* vbSi_ioctl_DC_ */
+
+
+void vbpiS_ioctl(STATEPARAMS, int devFileNum, PBasicString ctlStr) {}
+
+
+long vblA_varptr(STATEPARAMS, void *myVar)
+{
+    return((long) myVar);
+} /* vblA_varptr */
+
+
+PBasicString vbSA_varptr_DC_(STATEPARAMS, void *myVar)
+{
+    PBasicString retVal = __allocString(STATEPARAMS, sizeof (void *), false);
+
+    memcpy(retVal->data, &myVar, sizeof (void *));
+    return(retVal);
+} /* vbSA_varptr_DC_ */
+
+
+long vblA_varseg(STATEPARAMS, void *myVar)
+{
+    return(0);   /* no segments in 32-bit architecture. */
+} /* vblA_varseg */
+
+
+/* !!! still need: */
 /* call absolute */
 /* bload */
 /* bsave */
-/* ioctl */
-/* ioctl$ */
-/* varptr */
-/* varptr$ */
-/* varseg */
 /* wait */
 
-/* end of LowLevel.c ... */
+/* end of LowLevelFunctions.c ... */
 
 

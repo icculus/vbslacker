@@ -15,7 +15,7 @@
 #include "Boolean.h"
 
 
-int asc(STATEPARAMS, PBasicString pBasicStr)
+int vbiS_asc(STATEPARAMS, PBasicString pBasicStr)
 /*
  * Get the ASCII value of the first character of (str)...
  *
@@ -31,11 +31,11 @@ int asc(STATEPARAMS, PBasicString pBasicStr)
         retVal = (unsigned int) pBasicStr->data[0];
 
     return(retVal);
-} /* asc */
+} /* vbiS_asc */
 
 
 
-PBasicString chr_DC_(STATEPARAMS, double asciiValue)
+PBasicString vbSd_chr_DC_(STATEPARAMS, double asciiValue)
 /*
  * Returns a new basic string of one character length based on the ascii
  *  value passed.
@@ -56,11 +56,11 @@ PBasicString chr_DC_(STATEPARAMS, double asciiValue)
     } /* else */
 
     return(retVal);
-} /* chr_DC_ */
+} /* vbSd_chr_DC_ */
 
 
 
-PBasicString str_DC_(STATEPARAMS, double numeric)
+PBasicString vbSd_str_DC_(STATEPARAMS, double numeric)
 /*
  * Convert a numeric to a BASIC string. If (numeric) is positive, the
  *  string contains a leading blank (' ') character. If negative, that
@@ -127,7 +127,7 @@ PBasicString str_DC_(STATEPARAMS, double numeric)
     return(__createString(STATEARGS, buffer, false));
 #endif
 
-} /* str_DC_ */
+} /* vbSd_str_DC_ */
 
 
 
@@ -188,7 +188,7 @@ int __valEndOfNumberString(STATEPARAMS, PBasicString pBasicStr)
 
 
 
-double val(STATEPARAMS, PBasicString pBasicStr)
+double vbdS_val(STATEPARAMS, PBasicString pBasicStr)
 /*
  * Convert a BASIC string into a numeric. This function stops conversion
  *  at the end of the string, or when it runs into a character it can't
@@ -238,11 +238,11 @@ double val(STATEPARAMS, PBasicString pBasicStr)
     } /* for */
 
     return(retVal);
-} /* val */
+} /* vbdS_val */
 
 
 
-PBasicString hex_DC_(STATEPARAMS, double x)
+PBasicString vbSd_hex_DC_(STATEPARAMS, double x)
 /*
  * Convert a numeric to a string in Hexadecimal format. Numeric is rounded
  *  as necessary.
@@ -261,11 +261,11 @@ PBasicString hex_DC_(STATEPARAMS, double x)
     sprintf(buffer, "%X", rounded);
 
     return(__createString(STATEARGS, buffer, false));
-} /* hex_DC_ */
+} /* vbSd_hex_DC_ */
 
 
 
-PBasicString oct_DC_(STATEPARAMS, double x)
+PBasicString vbSd_oct_DC_(STATEPARAMS, double x)
 /*
  * Convert a numeric to a string in Octal format. Numeric is rounded
  *  as necessary.
@@ -284,7 +284,7 @@ PBasicString oct_DC_(STATEPARAMS, double x)
     sprintf(buffer, "%o", rounded);
 
     return(__createString(STATEARGS, buffer, false));
-} /* oct_DC_ */
+} /* vbSd_oct_DC_ */
 
 
 
@@ -427,12 +427,15 @@ PBasicString __VariantToString(STATEPARAMS, PVariant pVar, boolean byRef)
             retVal = pVar->data._string;
         else
             __assignString(STATEARGS, &retVal, pVar->data._string);
-    } // if
+    } /* if */
     else
         __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
 
     return(retVal);
 } /* __VariantToString */
+
+/* !!! still need: */
+/* cvi, cvl, etc... mkd$, mkl$, etc... */
 
 
 /* end of ConversionFunctions.c ... */

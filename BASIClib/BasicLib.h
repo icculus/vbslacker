@@ -8,6 +8,8 @@
 #ifndef _INCLUDE_BASICLIB_H_
 #define _INCLUDE_BASICLIB_H_
 
+#include "RegState.h"
+#include "OnOffStopType.h"
 #include "Initialize.h"
 #include "InternalMemManager.h"
 #include "BasicString.h"
@@ -20,11 +22,16 @@
 #include "ConversionFunctions.h"
 #include "TimeDateFunctions.h"
 #include "Threads.h"
-#include "LowLevel.h"
-#include "FileIOFunctions.h"
+#include "LowLevelFunctions.h"
 #include "BasicFileStream.h"
-#include "Console.h"
+#include "FileIOFunctions.h"
+#include "FileSystemFunctions.h"
+#include "ConsoleFunctions.h"
 #include "SignalHandlers.h"
+#include "PenFunctions.h"
+#include "StringFunctions.h"
+/* !!! #include "JoystickFunctions.h" */
+/* !!! #include "
 
 #endif
 

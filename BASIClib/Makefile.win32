@@ -8,7 +8,8 @@ LIBWHOLE = $(LIBBASE)$(MAJORVER)$(MINORVER).a
 OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ErrorFunctions.o MathFunctions.o InternalMemManager.o Threads.o \
        TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
-       StringFunctions.o LowLevel.o SignalHandlers.o
+       StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
+       ConsoleFunctions.o PenFunctions.o
 
 CC = gcc
 LINKER = gcc
@@ -75,11 +76,17 @@ StringFunctions.o : StringFunctions.c StringFunctions.h BasicString.h \
                     ErrorFunctions.h
 	$(CC) $(COPTIONS) StringFunctions.o StringFunctions.c
 
-LowLevel.o : LowLevel.c LowLevel.h
-	$(CC) $(COPTIONS) LowLevel.o LowLevel.c
+LowLevelFunctions.o : LowLevelFunctions.c LowLevelFunctions.h
+	$(CC) $(COPTIONS) LowLevelFunctions.o LowLevelFunctions.c
 
 SignalHandlers.o : SignalHandlers.c SignalHandlers.h
 	$(CC) $(COPTIONS) SignalHandlers.o SignalHandlers.c
+
+ConsoleFunctions.o : ConsoleFunctions.o ConsoleFunctions.h
+	$(CC) $(COPTIONS) ConsoleFunctions.o ConsoleFunctions.c
+
+PenFunctions.o : PenFunctions.o PenFunctions.h
+	$(CC) $(COPTIONS) PenFunctions.o PenFunctions.c
 
 # end of Makefile ...
 
