@@ -7,6 +7,8 @@
 #ifndef _INCLUDE_MATHFUNCTIONS_H_
 #define _INCLUDE_MATHFUNCTIONS_H_
 
+#include "RegState.h"
+
 /* !!! nowhere better for these, currently... */
 #define __min(x, y) ((x) < (y) ? (x) : (y))
 #define __max(x, y) ((x) > (y) ? (x) : (y))

@@ -405,7 +405,7 @@ void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
             ptrs->retAddr = ((void **) ptrs->stackPtr)[1];
 
                 /* Patch stack with new return address... */
-            ((void **) ptrs->stackPtr)[1] == &&__onEventRetAddr;
+            ((void **) ptrs->stackPtr)[1] = &&__onEventRetAddr;
             
                 /* Jump into OnEvent handler...yikes. */
             __asm__ __volatile__ ("movl %%ecx, %%esp\n\t"
@@ -419,27 +419,27 @@ void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
 
 __onEventRetAddr:
             __asm__ __volatile__ (
-                                  "pushl %%eax\n\t"  /* save registers. */
-                                  "pushl %%ebx\n\t"
-                                  "pushl %%ecx\n\t"
-                                  "pushl %%edx\n\t"
-                                  "pushl %%esi\n\t"
-                                  "pushl %%edi\n\t"
-                                  "pushl %%ebx\n\t"
+                                  "pushl %eax\n\t"  /* save registers. */
+                                  "pushl %ebx\n\t"
+                                  "pushl %ecx\n\t"
+                                  "pushl %edx\n\t"
+                                  "pushl %esi\n\t"
+                                  "pushl %edi\n\t"
+                                  "pushl %ebx\n\t"
                                   
                                   PUSHNULLSTATEARGS
                                   "call " CLEANUPPROC "\n\t"
-                                  POPNULLSTATEARGS
-                                  "movl  %%eax, %%ecx\n\t"
+                                  "addl $" STATEARGSSIZESTR ", %esp\n\t"
+                                  "movl  %eax, %ecx\n\t"
 
-                                  "popl %%ebx\n\t"   /* restore registers. */
-                                  "popl %%edi\n\t"
-                                  "popl %%esi\n\t"
-                                  "popl %%edx\n\t"
-                                  "popl %%ecx\n\t"
-                                  "popl %%ebx\n\t"
-                                  "popl %%eax\n\t"
-                                  "jmpl *(%%ecx)\n\t"
+                                  "popl %ebx\n\t"   /* restore registers. */
+                                  "popl %edi\n\t"
+                                  "popl %esi\n\t"
+                                  "popl %edx\n\t"
+                                  "popl %ecx\n\t"
+                                  "popl %ebx\n\t"
+                                  "popl %eax\n\t"
+                                  "jmpl *(%ecx)\n\t"
                                  );
         } /* else */
     } /* else */
@@ -472,18 +472,19 @@ void *__cleanupOnEventHandler(STATEPARAMS)
 } /* __cleanupOnEventHandler */
 
 
-void __doResume(STATEPARAMS, void *resumeAddr)
+void __doResume(STATEPARAMS, void *resumeAddr, void *bp, void *sp)
 /*
  *  !!! comment.
  *
  *
  */
 {
-#warning RESUME functions BADLY need commenting!
+/*warning RESUME functions BADLY need commenting!*/
 
     POnEventsState pState = __getOnEventsState(STATEARGS);
     POnEventHandlerPtrs ptrs = &pState->ptrs[pState->ptrCount - 1];
-    POnEventHandler pHandler = pState->handlers[pState->handlerCount - 1];
+    void *origStack = pState->handlers[pState->handlerCount - 1]->stackPtr;
+/*    void *asmKludge[4]; */
 
     if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_RESUME)
         __fatalRuntimeError(STATEARGS, ERR_FEATURE_UNAVAILABLE);
@@ -491,21 +492,46 @@ void __doResume(STATEPARAMS, void *resumeAddr)
     else
     {
         pState->ptrCount--;
-        __asm__ __volatile__ ("std\n\t" /* !!! */
+
+            /*
+             * For some reason, GCC is choking if I fill in these ASMs' "input"
+             *  sections, so we manually fill registers with the following
+             *  kludge. Oh well.
+             */
+
+/*        __asm__ __volatile__ ("movl resumeAddr, %edx\n\t"
+                              "movl bp, %eax\n\t"
+                              "movl sp, %ebx\n\t"
+                              "movl origStack, %edi\n\t"
+                              "movl ptrs, %esi\n\t"
+                              "movl 16(%esi),%ecx\n\t"
+                              "movl 12(%esi),%esi\n\t"
+                              "std\n\t"
+                              "resumestackrecopy:\n\t"
+                              "  lodsb\n\t"
+                              "  stosb\n\t"
+                              "loop resumestackrecopy\n\t"
+                              "movl %%eax, %%ebp\n\t"
+                              "movl %%ebx, %%esp\n\t"
+                              "jmpl *(%%edx)\n\t"
+                             );
+*/
+
+        __asm__ __volatile__ ("movl 16(%%esi), %%ecx\n\t"  /* protStackSize  */
+                              "movl 12(%%esi), %%esi\n\t"  /* protectedStack */
+                              "movl %%edx, %%edi\n\t"      /* origStack      */
+                              "movl 16(%%ebp), %%edx\n\t"  /* resumeAddr     */
+                              "movl 20(%%ebp), %%ebp\n\t"  /* bp             */
+                              "movl 24(%%ebp), %%esp\n\t"  /* sp             */
+                              "std\n\t"     /* !!! */      /* copy direction */
                               "stackrecopy:\n\t"
                               "  lodsb\n\t"
                               "  stosb\n\t"
                               "loop stackrecopy\n\t"
-                              "movl %%eax, %%ebp\n\t"
-                              "movl %%ebx, %%esp\n\t"
                               "jmpl *(%%edx)\n\t"
                                 : /* no output */
-                                : "S" (ptrs->protectedStack),
-                                  "D" (pHandler->stackPtr),
-                                  "a" (ptrs->basePtr),
-                                  "b" (ptrs->stackPtr),
-                                  "c" (ptrs->protStackSize),
-                                  "d" (resumeAddr)
+                                : "S" (ptrs),
+                                  "d" (origStack)
                              );
     } /* else */
 } /* __doResume */
@@ -514,29 +540,36 @@ void __doResume(STATEPARAMS, void *resumeAddr)
 void __resumeNext(STATEPARAMS)
 {
     POnEventsState pState = __getOnEventsState(STATEARGS);
-    POnEventHandlerPtrs ptrs = pState->ptrs[pState->ptrCount - 1];
+    POnEventHandlerPtrs ptrs = &pState->ptrs[pState->ptrCount - 1];
     POnEventHandler pHandler = pState->handlers[pState->handlerCount - 1];
     void *resumeAddr;
+    void *newBP;
+    void *newSP;
     unsigned long offset;
-
-    resumeAddr = (void *) (((unsigned long) ptrs->basePtr) + 4);
-    offset = (unsigned long) pHandler->basePtr - (unsigned long) resumeAddr;
-    resumeAddr = (void *) (((unsigned long) ptrs->protectedStack) + offset);
-    __doResume(STATEARGS, resumeAddr);
+    
+    offset = (unsigned long) pHandler->basePtr - (unsigned long) ptrs->basePtr;
+    resumeAddr = (void *) (((unsigned long) ptrs->protectedStack) + offset + 4);
+    newBP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 8));
+    newSP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 12));
+    __doResume(STATEARGS, resumeAddr, newBP, newSP);
 } /* __resumeNext */
 
 
 void __resumeZero(STATEPARAMS)
 {
     POnEventsState pState = __getOnEventsState(STATEARGS);
-    POnEventHandlerPtrs ptrs = pState->ptrs[pState->ptrCount - 1];
+    POnEventHandlerPtrs ptrs = &pState->ptrs[pState->ptrCount - 1];
     POnEventHandler pHandler = pState->handlers[pState->handlerCount - 1];
     void *resumeAddr;
+    void *newBP;
+    void *newSP;
     unsigned long offset;
     
     offset = (unsigned long) pHandler->basePtr - (unsigned long) ptrs->basePtr;
     resumeAddr = (void *) (((unsigned long) ptrs->protectedStack) + offset);
-    __doResume(STATEARGS, resumeAddr);
+    newBP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 8));
+    newSP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 12));
+    __doResume(STATEARGS, resumeAddr, newBP, newSP);
 } /* __resumeNext */
 
 /* end of OnEvents.c ... */

@@ -17,7 +17,7 @@ mid$ =
 */
 
 
-PBasicString right_DC_(PBasicString pStr, int count)
+PBasicString right_DC_(STATEPARAMS, PBasicString pStr, int count)
 /*
  * BASIC RIGHT$() function. Returns rightmost (count) chars in
  *  (pStr) in a new string.
@@ -30,12 +30,12 @@ PBasicString right_DC_(PBasicString pStr, int count)
     PBasicString retVal = NULL;
 
     if (count < 0)
-        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else if ((unsigned int) count > pStr->length)
-        __assignString(&retVal, pStr);
+        __assignString(STATEARGS, &retVal, pStr);
     else
     {
-        retVal = __allocString(count, false);
+        retVal = __allocString(STATEARGS, count, false);
         memcpy(retVal->data, pStr->data + (pStr->length - count), count);
     } /* else */
 
@@ -43,7 +43,7 @@ PBasicString right_DC_(PBasicString pStr, int count)
 } /* right_DC_ */
 
 
-PBasicString left_DC_(PBasicString pStr, int count)
+PBasicString left_DC_(STATEPARAMS, PBasicString pStr, int count)
 /*
  * BASIC LEFT$() function. Returns leftmost (count) chars in
  *  (pStr) in a new string.
@@ -56,12 +56,12 @@ PBasicString left_DC_(PBasicString pStr, int count)
     PBasicString retVal = NULL;
 
     if (count < 0)
-        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else if ((unsigned int) count > pStr->length)
-        __assignString(&retVal, pStr);
+        __assignString(STATEARGS, &retVal, pStr);
     else
     {
-        retVal = __allocString(count, false);
+        retVal = __allocString(STATEARGS, count, false);
         memcpy(retVal->data, pStr->data, count);
     } /* else */
 
@@ -69,7 +69,7 @@ PBasicString left_DC_(PBasicString pStr, int count)
 } /* left_DC_ */
 
 
-PBasicString rtrim_DC_(PBasicString pStr)
+PBasicString rtrim_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * BASIC RTRIM$() function. Returns a new string with a copy of (pStr),
  *  minus any (' ') chars from the righthand side.
@@ -86,17 +86,17 @@ PBasicString rtrim_DC_(PBasicString pStr)
 
     if (i >= 0)    /* chars to trim? */
     {
-        retVal = __allocString(i + 1, false);
+        retVal = __allocString(STATEARGS, i + 1, false);
         memcpy(retVal->data, pStr->data, i + 1);
     } /* if */
     else        /* no trim? Just copy it to retVal. */
-        __assignString(&retVal, pStr);
+        __assignString(STATEARGS, &retVal, pStr);
 
     return(retVal);
 } /* rtrim_DC_ */
 
 
-PBasicString ltrim_DC_(PBasicString pStr)
+PBasicString ltrim_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * BASIC LTRIM$() function. Returns a new string with a copy of (pStr),
  *  minus any (' ') chars from the lefthand side.
@@ -116,17 +116,17 @@ PBasicString ltrim_DC_(PBasicString pStr)
     if (i < max)    /* chars to trim? */
     {
         newSize = max - i;
-        retVal = __allocString(newSize, false);
+        retVal = __allocString(STATEARGS, newSize, false);
         memcpy(retVal->data, pStr->data + i, newSize);
     } /* if */
     else        /* no trim? Just copy it to retVal. */
-        __assignString(&retVal, pStr);
+        __assignString(STATEARGS, &retVal, pStr);
 
     return(retVal);
 } /* ltrim_DC_ */
 
 
-PBasicString lcase_DC_(PBasicString pStr)
+PBasicString lcase_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * Returns a lowercased copy of (pStr).
  *
@@ -138,7 +138,7 @@ PBasicString lcase_DC_(PBasicString pStr)
     char *i;
     char *max;
 
-    __assignString(&retVal, pStr);
+    __assignString(STATEARGS, &retVal, pStr);
 
     max = (retVal->data + retVal->length) - 1;
 
@@ -150,7 +150,7 @@ PBasicString lcase_DC_(PBasicString pStr)
 
 
 
-PBasicString ucase_DC_(PBasicString pStr)
+PBasicString ucase_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * Returns a uppercased copy of (pStr).
  *
@@ -162,7 +162,7 @@ PBasicString ucase_DC_(PBasicString pStr)
     char *i;
     char *max;
 
-    __assignString(&retVal, pStr);
+    __assignString(STATEARGS, &retVal, pStr);
 
     max = (retVal->data + retVal->length) - 1;
 
@@ -173,7 +173,7 @@ PBasicString ucase_DC_(PBasicString pStr)
 } /* ucase_DC_ */
 
 
-int len(PBasicString pStr)
+int len(STATEPARAMS, PBasicString pStr)
 /*
  * Return the number of characters contained by (pStr). Remember that
  *  the data in the BasicString structure is NOT null-terminated, and
@@ -188,7 +188,7 @@ int len(PBasicString pStr)
 } /* len */
 
 
-PBasicString space_DC_(int length)
+PBasicString space_DC_(STATEPARAMS, int length)
 /*
  * Create a BasicString consisting of (length) (' ') chars.
  *
@@ -199,10 +199,10 @@ PBasicString space_DC_(int length)
     PBasicString retVal;
 
     if (length < 0)
-        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
-        retVal = __allocString(length, false);
+        retVal = __allocString(STATEARGS, length, false);
         memset(retVal->data, ' ', length);
     } /* else */
 

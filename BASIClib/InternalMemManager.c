@@ -394,14 +394,14 @@ void __memReleaseBoxcarByPtr(STATEPARAMS, PBoxcar pCar)
 } /* __memReleaseBoxcarByPtr */
 
 
-void __memReleaseBoxcar(STATEARGS, unsigned long boxcarId)
+void __memReleaseBoxcar(STATEPARAMS, unsigned long boxcarId)
 /*	
  * Free a boxcar, and all contained pointers.
  *
  *   params : boxcarId == ID of boxcar to release.
  */
 {
-    __memReleaseBoxcarByPtr(STATEPARAMS, __retrieveBoxcar(boxcarId));
+    __memReleaseBoxcarByPtr(STATEARGS, __retrieveBoxcar(STATEARGS, boxcarId));
 } /* __memReleaseBoxcar */
 
 
