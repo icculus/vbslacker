@@ -19,6 +19,7 @@ extern "C" {
 
 typedef struct
 {
+    void *tmp;
     void **addrs;
     __integer count;
 } __GosubState;
@@ -30,15 +31,16 @@ void *__prepareReturn(__PGosubState state);
 
 /* __jump() and __jumpLabel() are macros defined in Assembler.h ... */
 
-#define __GOSUBVARS __GosubState __gosub = {NULL, 0}
+#define __GOSUBVARS __GosubState __gosub = {NULL, NULL, 0}
 
-#define __doGosub(label, ret)  __prepareGosub(ret, &__gosub); \
+#define __doGosub(label, ret)  __getLabelAddr(ret, __gosub.tmp); \
+                               __prepareGosub(__gosub.tmp, &__gosub); \
                                __jumpLabel(addr)
 
-#define __doReturn()           __jump(__prepareReturn(&__gosub));
+#define __doReturn           __jump(__prepareReturn(&__gosub))
 
 #define __doReturnLabel(label) __prepareReturn(&__gosub); \
-                               __jumpLabel(label);
+                               __jumpLabel(label)
 
 #ifdef __cplusplus
 }
