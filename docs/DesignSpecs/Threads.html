@@ -1,238 +1,207 @@
-<html>
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Version" CONTENT="8.0.3410">
+   <META NAME="Date" CONTENT="10/11/96">
+   <META NAME="Template" CONTENT="C:\Program Files\Microsoft Office\Office\HTML.DOT">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.05 [en] (Win95; I) [Netscape]">
+   <TITLE>VBSlacker - Design Specification - Threads</TITLE>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#800080">
 
-<head>
-<meta http-equiv="Content-Type"
-content="text/html; charset=iso-8859-1">
-<meta name="Version" content="8.0.3410">
-<meta name="Date" content="10/11/96">
-<meta name="Template"
-content="C:\Program Files\Microsoft Office\Office\HTML.DOT">
-<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
-<title>VBSlacker - Design Specification - Threads</title>
-</head>
+<CENTER>
+<H1>
+<B><FONT FACE="Arial"><FONT SIZE=+1>VBSlacker - Design Specification</FONT></FONT></B></H1></CENTER>
 
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
-vlink="#800080">
+<CENTER>
+<H2>
+<B><I><FONT FACE="Arial">Threads</FONT></I></B></H2></CENTER>
 
-<h1 align="center"><font size="4" face="Arial"><b>VBSlacker -
-Design Specification</b></font></h1>
+<H3>
+<B><I><FONT FACE="Arial">Introduction</FONT></I></B></H3>
+BASIClib is (hopefully) threadsafe, and has an abstraction layer for creating
+and managing threads.
 
-<h2 align="center"><font face="Arial"><b><i>Threads</i></b></font></h2>
+<P>&nbsp;
+<H3>
+<B><I><FONT FACE="Arial">Overview</FONT></I></B></H3>
+Linux is still not to the point of having a STANDARD thread library. Glibc2
+(the standard on Red Hat and some other distributions, and the inevitable
+future of linux) has a thread package that is to be the standard, but it
+doesn't come by default in the glibc2 library. You have to add another
+package into the source, define some flags, and recompile the library,
+which is a good 2 hours worth of processing on a pentium. Ugh. (Actually,
+Red Hat 5.1 seems to package their binary glibc2 with LinuxThreads compiled
+in. Good. Also, anyone who is still fighting for libc5 is rapidly becoming
+considered a primate. Doubly good.)
 
-<h3><font face="Arial"><b><i>Introduction</i></b></font></h3>
+<P>There's NO POSIX threads on Win95. Cygnus is working on this, but god
+knows how long it will take them to write a POSIX compliant pthreads package
+AND make all their libraries thread-safe. WinNT has some DCE threads libraries
+(older draft of POSIX standard) bundled with the OS, but this is not 100%
+compatible with Linux (POSIX standard) threads.
 
-<p>BASIClib is (hopefully) threadsafe, and has an abstraction
-layer for creating and managing threads.</p>
+<P>Ignoring those as "problems that will fix themselves," however...
 
-<p>&nbsp;</p>
+<P>&nbsp;
+<H3>
+<B><I><FONT FACE="Arial">Reference</FONT></I></B></H3>
+The following is a list of the BasicLIB ThreadAPI…
 
-<h3><font face="Arial"><b><i>Overview</i></b></font></h3>
+<P>&nbsp;
+<H3>
+<B><I><FONT FACE="Arial">Usage</FONT></I></B></H3>
+For reference, the thread abstraction layer is defined in BASIClib/Threads.c
+... The current implementation uses POSIX threads, but there's not necessarily
+a need to concern yourself with the underlying library. As long as a threads
+package can fulfill the rather undemanding needs of BASIClib's API, it
+can be fitted as the backend. POSIX just seems like the best way to go,
+but BASIClib is hardly chained to it.
 
-<p>Linux is still not to the point of having a STANDARD thread
-library. Glibc2 (the standard on Red Hat and some other
-distributions, and the inevitable future of linux) has a thread
-package that is to be the standard, but it doesn't come by
-default in the glibc2 library. You have to add another package
-into the source, define some flags, and recompile the library,
-which is a good 2 hours worth of processing on a pentium. Ugh.
-(Actually, Red Hat 5.1 seems to package their binary glibc2 with
-LinuxThreads compiled in. Good. Also, anyone who is still
-fighting for libc5 is rapidly becoming considered a primate.
-Doubly good.)</p>
+<P>You should #include "Threads.h" in any modules that use threads in anyway.
+Better yet, just #include "StdBasic.h", which includes Threads.h and other
+nifites. You should ALSO define _REENTRANT on the command line for gcc.
+<BLOCKQUOTE><B>gcc -D_REENTRANT MyCode.c</B></BLOCKQUOTE>
+_REENTRANT changes the behavior of the C library headers to be thread safe.
+(Most notably, (errno) works in a downright wrong way if you don't use
+this.)
 
-<p>There's NO POSIX threads on Win95. Cygnus is working on this,
-but god knows how long it will take them to write a POSIX
-compliant pthreads package AND make all their libraries
-thread-safe. WinNT has some DCE threads libraries (older draft of
-POSIX standard) bundled with the OS, but this is not 100%
-compatible with Linux (POSIX standard) threads.</p>
+<P><B>NOTE: YOU SHOULD DEFINE _REENTRANT EVEN IF YOU DON'T DIRECTLY USE
+THREADS.</B>
 
-<p>Ignoring those as &quot;problems that will fix
-themselves,&quot; however...</p>
+<P>Threads could be calling your functions, even if you don't specifically
+make a thread do so. Including Threads.h and not defining _REENTRANT will
+cause an error, but this check isn't foolproof, since not every module
+will necessarily include Threads.h ...
 
-<p>&nbsp;</p>
-
-<h3><font face="Arial"><b><i>Reference</i></b></font></h3>
-
-<p>The following is a list of the BasicLIB ThreadAPI&#133;</p>
-
-<p>&nbsp;</p>
-
-<h3><font face="Arial"><b><i>Usage</i></b></font></h3>
-
-<p>For reference, the thread abstraction layer is defined in
-BASIClib/Threads.c ... The current implementation uses POSIX
-threads, but there's not necessarily a need to concern yourself
-with the underlying library. As long as a threads package can
-fulfill the rather undemanding needs of BASIClib's API, it can be
-fitted as the backend. POSIX just seems like the best way to go,
-but BASIClib is hardly chained to it.</p>
-
-<p>You should #include &quot;Threads.h&quot; in any modules that
-use threads in anyway. Better yet, just #include
-&quot;StdBasic.h&quot;, which includes Threads.h and other
-nifites. You should ALSO define _REENTRANT on the command line
-for gcc.</p>
-
-<blockquote>
-    <p><b>gcc -D_REENTRANT MyCode.c</b></p>
-</blockquote>
-
-<p>_REENTRANT changes the behavior of the C library headers to be
-thread safe. (Most notably, (errno) works in a downright wrong
-way if you don't use this.)</p>
-
-<p><b>NOTE: YOU SHOULD DEFINE _REENTRANT EVEN IF YOU DON'T
-DIRECTLY USE THREADS.</b></p>
-
-<p>Threads could be calling your functions, even if you don't
-specifically make a thread do so. Including Threads.h and not
-defining _REENTRANT will cause an error, but this check isn't
-foolproof, since not every module will necessarily include
-Threads.h ...</p>
-
-<p>Spin a thread like this:</p>
-
-<blockquote>
-    <pre><font face="Courier New">void myThreadEntryPoint(void *_args)
+<P>Spin a thread like this:
+<BLOCKQUOTE>
+<PRE><FONT FACE="Courier New">void myThreadEntryPoint(void *_args)
 {
-   MyDataType *args = (MyDataType *) _args;
-   /* do something. */
-} /* myThreadEntryPoint */</font></pre>
-</blockquote>
+&nbsp;&nbsp; MyDataType *args = (MyDataType *) _args;
+&nbsp;&nbsp; /* do something. */
+} /* myThreadEntryPoint */</FONT></PRE>
+</BLOCKQUOTE>
 
-<blockquote>
-    <pre><font face="Courier New">void main(void)
+<BLOCKQUOTE>
+<PRE><FONT FACE="Courier New">void main(void)
 {
-   /*
-   * The NULL can be a pointer to anything you like. It will
-   * be passed to myThreadEntryPoint()...
-   */
-   __spinThread((void *) myThreadEntryPoint, NULL);
-} /* main */</font></pre>
-</blockquote>
+&nbsp;&nbsp; /*
+&nbsp;&nbsp;&nbsp; * The NULL can be a pointer to anything you like. It will
+&nbsp;&nbsp;&nbsp; * be passed to myThreadEntryPoint()...
+&nbsp;&nbsp;&nbsp; */
 
-<p>Every thread has an index number (a &quot;tidx,&quot; or
-&quot;Thread Index&quot;). The first thread, the one that runs
-the mainline, is index (0). The next thread spun is index (1). As
-threads are destroyed, their index numbers are recycled for new
-threads that are spun. You can find out the currently executing
-thread by calling __getCurrentThreadIndex(). It will return the
-index of the thread that called the function.</p>
+&nbsp;&nbsp; __spinThread((void *) myThreadEntryPoint, NULL);
+} /* main */</FONT></PRE>
+</BLOCKQUOTE>
+Every thread has an index number (a "tidx," or "Thread Index"). The first
+thread, the one that runs the mainline, is index (0). The next thread spun
+is index (1). As threads are destroyed, their index numbers are recycled
+for new threads that are spun. You can find out the currently executing
+thread by calling __getCurrentThreadIndex(). It will return the index of
+the thread that called the function.
 
-<p>Threads are destroyed automatically when they return. You can
-have one destroy itself by calling __terminateCurrentThread().
-You can kill other threads, if you know its thread index, by
-calling __terminateThread(tidx)... the behavior is undefined if
-you call __terminateThread() with the current thread's index.</p>
+<P>Threads are destroyed automatically when they return. You can have one
+destroy itself by calling __terminateCurrentThread(). You can kill other
+threads, if you know its thread index, by calling __terminateThread(tidx)...
+if you call __terminateThread() with the current thread's index, the API
+will just call __terminateCurrentThread() for you.
 
-<p>Behavior is ALWAYS undefined if you try to manipulate threads
-with any functions other than BASIClib's threads API. Don't
-assume that the underlying code is a POSIX implementation, or
-even the WIN32 API, even if you are running under Windows...maybe
-we got witty and created a &quot;green threads&quot; package that
-runs multiple threads on one.</p>
+<P>Behavior is ALWAYS undefined if you try to manipulate threads with any
+functions other than BASIClib's threads API. Don't assume that the underlying
+code is a POSIX implementation, or even the WIN32 API, even if you are
+running under Windows...maybe we got witty and created a "green threads"
+package that runs multiple threads on one.
 
-<p>Most (if not all) of your thread-bug problems will come from
-global and static variables. Expect to be thinking about how to
-protect that data. Remember that even thread-proofed data in a
-dynamically-allocated array isn't safe if you plan to
-__memRealloc() that array at any point.</p>
+<P>Most (if not all) of your thread-bug problems will come from global
+and static variables. Expect to be thinking about how to protect that data.
+Remember that even thread-proofed data in a dynamically-allocated array
+isn't safe if you plan to __memRealloc() that array at any point.
 
-<p>Just about every other thread-bug comes from i/o to the same
-device/file simultaneously from two different threads. These are
-sometimes even harder to track, because crashes/unexpected
-behavior tend to occur inside the C library, which you probably
-aren't willing to trace into. :)</p>
+<P>Just about every other thread-bug comes from i/o to the same device/file
+simultaneously from two different threads. These are sometimes even harder
+to track, because crashes/unexpected behavior tend to occur inside the
+C library, which you probably aren't willing to trace into. :)
 
-<p>Almost every thread-bug can be prevented by correct use of
-ThreadLocks.</p>
+<P>Almost every thread-bug can be prevented by correct use of ThreadLocks.
 
-<p><i>Keep reading&#133;</i></p>
+<P><I>Keep reading…</I>
 
-<p>There is no EnterCriticalThreadSection() API in the POSIX
-standard. Use BASIClib's ThreadLocks instead. This is a
-abstraction layer over POSIX mutexes. Like so:</p>
+<P>There is no EnterCriticalThreadSection() API in the POSIX standard.
+Use BASIClib's ThreadLocks instead. This is a abstraction layer over POSIX
+mutexes. Like so:
+<BLOCKQUOTE><I>(at top of module:)</I>
+<PRE><FONT FACE="Courier New">#include "Threads.h"
 
-<blockquote>
-    <p><i>(at top of module:)</i></p>
-    <pre><font face="Courier New">#include &quot;Threads.h&quot;
-ThreadLock myThreadLock;</font></pre>
-    <p><i>(in init code for module:)</i></p>
-    <pre><font face="Courier New">__createThreadLock(&amp;myThreadLock);</font></pre>
-    <p><i>(Whenever you need to protect data from race
-    conditions...)</i></p>
-    <pre><font face="Courier New">__obtainThreadLock(&amp;myThreadLock);
+ThreadLock myThreadLock;</FONT></PRE>
+<I>(in init code for module:)</I>
+<PRE><FONT FACE="Courier New">__createThreadLock(&amp;myThreadLock);</FONT></PRE>
+<I>(Whenever you need to protect data from race conditions...)</I>
+<PRE><FONT FACE="Courier New">__obtainThreadLock(&amp;myThreadLock);
+
 /* Mess with data... */
-__releaseThreadLock(&amp;myThreadLock);</font></pre>
-    <p><i>(in deinit code for module:)</i></p>
-    <pre>__destroyThreadLock(&amp;myThreadLock);</pre>
-</blockquote>
 
-<p>Try to group sensitive data by ThreadLocks, so we don't hog
-too much memory/processor time with a ThreadLock for every bit of
-data, but there are enough locks in the right places so there
-aren't any massive slowdowns while threads wait unnecessarily to
-obtain a lock. Use common sense. Too many locks == slow. Too few
-locks == slower, but more idling. No locks == inexplicable
-crashes.</p>
+__releaseThreadLock(&amp;myThreadLock);</FONT></PRE>
+<I>(in deinit code for module:)</I>
+<PRE>__destroyThreadLock(&amp;myThreadLock);</PRE>
+</BLOCKQUOTE>
+Try to group sensitive data by ThreadLocks, so we don't hog too much memory/processor
+time with a ThreadLock for every bit of data, but there are enough locks
+in the right places so there aren't any massive slowdowns while threads
+wait unnecessarily to obtain a lock. Use common sense. Too many locks ==
+slow. Too few locks == slower, but more idling. No locks == inexplicable
+crashes.
 
-<p>If you have to wait for a thread to terminate for any reason,
-you can call __waitForThreadToDie(tidx), and the calling thread
-will block until the thread with index (tidx) terminates. Be
-careful whenever blocking is involved, like this.</p>
+<P>If you have to wait for a thread to terminate for any reason, you can
+call __waitForThreadToDie(tidx), and the calling thread will block until
+the thread with index (tidx) terminates. Be aware that this call may block
+from a few milliseconds to the entire duration of the program, depending
+on what the thread we're waiting on is doing.
 
-<p>If your thread is looping for any amount of time, it might be
-wise to place a call to __timesliceThread() in your loop. This
-call surrenders control of the processor so other threads and
-processes can use it. Eventually control will return to the
-caller. VERY handy when waiting endlessly for user input, or
-calculating a jazillion places of Pi.</p>
+<P>If your thread is looping for any amount of time, it might be wise to
+place a call to __timesliceThread() in your loop. This call surrenders
+control of the processor so other threads and processes can use it. Eventually
+control will return to the caller. VERY handy when waiting endlessly for
+user input, or calculating a jazillion places of Pi.
 
-<p>For accounting purposes, you can call __getThreadCount(),
-which returns a count of all threads in this process...although
-this isn't as useful as __getHighestThreadIndex(), which returns
-the highest thread index in use. This is good for allocating
-arrays that keep one element for each thread, since such arrays
-are inherently thread-safe (as long as use use ThreadLocks when
-reallocating the array.)</p>
+<P>For accounting purposes, you can call __getThreadCount(), which returns
+a count of all threads in this process...although this isn't as useful
+as __getHighestThreadIndex(), which returns the highest thread index in
+use. This is good for allocating arrays that keep one element for each
+thread, since such arrays are inherently thread-safe (as long as use use
+ThreadLocks when reallocating the array.)
 
-<p>To be notified when a thread is created, add a function to
-your module called (for example) &quot;void
-__initThreadMyModule(int tidx)&quot;, and add a call to it inside
-of __initThread(int tidx) (found in Initialize.c). This new
-function will be called whenever a new thread is created, with
-tidx set to the thread index of the new thread. This will allow
-you to update thread-separated arrays and such. Be careful about
-reallocating arrays, since this function can be called at any
-time, so any access to those array elements will need to be
-protected by ThreadLocks. The newly created thread will be the
-one to call __initThread().</p>
+<P>To be notified when a thread is created, add a function to your module
+called (for example) "void __initThreadMyModule(int tidx)", and add a call
+to it inside of __initThread(int tidx) (found in Initialize.c). This new
+function will be called whenever a new thread is created, with tidx set
+to the thread index of the new thread. This will allow you to update thread-separated
+arrays and such. Be careful about reallocating arrays, since this function
+can be called at any time, so any access to those array elements will need
+to be protected by ThreadLocks. The newly created thread will be the one
+to call __initThread().
 
-<p>The same rules apply for thread termination...add your
-notification function calls to __deinitThread(int tidx) in
-Initialize.c ... The thread that did the terminating (the one who
-called __terminateThread() or __terminateCurrentThread()) will be
-the one to call __deinitThread().</p>
+<P>The same rules apply for thread termination...add your notification
+function calls to __deinitThread(int tidx) in Initialize.c ... The thread
+that did the terminating (the one who called __terminateThread() or __terminateCurrentThread())
+will be the one to call __deinitThread().
 
-<p>Be careful about obtaining thread locks and error handling; If
-you own a thread lock, and there's a possibility of a runtime
-error being thrown, register an OnError handler that releases
-possession of the lock, deregisters itself, and rethrows the
-error. Other protections include making sure you don't call any
-routines that could possibly throw (standard C library routines
-never do so, only BASIClib functions do), or registering an
-OnError handler that fixes problems, and executes a RESUME of
-some sort.</p>
+<P>Be careful about obtaining thread locks and error handling; If you own
+a thread lock, and there's a possibility of a runtime error being thrown,
+register an OnError handler that releases possession of the lock, deregisters
+itself, and rethrows the error. Other protections include making sure you
+don't call any routines that could possibly throw (standard C library routines
+never do so, only BASIClib functions do), or registering an OnError handler
+that fixes problems, and executes a RESUME of some sort.
 
-<p>If you don't take measures, other threads will block
-inexplicably and probably permenently if they try to obtain the
-lock that your error-throwing thread has possession of.</p>
+<P>If you don't take measures, other threads will block inexplicably and
+probably permenently if they try to obtain the lock that your error-throwing
+thread has possession of.
 
-<p>The best idea is just to avoid global and static data wherever
-possible. Remember that every thread has it's own stack, and data
-stored on it will be separate from other functions...therefore
-local variables and arguments are thread-proofed already. This
-doesn't solve EVERY problem, but keep it in mind.</p>
-</body>
-</html>
+<P>The best idea is just to avoid global and static data wherever possible.
+Remember that every thread has it's own stack, and data stored on it will
+be separate from other functions...therefore local variables and arguments
+are thread-proofed already. This doesn't solve EVERY problem, but keep
+it in mind.
+</BODY>
+</HTML>
