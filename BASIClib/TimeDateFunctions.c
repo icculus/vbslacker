@@ -125,7 +125,7 @@ PBasicString __makeTimeDateString(int size, char *fmt)
 
     rc = strftime(buffer, sizeof (buffer), fmt, brokenTime);
 
-    if (rc == sizeof (buffer))  /* not enough space? */
+    if ((unsigned int) rc == sizeof (buffer))  /* not enough space? */
         __runtimeError(INTERNAL_ERROR);
     else
         retVal = __createString(buffer, false);
@@ -224,7 +224,7 @@ boolean __prepareDateString(char *str)
 
     for (i = 0; (i < max) && (retVal == true); i++)
     {
-        if (!isdigit(str[i]))   /* not a number? */
+        if (!isdigit((int) str[i]))   /* not a number? */
         {
             if ((str[i] != '-') && (str[i] != '/'))
                 retVal = false;

@@ -62,7 +62,7 @@ void __initThreadOnEvents(int tidx)
 {
     PHandlerVector table;
     int currentThreadCount;
-    int i;
+    unsigned int i;
 
     __enterCriticalThreadSection();
 
@@ -102,7 +102,7 @@ void __deinitThreadOnEvents(int tidx)
  */
 {
     PHandlerVector table;    
-    int i;
+    unsigned int i;
 
     for (i = 0; i < (OnEventTypeEnum) TOTAL; i++)
         __memFree(table[i].handlers);
