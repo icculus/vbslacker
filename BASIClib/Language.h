@@ -2,6 +2,7 @@
  * Dynamic language support header.
  *
  *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *     Written by Ryan C. Gordon.
  */
 
 #ifndef _INCLUDE_STDBASIC_H_
