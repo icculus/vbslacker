@@ -91,7 +91,7 @@ PBasicString _vbSS_environ_DC_(PBasicString envVarName)
 } /* vbSS_environ_DC_ */
 
 
-PBasicString _vbSi_environ_DC_(__single n)
+PBasicString _vbSf_environ_DC_(__single n)
 /*
  * Get the (n)th string from the list of environment variables, whatever
  *  it may be.
@@ -114,7 +114,7 @@ PBasicString _vbSi_environ_DC_(__single n)
 
     retVal = __createString(((environ[i] == NULL) ? "" : environ[i]), false);
     return(retVal);
-} /* _vbSi_environ_DC_ */
+} /* _vbSf_environ_DC_ */
 
 
 void _vbpS_environ(PBasicString newEnvrStr)
