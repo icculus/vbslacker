@@ -26,7 +26,6 @@ void __callOnEventHandler(POnEventHandler pHandler);
      * These should be thread safe, since they are only used within
      * The bounds of critical sections.
      */
-void *_label_addr_ = NULL;
 void *_stack_ptr_ = NULL;
 void *_base_ptr_ = NULL;
 
@@ -90,7 +89,7 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  *   __enterCriticalThreadSection();
  *   __getStackPointer(&_stack_ptr_);
  *   __getBasePointer(&_base_ptr);
- *   __registerOnEventHandler(handlerLabel, &lastArg + sizeof(lastArg),
+ *   __registerOnEventHandler(&&handlerLabel, &lastArg + sizeof(lastArg),
  *                            _stack_ptr_, &firstArg - sizeof(void *),
  *                            _base_ptr_, ONERROR);
  *   __exitCriticalThreadSection();
