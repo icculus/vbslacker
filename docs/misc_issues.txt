@@ -2,11 +2,8 @@ Q: What do we do when we generate a runtime error?  In the case of FreeFile()
    we need to return out of the function...but NOT assign a return value.
    Can this be done?
 
-A: When you call __runtimeError(), you should assume the call will not return.
-   The user code that triggered the error will either be called again,
-   (RESUME 0), skipped (RESUME NEXT), or be dropped out of (error handler
-   returns), but won't care what your return value would be. However, you will
-   still need to be careful about cleanup in case of errors. See on_events.txt.
+A: Call __runtimeError(). The stack is manipulated, and your function is
+   "returned from" without a retVal. BASIClib takes care of this.
 
 Q: VB does overrange checking on arguments...for example, if a function requires
    a 'short' and the value passed was 40000, then the function would generate a
@@ -16,15 +13,11 @@ A: In the rare case that your code would have a chance to overflow a variable,
    you should check for wrappage, and if OVERFLOW CHECKING IS ENABLED, throw
    ERR_OVERFLOW, like this:
 
-#include "Initialize.h"
 
 int vbii_addOne(STATEPARAMS, short x)
 {
-    if ((x == 32767) &&
-        (!(__getInitFlags(STATEARGS) & INITFLAG_DISABLE_NUM_OVERFLOW)))
-    {
+    if ((x == 32767) && (!(__getInitFlags() & INITFLAG_DISABLE_NUM_OVERFLOW)))
         __runtimeError(ERR_OVERFLOW);
-    } /* if */
     else
         return(x + 1);
 } /* addOne */
