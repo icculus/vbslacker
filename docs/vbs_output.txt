@@ -6,7 +6,7 @@
 *******************************************************************************
 
 To start:
-    Basic modules should be converted to ".CC" files. This will allow
+    Basic modules should be converted to ".cc" files. This will allow
     C++ to be used in the future, and C++ startup code to be inserted
     for use by GUI frontends.
 
@@ -15,18 +15,18 @@ To start:
 
     The mainline should look something like this:
 
-    int main(int _argc, char **_argv)
+    int main(int __argc, char **__argv, char **__envp)
     {
-        void *_base;
-        __getBasePointer(_base);
-        __initBasicLib(_base, _argc, _argv);
+        void *__base;
+        __getBasePointer(__base);
+        __initBasicLib(__base, __argc, __argv, __envp);
         __userMainline();
         return(0);          /* !!! What should this REALLY return? */
     }
 
     __userMainline() may be a separate function, or may inlined into main()
     by the BASIC compiler. Either is acceptable. (Let's avoid the C "inline"
-    keyword as much as possible, since it isn't forceful enough for our uses.)
+    keyword, however, since it isn't forceful enough for our uses.)
 
 
 Comments:
@@ -149,17 +149,24 @@ GOTOs and Line labels:
      become clear later.)
 
 
-Operators; math:
-    Addition, subtraction, multiplication, and division are done with the
-    equivalent C operator. Most other math (like SIN) is performed through the
-    BASIC API, which is abstracted in the normal ways in BASIClib. The C
-    operators "++" and "--" should never be used in vbs output.
-    !!! Is that all?  + operator is fucked.
+Operators; overview:
+    C math operators should NEVER directly be used, as BASIC does all sorts
+    or rediculous things with variants and operators. The C operators "++"
+    and "--" should definitely never be used in vbs output.
+    Most other math (like SIN) is performed through the BASIC API, which is
+    abstracted in the normal ways in BASIClib.
 
-Operators; "&":
+Operators; '&':
     String concatenation. !!! more.
 
-
+Operators; '*':
+Operators; '+':
+Operators; '-':
+Operators; '/':
+Operators; '\':
+Operators; '^':
+Operators; '=':
+Operators; "AddressOf":
 
 
 
@@ -167,6 +174,14 @@ Operators; IMP:
     a = x IMP y
       --== becomes ==--
     a = __IMP(x, y)
+
+
+Operators; AND:
+Operators; OR:
+Operators; NOT:
+Operators; XOR:
+Operators; AND:
+Operators; AND:
 
 
 
@@ -278,6 +293,7 @@ Pointers:
 
 SWAP:
     SWAP should be generated inline by the parser/compiler.
+
     DIM a AS INTEGER
     DIM b AS INTEGER
 
@@ -296,7 +312,13 @@ SWAP:
     The above example does not include type and overflow checking.
 
 
+CHOOSE:
+       !!! write this.
+
 GOSUB and RETURN:
+    Note that "RETURN" and "RETURN 0" do precisely the same thing, although
+    both are acceptable syntax. Just treat them interchangably.
+
     If a GOSUB or RETURN is encountered, then in that functions' variable
     declaration section, this must appear:
 
