@@ -4,18 +4,20 @@ This is pretty simple. GOSUB and RETURN are basically commands that allow
 programmers to create subroutines within subroutines. However, with very
 little structure, they succeed mostly in creating spaghetti code, so using
 them is not a good idea. However, they are part of the language, so we
-support them. Also, the construct ON EVENT GOSUB LABEL is another use for
-GOSUB (and is talked about in on_events.txt...).
+support them.
+
+ON EVENT GOSUB is not supported by vbSlacker; that's okay, besides being a
+pretty braindead event-handling system, it isn't supported by Visual Basic
+anymore, either.
 
 So, without further ado, here's everything you always wanted to know about
 GOSUB but were afraid to ask.
 
 Any procedure that uses GOSUB will NOT compile unless you #include "Gosub.h"
-(or "StdBasic.h" or "BasicLib.h"...) and write this as the VERY FIRST line of
-all procedures containing GOSUBs and/or RETURNs, before any variables are
-declared.
+(or "StdBasic.h" or "BasicLib.h"...) and write this somewhere in the local
+variable decalrations:
 
-__GOSUBSUPPORT;
+__GOSUBVARS;
 
 
 Now, to GOSUB to another piece of that procedure, put a line label where you
@@ -23,31 +25,35 @@ want to land, and a line label for the start of the next line of BASIC
 code AFTER that label's line (This is for the RETURN command's benefit),
 like so...
 
-crackpipe:
+    stuffBeforeGosubCall();
+    /* GOSUB call is here... */
+__insertLineLabel(nextline);
+    doSomeMoreNiftyThings();
+    return;
 
-    __printNChars("Feh!", 4);
-    __printNewLine();
-
-nextline:
+__insertLineLabel(crackpipe);    /* this is the line label for the GOSUB. */
+    doSomethingNifty();          /* this is the first line of the GOSUB.  */
+    /* RETURN call is here... */
 
 ...and then do this to "gosub":
 
-__doGosub(&&crackpipe, &&nextline);
+    /* replace "GOSUB call is here..." comment above with this: */
+
+    __doGosub(crackpipe, nextline);
 
 
 Tada!
 
 
-(Not that
-
 To RETURN, here's what's what:
 
 - You must have GOSUBed, or you'll get the runtime error "RETURN without
-   GOSUB."
+   GOSUB."  This is normal error checking.
 - You must be RETURNing in the same procedure you GOSUBed from. RETURNing in
    another procedure nails you with a "RETURN without GOSUB" error. You may
    still call other procedures from within the GOSUB handler, but you must be
-   back in the original GOSUB handler before RETURNing.
+   back in the original GOSUB handler before RETURNing. This is consistent
+   with Visual Basic.
 - You may GOSUB, call another SUB, and GOSUB from there as well. This sort of
    stacking will lead to spaghetti code, but IS legal.
 - You may also have multiple GOSUBs, or recursive GOSUBs in the same procedure,
@@ -55,6 +61,13 @@ To RETURN, here's what's what:
 - You may leave a procedure from inside a GOSUB handler, but the GOSUB is lost,
    and calling RETURN, even if you end up back in that procedure, will result
    in a "RETURN without GOSUB" error.
+- If you return from a procedure (by hitting the end, or explicitly via
+   EXIT SUB or whatnot), then any GOSUBs stacked up in that procedure are
+   lost, as the GOSUB data is stored on the stack. This is normal.
+- If these rules confused you, then you should probably "Just say NO" to using
+   GOSUBs in your code. Actually, you should avoid them anyhow. We put them
+   into vbSlacker only for compatibility, and don't recommend their use in
+   coherent algorithms.
 
 This is all how Microsoft BASICs handle GOSUBs, too. We didn't make any of
 this up. In fact, we'd've done away with it in the first place, if we had
@@ -63,29 +76,26 @@ language.
 
 Anyhow, wherever your BASIC "RETURN" statement would be, put this instead:
 
-__doReturn(&&retAddr);
+__doReturn;
 
-Where retAddr is the line label to "return" to, or NULL to return to the line
-after the matching GOSUB call.
+...and program flow jumps to the label you specified as the second parameter
+to __doGosub(). Presumably, this a label for the line of code immediately
+following __doGosub().
+
+If you have a RETURN aSpecificLineLabel construct, use this:
+
+__doReturnLabel(aSpecificLineLabel);
 
 Overall, pretty easy.
 
-Note that __GOSUBSUPPORT, __doGosub, and __doReturn are all macros, so avoid
-"++" and "--" operators in conjunction with them (of course, you'll probably
-only ever use line label addresses with this, but there's always that one
-guy...)
+Note that all of these things are C macros. That is why __doReturn has no
+parentheses after it. You shouldn't have to worry about increment/decrement
+operators with these, as they ask for line labels as parameters. In fact, you
+can't pass pointers to them; they don't know how to handle them.
 
 Don't use "__gosub" as a variable name, as __GOSUBSUPPORT will reserve that.
-
-One last thing (that is expanded upon in on_events.txt) to mention is that
-anywhere you would have an OnEvent that GOSUBs (as opposed to GOTOs), you
-need to use the __GOSUBSUPPORT macro, and __doReturn just as you always
-would. So, "On Timer Gosub myAss" still needs __GOSUBSUPPORT in that procedure.
 
 Have fun.
 
 /* end of Gosub.txt ... */
-
-
-
 
