@@ -22,7 +22,7 @@ void __initBasicLib(void)
 {
     __initThreads();
     __initTimeDateFunctions();
-    __initFileStreamArray();
+    __initBasicFileStream();
 } /* __initBasicLib */
 
 

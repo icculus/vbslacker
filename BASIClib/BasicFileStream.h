@@ -25,7 +25,7 @@ typedef __BasicFileStream *__PBasicFileStream;
 /*** Function Declarations ***/
 __PBasicFileStream __getFileStream(short fileNumber);
 boolean __deleteFileStream(short fileNumber);
-void __initFileStreamArray(void);
+void __initBasicFileStream(void);
 boolean __invalidFileNumber(short fileNumber);
 __PBasicFileStream __createFileStream(short fileNumber);
 
