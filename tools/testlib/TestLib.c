@@ -5,13 +5,25 @@
  */
 
 #include <stdio.h>
-#include <time.h>
+#include <string.h>
 #include <stdlib.h>
 #include "TestLib.h"
+
+#define stricmp strcasecmp
+
+static int skipCollector = 0;
 
 
 void initTestLib(int argc, char **argv, char **envp)
 {
+    int i;
+
+    for (i = 0; i < argc; i++)
+    {
+        if (stricmp(argv[i], "--skipgc") == 0)
+            skipCollector = 1;
+    } /* for */
+
     setbuf(stdout, NULL);
     printf("\n[TESTLIB FOR VBSLACKER STARTING UP...]\n");
     printf("Making call to __initBasicLib()...");
@@ -42,7 +54,7 @@ void testEverything(void)
 {
     testOnError();
     testErrorFunctions();
-    testGarbageCollector();
+    testGarbageCollector(skipCollector);
     testThreads();
     testStringFunctions();
     testConversionFunctions();
