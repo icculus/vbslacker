@@ -27,13 +27,14 @@ typedef struct
 
 typedef OnEventHandler *POnEventHandler;
 
+POnEventHandler __getOnEventHandler(OnEventTypeEnum evType);
 void __initOnEvents();
 void __registerOnEventHandler(void *handlerAddr, void *stackSize,
                               void *stackEnd, OnEventTypeEnum evType);
 
 void __deregisterOnEventHandler(void *handlerAddr, OnEventTypeEnum evType);
 
-cdecl long __callOnEventHandler(POnEventHandler pHandler);
+long __callOnEventHandler(POnEventHandler pHandler);
 
 #endif
 

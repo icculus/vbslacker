@@ -15,7 +15,7 @@
 typedef struct
 {
     int count;
-    POnEventHandler[] handlers;
+    POnEventHandler *handlers;
 } HandlerVector;
 
 typedef HandlerVector *PHandlerVector;
@@ -43,6 +43,25 @@ void __initOnEvents(void)
 } /* __initOnEvents */
 
 
+POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
+/*
+ * Returns the current ON EVENT GOTO handler for event type evType.
+ *
+ *    params : evType == type of event we want handler for.
+ *   returns : most significant handler for given event type. NULL if
+ *              there isn't one.
+ */
+{
+    POnEventHandler retVal = NULL;
+    HandlerVector evVect = table[evType];
+
+    if (evVect.count > 0)
+        retVal = evVect.handlers[evVect.count - 1];
+
+    return(retVal);
+} /* __getOnEventHandler */
+
+
 void __registerOnEventHandler(void *handlerAddr, void *stackStart,
                               void *stackEnd, OnEventTypeEnum evType)
 {   
@@ -59,12 +78,12 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
          *  set up, since allocating memory MAY throw an exception we'll
          *  want to handle.
          */
-        evList.handlers = __memRealloc(evVect.handlers,
-                                      (evList.count + 1) *
+        evVect.handlers = __memRealloc(evVect.handlers,
+                                      (evVect.count + 1) *
                                          sizeof (POnEventHandler));
         pHandler = __memAlloc(sizeof (OnEventHandler));
         evVect.handlers[evVect.count] = pHandler;
-        evList.count++;
+        evVect.count++;
     } /* if */
 
     else    /* replace current handler... */
@@ -88,7 +107,7 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
     {
         if (evVect.handlers[evVect.count - 1]->stackStart == stackStart)
         {
-            evList.count--;
+            evVect.count--;
             __memFree(evVect.handlers[evVect.count]);
             evVect.handlers = __memRealloc(evVect.handlers,
                                            evVect.count *
