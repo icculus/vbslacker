@@ -293,7 +293,7 @@ int main(void)
 {
     __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
     testConversionFunctions(NULLSTATEARGS);
-    __deinitBasicLib(NULLSTATEARGS);
+    __deinitBasicLib();
     return(0);
 } /* main */
 
