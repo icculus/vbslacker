@@ -3,17 +3,10 @@ TODO list:
 - Examine the "!!!" and "***" comments in the source.
 - Implement BASIC arrays.
 - For greg: design the file i/o abstraction layer.
-- For ryan: finish conversion, math, and time/date functions.
-- For ryan: finish On event handling. Ugh.
-- For ryan: write thread protection.
+- For ryan: finish conversion, and time/date functions.
+- For greg: finish math functions.
+- For ryan: finish thread support.
 - For the daring: See how gcc for win32 likes this code.  :)
-- debug the ASM code. Yikes. Maybe move it into an inline
-   function in OnEvents.c ...
-- Write a Makefile.
-- Start developing a portable, clean, test program that alerts us to
-   errors in expected BASIClib functionality. We'll really need this
-   if we start porting to other platforms, but this is important for
-   initial debugging, too.
 - Design full, detailed timetable.
 - Figure out a good name mangling scheme.
 - Consider marketing strategy.
