@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "ConversionFunctions.h"
+#include "InternalMemManager.h"
 #include "BasicString.h"
 #include "ErrorFunctions.h"
 #include "Variant.h"
@@ -68,31 +69,41 @@ PBasicString str_DC_(double numeric)
  *   returns : newly allocated BASIC string.
  */
 {
-    char buffer[20];        /* !!! Problematic to hard code a "20"? */
-    int i;
+    PBasicString retVal;
+    int allocated = 10;
+    char *buffer = __memAlloc(allocated);
+    double i;
     int index = 1;
     int number;
 
-    /*
-     * !!! 1) Probably doesn't work.
-     * !!! 2) Doesn't handle real numbers. Just integers.
-     * !!! 3) Fills me with abject hatred.
-     */
+    buffer[0] = ((numeric < 0.0) ? '-' : ' ');   /* negative or positive? */
 
-    buffer[0] = ((numeric < 0) ? '-' : ' ');   /* negative or positive? */
+    for (i = 1.0; i < numeric; i *= 10.0);         /* get dec. places */
 
-    for (i = 1; numeric >= i; i *= 10);         /* get dec. places */
-
-    for (i /= 10; i >= 1; i /= 10)
+    for (i /= 10; numeric != 0.0; i /= 10)
     {
-        number = ((int) numeric) / i;
+        if (i == 0.1)  /* decimal places? */
+        {
+            buffer[index] = '.';      /* add decimal point to string. */
+            index++;
+        } /* if */
+
+        number = (int) (numeric / i);
         buffer[index] = '0' + number;
         index++;
-        numeric -= number;
+        numeric -= (number * i);
+
+        if (index + 1 >= allocated)
+        {
+            allocated += 10;
+            buffer = __memRealloc(buffer, allocated);
+        } /* if */            
     } /* for */
 
-    buffer[index] = '\0';
-    return(__createString(buffer, false));
+    buffer[index] = '\0';     /* null-terminate string for conversion. */
+    retVal = __createString(buffer, false);
+    __memFree(buffer);
+    return(retVal);
 } /* str_DC_ */
 
 
