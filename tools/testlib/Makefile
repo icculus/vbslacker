@@ -14,7 +14,7 @@ clean :
 	rm -f core
 	rm -f $(wildcard *.exe)
 	rm -f testlib
-	rm -f $(OBJS)
+	rm -f $(wildcard *.o)
 
 linux : Makefile.linux
 	@$(MAKE) -f Makefile.linux all
