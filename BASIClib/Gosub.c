@@ -10,11 +10,11 @@ void __prepareGosub(void *ret, __PGosubState state)
 /*
  * This is called to prepare a vbSlacker application to perform a GOSUB.
  *  GOSUBs should only be executed via the __doGosub macro (found in
- *  "Gosub.h"), in a procedure that uses the __GOSUBSUPPORT macro in its
+ *  "Gosub.h"), in a procedure that uses the __GOSUBVARS macro in its
  *  initialization section.
  *
  *      params : ret  == Address of next line of BASIC code.
- *               state == ptr to __gosub structure, created by __GOSUBSUPPORT.
+ *               state == ptr to __gosub structure, created by __GOSUBVARS.
  *     returns : void.
  */
 {
@@ -24,18 +24,15 @@ void __prepareGosub(void *ret, __PGosubState state)
 } /* __prepareGosub */
 
 
-void *__prepareReturn(void *addr, __PGosubState state)
+void *__prepareReturn(__PGosubState state)
 /*
  * This is called to prepare a vbSlacker application to perform a RETURN.
- *  RETURNs should only be executed via the __doReturn macro (found in
- *  "Gosub.h"), in a procedure that uses the __GOSUBSUPPORT macro in its
- *  initialization section.
+ *  RETURNs should only be executed via the __doReturn or __doReturnLabel
+ *  macros (found in "Gosub.h"), in a procedure that uses the __GOSUBVARS
+ *  macro in its initialization section.
  *
- *      params : addr == address that code will jump to for RETURN. NULL
- *                       returns to the address supplied by the GOSUB at the
- *                       top of the stack for its "ret" parameter.
- *               state == ptr to __gosub structure, created by __GOSUBSUPPORT.
- *     returns : void.
+ *      params : state == ptr to __gosub structure, created by __GOSUBVARS.
+ *     returns : Address that RETURN 0 statements should jump to.
  */
 {
     void *retVal = NULL;
@@ -45,7 +42,7 @@ void *__prepareReturn(void *addr, __PGosubState state)
     else
     {
         state->count--;
-        retVal = ((addr == NULL) ? state->addrs[state->count] : addr);
+        retVal = (state->addrs[state->count]);
     } /* else */
 
     return(retVal);

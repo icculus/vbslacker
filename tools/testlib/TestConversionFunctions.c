@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
+int __basicErrno;
+
 void test_chr_DC_(void)
 /*
  * Test chr$() functionality.

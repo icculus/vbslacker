@@ -28,6 +28,16 @@ Comments:
     their own comments it would confuse the C compiler)
 
 
+SUBs and FUNCTIONs:
+    SUBs and FUNCTIONs in BASIC will convert directly to ANSI C format
+    functions. That is to say that the format of the C output will not follow
+    K&R-style C function syntax, for example. The BASIC mainline (which does
+    NOT land between SUB/END SUB statements) will be fitted into either the C
+    mainline (main()), or will be fitted into a C void function of standard
+    naming (__userMainline will suffice in such an event; almost anything we
+    can standardize upon with an underscore at the start will suffice, though.)
+
+
 Identifiers:
     Every identifier that we insert in the C output should have at least one
     "_" before it. BASIC identifiers can have underscores in them, but may

@@ -123,6 +123,10 @@
         typedef float  __single;
         typedef double __double;
 
+        /* !!! temp! !!! */
+        #define SINGLE_THREADED
+        #define NOCURSES
+
     #else
         #error No valid platform has been defined.
         #error Please use one of the following with the commandline/Makefile:

@@ -22,16 +22,19 @@ typedef struct
 typedef __GosubState *__PGosubState;
 
 void __prepareGosub(void *ret, __PGosubState state);
-void *__prepareReturn(void *addr, __PGosubState state);
+void *__prepareReturn(__PGosubState state);
 
-/* __jump() is a macro defined in Assembler.h ... */
+/* __jump() and __jumpLabel() are macros defined in Assembler.h ... */
 
-#define __GOSUBSUPPORT __GosubState __gosub = {NULL, 0}
+#define __GOSUBVARS __GosubState __gosub = {NULL, 0}
 
-#define __doGosub(addr, ret) __prepareGosub(STATEARGS, ret, &__gosub); \
-                             __jump(addr)
+#define __doGosub(label, ret)  __prepareGosub(ret, &__gosub); \
+                               __jumpLabel(addr)
 
-#define __doReturn(addr) __jump(__prepareReturn(STATEARGS, addr, &__gosub))
+#define __doReturn()           __jump(__prepareReturn(&__gosub));
+
+#define __doReturnLabel(label) __prepareReturn(&__gosub); \
+                               __jumpLabel(label);
 
 #endif /* defined _INCLUDE_GOSUB_H_ */
 #endif /* defined _INCLUDE_STDBASIC_H_ */

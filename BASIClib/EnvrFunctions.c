@@ -13,9 +13,9 @@
 
 extern char **environ;
 
-static ThreadLock envrLock;
-static PBasicString commandLine;
-static __boolean unixFileSystem;
+ThreadLock envrLock;
+PBasicString commandLine;
+__boolean unixFileSystem;
 
 
 void __initEnvrFunctions(int argc, char **argv)
@@ -199,8 +199,35 @@ PBasicString vbSi_environ_DC_(int n)
 
 
 void vbpS_environ(PBasicString newEnvrStr)
+/*
+ * Change or add environment variables for the process; any child processes
+ *  spawned will reflect these changes, as well as future calls to
+ *  vbSi_environ_DC_()...
+ *
+ *   params : newEnvStr == BASIC string in the format of
+ *                         "EnvVarName = EnvVarValue" or
+ *                         "EnvVarName EnvVarValue".
+ *  returns : void.
+ */
 {
-#warning vbpS_environ() is a stub!
+#if 0
+    void *separator;
+    char *envrName;
+    char *envrVal;
+    char *buffer;
+
+    separator = memchr(newEnvrStr->data, ' ', newEnvrStr->length);
+    if (separator == NULL)
+    {
+        separator = memchr(newEnvrStr->data, '=', newEnvrStr->length);
+        if (separator == NULL)
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    } /* if */
+
+    envrName = __memAlloc(separator - (void *) newEnvrStr->data);
+    memcpy(envrName, newEnvrStr->data, separator - newEnvrStr->data);
+    /* !!! not done! */
+#endif
 } /* vbpS_environ */
 
 

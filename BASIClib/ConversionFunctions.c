@@ -36,7 +36,7 @@ PBasicString vbSi_chr_DC_(int asciiValue)
  *  value passed.
  *
  *   params : asciiValue == ascii code to convert to a string.
- *  returns : one char-length string of ascii value in boxcar..
+ *  returns : one char-length string of ascii value.
  */
 {
     PBasicString retVal = NULL;
@@ -62,7 +62,7 @@ PBasicString vbSd_str_DC_(double numeric)
  *  placed in the string if needed. For example, str$(1.0) will return " 1".
  *
  *    params : numeric == number to convert to a BASIC string.
- *   returns : newly allocated BASIC string in boxcar.
+ *   returns : newly allocated BASIC string.
  */
 {
 #ifdef BROKEN   /* !!! MEMORY LEAKS, AMONG OTHER PROBLEMS... */

@@ -96,8 +96,6 @@ typedef __OnErrorHandler *__POnErrorHandler;
 
 /* function prototypes... */
 
-extern int __basicErrno;
-
 void __initBasicError(void);
 void __deinitBasicError(void);
 void __initThreadBasicError(int tidx);
@@ -108,7 +106,7 @@ void __runtimeError(int errorNum);
 void __registerOnErrorHandler(__POnErrorHandler pHandler);
 void __deregisterOnErrorHandler(__POnErrorHandler pHandler);
 void __prepareResume(void *base);
-
+int __getBasicErrno(void);
 
 #define __ONERRORVARS      __OnErrorHandler __onError = {NULL,  \
                                                          NULL,  \
@@ -126,6 +124,7 @@ void __prepareResume(void *base);
 #define __setOnErrorHandler(addr) __getLabelAddr(addr, __onError.handlerAddr);\
                                   __registerOnErrorHandler(&__onError)
 
+#define __setOnErrorHandlerOff    __registerOnErrorHandler(NULL)
 
 #define __setInstructs(iThis, iNext)  if (!__onError.isActive)              \
                                       {                                     \
@@ -145,6 +144,9 @@ void __prepareResume(void *base);
                             __jumpLabel(addr)
 
 #define __exitCleanupOnError __deregisterOnErrorHandler(&__onError)
+
+#define __insertResumeNextHandler(label)  __insertLineLabel(label); \
+                                          __resumeNext
 
 #endif  /* _INCLUDE_BASICERROR_H_ */
 #endif  /* _INCLUDE_STDBASIC_H_   */

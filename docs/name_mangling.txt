@@ -1,11 +1,16 @@
 Here's the name mangling scheme:
 
-Internal-only functions, and functions that are only called by
-automatically generated code are prepended with a "__", as usual. First
-word lowercase, first letter of each extra word uppercase, yadda yadda
-yadda.
+Internal-only (including BASIClib) functions, macros, and variables are
+always prepended with a "__". This is to prevent namespace clash with
+user-defined BASIC identifiers. As usual, (and not unlike Java naming
+conventions) the first word of an identifier should be lowercase, and the
+first letter of each extra word in said identifier should be an uppercase.
 
-For Basic API functions, the function names go like this (for example.) :
+So, for example, our internal BASIClib API function that blocks until a
+specified thread terminates is called "__waitForThreadToDie()".
+
+For BASIC API functions (functionality exposed to user-defined BASIC code),
+the function prototypes go like this (for example.) :
 
 PBasicString _vbSiS_string_DC_(int x, PBasicString y);
 

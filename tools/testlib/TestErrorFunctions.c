@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
+int __basicErrno;
+
 
 void test___runtimeError(void)
 /*

@@ -9,55 +9,44 @@
  *  allows a little more abstraction (in case we drop POSIX for something
  *  else...god knows what...) and simplifies end-user and BASIClib code.
  *  A good example exists in the resizing of an array of thread-specific
- *  data in OnEvents.c's __initThreadOnEvents() function. Every function
+ *  data in BasicError.c's __initThreadBasicError() function. Every function
  *  provided here expects a tidx, not a tid. Outside code doesn't even
  *  know we're using POSIX threads, or Win32 threads, or whatnot...
- *
- * There's currently no good POSIX threads for Win32, so we just "stub"
- *  the functions for Windows platforms...This is cool under Linux, though.
- *  We'll remove all the #ifndef WIN32 stuff when Cygnus finishes their
- *  pthread support in cygwin32/egcs...hopefully soon.
  *
  *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include "Threads.h"
 
-#include <stdlib.h>
+#if (!defined SINGLE_THREADED)
+#   include <stdlib.h>
+#   include <pthread.h>
+#   include <sched.h>
+#   include <signal.h>
+    /*
+     * This structure contains the arguments to be
+     *  passed via a (void *) to the entry function of
+     *  a newly-spun thread...
+     */
+    typedef struct
+    {
+        int tidx;                  /* New thread's BASIClib index. */
+        void (*fn)(void *args);    /* Function to call.            */
+        void *args;                /* Args to function to call.    */
+    } ThreadEntryArgs;
 
-#ifndef WIN32
-#include <pthread.h>
-#include <sched.h>
-#include <signal.h>
-#endif
+    typedef ThreadEntryArgs *PThreadEntryArgs;
 
-
-/*
- * This structure contains the arguments to be
- *  passed via a (void *) to the entry function of
- *  a newly-spun thread...
- */
-typedef struct
-{
-    int tidx;                  /* New thread's BASIClib index. */
-    void (*fn)(void *args);    /* Function to call.            */
-    void *args;                /* Args to function to call.    */
-} ThreadEntryArgs;
-
-typedef ThreadEntryArgs *PThreadEntryArgs;
-
-
-
-static ThreadLock lock;               /* module-scope thread lock.        */
-static pthread_t *indexes;            /* Vector of actual TIDs...         */
-static volatile int threadCount = 0;  /* Count of total existing threads. */
-static volatile int maxIndex = -1;    /* Size of (indexes) vector.        */
+    ThreadLock lock;              /* module-scope thread lock.        */
+    pthread_t *indexes;           /* Vector of actual TIDs...         */
+    int threadCount = 0; /* Count of total existing threads. */
+    int maxIndex = -1;   /* Size of (indexes) vector.        */
+#endif /* !defined SINGLE_THREADED */
 
 
-
-    /* defined in Initialize.c, but only declared here for abstractness. */
-void __initThread(int tidx); 
-void __deinitThread(int tidx); 
+/* defined in Initialize.c, but only declared here for abstractness. */
+void __initThread(int tidx);
+void __deinitThread(int tidx);
 
 
 
@@ -71,15 +60,13 @@ void __initThreads(void)
  *    returns : void.
  */
 {
+#if (!defined SINGLE_THREADED)
     __createThreadLock(&lock);
     threadCount++;
     maxIndex++;
     indexes = __memAlloc(sizeof (pthread_t));
 
-#ifndef WIN32
     indexes[0] = pthread_self();
-#else
-    indexes[0] = 15;
 #endif
 
     __initThread(0);
@@ -96,7 +83,7 @@ void __deinitThreads(void)
  *    returns : void.
  */
 {
-#ifndef WIN32
+#if (!defined SINGLE_THREADED)
     int i;
     pthread_t tid = pthread_self();
 
@@ -111,9 +98,22 @@ void __deinitThreads(void)
     __releaseThreadLock(&lock);
 
     __destroyThreadLock(&lock);
+
+#else
+    /*
+     * This is done in the __terminateThread() loop
+     *  above for multithread mode...
+     */
+    __deinitThread(0);
 #endif
 } /* __deinitThreads */
 
+
+    /*
+     * The rest of these functions should only exist if
+     *  we aren't compiled as a single-threaded library.
+     */
+#if (!defined SINGLE_THREADED)
 
 static void __prepareThreadToTerminate(int tidx)
 /*
@@ -151,14 +151,12 @@ static void __prepareThreadToTerminate(int tidx)
         __memRealloc(indexes, firstNULL * sizeof (pthread_t));
     } /* if */
 
-#ifndef WIN32
     pthread_detach(tid);
-#endif
     __releaseThreadLock(&lock);
 } /* __prepareThreadToTerminate */
 
 
-void __terminateCurrentThread(void)
+void __terminateCurrentThread_f(void)
 /*
  * Make the thread that called this function commit suicide.
  *
@@ -166,16 +164,12 @@ void __terminateCurrentThread(void)
  *   returns : theoretically, never.
  */
 {
-#ifndef WIN32
-    __prepareThreadToTerminate(__getCurrentThreadIndex());
+    __prepareThreadToTerminate(__getCurrentThreadIndex_f());
     pthread_exit(0);
-#else
-    exit(0);  /* only one thread, so kill program... */
-#endif
-} /* __terminateCurrentThread */
+} /* __terminateCurrentThread_f */
 
 
-void __terminateThread(int tidx)
+void __terminateThread_f(int tidx)
 /*
  * Terminate a thread. If the calling thread is the one that
  *  is requested to terminate, the function __terminateCurrentThread()
@@ -185,27 +179,25 @@ void __terminateThread(int tidx)
  *     returns : void. if (tidx == current thread), never returns.
  */
 {
-#ifndef WIN32
     pthread_t thread;
 
-    if (tidx == __getCurrentThreadIndex())
-        __terminateCurrentThread();
+    if (tidx == __getCurrentThreadIndex_f())
+        __terminateCurrentThread_f();
     else
     {
-        __obtainThreadLock(&lock);
+        __obtainThreadLock_f(&lock);
         if (tidx <= maxIndex)
             thread = indexes[tidx];
-        __releaseThreadLock(&lock);
+        __releaseThreadLock_f(&lock);
 
         /* !!! suspend thread? */
         __prepareThreadToTerminate(tidx);
         pthread_kill(thread, SIGKILL);
     } /* else */
-#endif
-} /* __terminateThread */
+} /* __terminateThread_f */
 
 
-void __waitForThreadToDie(int tidx)
+void __waitForThreadToDie_f(int tidx)
 /*
  * This function blocks until thread with the index (tidx)
  *  terminates. Calling this when (tidx) is the current thread
@@ -215,18 +207,16 @@ void __waitForThreadToDie(int tidx)
  *     returns : void.
  */
 {
-#ifndef WIN32
     pthread_t thread = 0;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock_f(&lock);
     if (tidx <= maxIndex)
         thread = indexes[tidx];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock_f(&lock);
 
     if (thread != 0)
         pthread_join(thread, NULL);
-#endif
-} /* __waitForThreadToDie */
+} /* __waitForThreadToDie_f */
 
 
 static void __threadEntry(void *args)
@@ -244,11 +234,11 @@ static void __threadEntry(void *args)
     __initThread(((PThreadEntryArgs) args)->tidx);
     ((PThreadEntryArgs) args)->fn(((PThreadEntryArgs) args)->args);
     __memFree(args);
-    __terminateCurrentThread();
+    __terminateCurrentThread_f();
 } /* __threadStart */
 
 
-int __spinThread(void (*_fn)(void *x), void *_args)
+int __spinThread_f(void (*_fn)(void *x), void *_args)
 /*
  * Create ("spin") a new thread, and start it.
  *
@@ -257,7 +247,6 @@ int __spinThread(void (*_fn)(void *x), void *_args)
  *   returns : index of new thread. -1 on error.
  */
 {
-#ifndef WIN32
     PThreadEntryArgs args = __memAlloc(sizeof (ThreadEntryArgs));
     pthread_t *saveLoc = NULL;
     int retVal;
@@ -266,7 +255,7 @@ int __spinThread(void (*_fn)(void *x), void *_args)
     args->fn = _fn;
     args->args = _args;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock_f(&lock);
 
     for (args->tidx = 0; (args->tidx <= maxIndex) && (saveLoc == NULL);
             args->tidx++)
@@ -290,7 +279,7 @@ int __spinThread(void (*_fn)(void *x), void *_args)
     retVal = args->tidx;
     rc = pthread_create(saveLoc, NULL, (void *) __threadEntry, (void *) args);
 
-    __releaseThreadLock(&lock);
+    __releaseThreadLock_f(&lock);
 
     if (rc != 0)
     {
@@ -300,13 +289,10 @@ int __spinThread(void (*_fn)(void *x), void *_args)
     } /* if */
 
     return(retVal);
-#else
-    return(-1);
-#endif
-} /* __spinThread */
+} /* __spinThread_f */
 
 
-int __getThreadCount(void)
+int __getThreadCount_f(void)
 /*
  * Return count of current amount of threads in system. More handy is
  *  probably __getHighestThreadIndex(), below.
@@ -317,10 +303,10 @@ int __getThreadCount(void)
  */
 {
     return(threadCount);
-} /* __getThreadCount */
+} /* __getThreadCount_f */
 
 
-int __getHighestThreadIndex(void)
+int __getHighestThreadIndex_f(void)
 /*
  * Get the index of the thread with the highest-numbered index. Good for
  *  determining how to size arrays that handle thread-specific data...
@@ -330,10 +316,10 @@ int __getHighestThreadIndex(void)
  */
 {
     return(maxIndex);
-} /* __getHighestThreadIndex */
+} /* __getHighestThreadIndex_f */
 
 
-int __getCurrentThreadIndex(void)
+int __getCurrentThreadIndex_f(void)
 /*
  * Get the index of the current calling thread.
  *
@@ -341,12 +327,11 @@ int __getCurrentThreadIndex(void)
  *    returns : calling thread's index.
  */
 {
-#ifndef WIN32
     pthread_t tid = pthread_self();
     int i;
     int retVal = -1;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock_f(&lock);
 
     for (i = 0; retVal == -1; i++)
     {
@@ -354,16 +339,13 @@ int __getCurrentThreadIndex(void)
             retVal = i;
     } /* for */
 
-    __releaseThreadLock(&lock);
+    __releaseThreadLock_f(&lock);
 
     return(retVal);
-#else
-    return(0);
-#endif
-} /* __getCurrentThreadIndex */
+} /* __getCurrentThreadIndex_f */
 
 
-void __threadTimeslice(void)
+void __threadTimeslice_f(void)
 /*
  * Yield a timeslice to the system. Use this in idle-loops and other
  *  processor-intensive things. The amount of time yielded before
@@ -374,13 +356,11 @@ void __threadTimeslice(void)
  *     returns : void.
  */
 {
-#ifndef WIN32
     (void) sched_yield();
-#endif
-} /* __threadTimeslice */
+} /* __threadTimeslice_f */
 
 
-void __createThreadLock(PThreadLock pThreadLock)
+void __createThreadLock_f(PThreadLock pThreadLock)
 /*
  * Initialize a ThreadLock variable for use. Call this on a given
  *  ThreadLock before using it, or it won't work, or maybe'll crash
@@ -390,7 +370,6 @@ void __createThreadLock(PThreadLock pThreadLock)
  *    returns : void.
  */
 {
-#ifndef WIN32
     int errType;
 
     if (pthread_mutex_init(pThreadLock, NULL) != 0)
@@ -398,11 +377,10 @@ void __createThreadLock(PThreadLock pThreadLock)
         errType = ((errno == ENOMEM) ? ERR_OUT_OF_MEMORY : ERR_INTERNAL_ERROR);
         __runtimeError(errType);
     } /* if */
-#endif
-} /* __createThreadLock */
+} /* __createThreadLock_f */
 
 
-void __destroyThreadLock(PThreadLock pThreadLock)
+void __destroyThreadLock_f(PThreadLock pThreadLock)
 /*
  * Call this on a ThreadLock after you are done with it. This
  *  function will free the resources associated with it.
@@ -414,14 +392,12 @@ void __destroyThreadLock(PThreadLock pThreadLock)
  *    returns : void.
  */
 {
-#ifndef WIN32
     if (pthread_mutex_destroy(pThreadLock) != 0)
         __runtimeError(ERR_INTERNAL_ERROR);
-#endif
-} /* __destroyThreadLock */
+} /* __destroyThreadLock_f */
 
 
-void __obtainThreadLock(PThreadLock pThreadLock)
+void __obtainThreadLock_f(PThreadLock pThreadLock)
 /*
  * Request control of a ThreadLock. Any other threads that call
  *  this function before the calling thread calls __releaseThreadLock()
@@ -432,14 +408,12 @@ void __obtainThreadLock(PThreadLock pThreadLock)
  *    returns : void.
  */
 {
-#ifndef WIN32
     if (pthread_mutex_lock(pThreadLock) != 0)
         __runtimeError(ERR_INTERNAL_ERROR);
-#endif
-} /* __obtainThreadLock */
+} /* __obtainThreadLock_f */
 
 
-void __releaseThreadLock(PThreadLock pThreadLock)
+void __releaseThreadLock_f(PThreadLock pThreadLock)
 /*
  * Release control of a ThreadLock you control. This will allow one
  *  of any blocked threads that are requesting control of this ThreadLock
@@ -449,12 +423,11 @@ void __releaseThreadLock(PThreadLock pThreadLock)
  *     returns : void.
  */
 {
-#ifndef WIN32
     if (pthread_mutex_unlock(pThreadLock) != 0)
         __runtimeError(ERR_INTERNAL_ERROR);
-#endif
-} /* __releaseThreadLock */
+} /* __releaseThreadLock_f */
 
+#endif /* (!defined SINGLE_THREADED) */
 
 /* end of Threads.c ... */
 

@@ -70,7 +70,7 @@ static char *__convertPathWinToUnix(char *pathName)
  * Convert "C:\path\path\filename.txt" to "/path/path/filename.txt"
  *
  *  The drive is removed if it exists, regardless of the letter.
- *  The return value is allocated from scratch and put in a boxcar.
+ *  The return value is allocated from scratch.
  *
  *     params : pathName == path to convert.
  *    returns : see above.
@@ -96,8 +96,7 @@ static char *__convertPathUnixToWin(char *pathName)
 /*
  * Convert "/path/path/filename.txt" to "C:\path\path\filename.txt"
  *
- *  A "C:" is appended. The return value is allocated from scratch
- *   and put in a boxcar.
+ *  A "C:" is appended. The return value is allocated from scratch.
  *
  *     params : pathName == path to convert.
  *    returns : see above.
