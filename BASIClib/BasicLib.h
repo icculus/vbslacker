@@ -20,8 +20,7 @@
 #include "StringFunctions.h"
 #include "ProcessFunctions.h"
 #include "EnvrFunctions.h"
-/* !!! #include "JoystickFunctions.h" */
-/* !!! #include " */
+#include "RegistryFunctions.h"
 
 #endif
 
