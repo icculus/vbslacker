@@ -12,6 +12,10 @@
 #include "ConsoleFunctions.h"
 #include "DirectConsole.h"
 
+#define ASCII_CR  13
+#define ASCII_NL  10
+#define ASCII_TAB 9
+
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #define __xyToConsoleMatrix(x, y)  ((((columns * 2) * y) + (x * 2)) + 4)
 #define __consoleMatrixToX(pos) ((pos - 4) % (columns * 2))
@@ -104,7 +108,7 @@ static int __cons_openConsole(STATEPARAMS)
         if ( (strncmp("/dev/tty", tty, 8) == 0) && (isdigit(tty[8])) )
         {
             strcpy(consDev, "/dev/vcsa");
-            strcat(consDev, tty + 8);
+            strcat(consDev, tty + 8);       /* "/dev/tty" is 8 chars ... */
             cons = open(consDev, O_RDWR);
             if (cons != -1)
             {
@@ -152,71 +156,74 @@ static void __cons_deinitConsoleHandler(STATEPARAMS)
 } /* __cons_deinitConsole */
 
 
-static void __cons_vbpS_print(STATEPARAMS, PBasicString pStr)
+static void __cons_printNChars(STATEPARAMS, char *str, int n)
 /*
- * Write a string to the printable window, scrolling if needed, and
- *  moving the cursor to the new position.
+ * Write a (n) characters at pos (str) to the printable window, 
+ *  scrolling if needed, and moving the cursor to the new position.
  *
- *   params : pStr == BASIC string to write.
+ *   params : str == characters to write.
+ *            n == char count to write.
  *  returns : void.
  */
 {
-
-#ifdef BROKEN
-    int max = pStr->length;
-    char *data = pStr->data;
-    char buffer[16];   /* 8 * 2 for tabs */
     int i;
-    int n;
-    int bw = 0;
-    int bytesInRow = columns * 2;
+    char matrixChar[2];
 
     __obtainThreadLock(STATEARGS, &consoleLock);
 
-    lseek(cons, seekpos, SEEK_SET);
+    lseek(cons, __xyToConsoleMatrix(x, y), SEEK_SET);
+    matrixChar[0] = curColor;   /* attribute byte. */
 
-    for (i = 0; i < max; i++)
+    for (i = 0; i < length; i++)
     {
-        switch(data[i])
+        switch (str[i])    
         {
-            case 13:        /* return char  */
-                if (i < max - 1) && (data[i+1] == 10)  /* newline char */
-                {
-                    x = 0;
-                    if (__xyToConsoleMatrix(x, y + 1) > winBottom)
-                        __scrollConsole(STATEARGS);
-                    else
-                        y++;
-                } /* if */
+            case ASCII_CR:
+                if ((i + 1 < length) && (str[i] == ASCII_NL))
+                    i++;
+                __printNewLine(STATEARGS);
                 break;
 
-            case 9:         /* tab char */
-                n = 0
+            case ASCII_NL:
+                __printNewLine(STATEARGS);
+                break;
+
+            case ASCII_TAB:
+                matrixChar[1] = ' ';
+                /* check end of line...  !!! */
                 do
                 {
-                    x++;
-                    buffer[n++] = curcolor;
-                    buffer[n++] = ' ';
-                    if (x >= columns)
-                        x = 0;
-                } while (x % 8 != 0);
+                    if (x < columns)
+                    {    
+                        write(cons, matrixChar, sizeof (matrixChar));
+                        x++;
+                    } /* if */
+                } while (x % 8);
+                break;
 
-                
-
+            default:  /* "normal" chars ... */
+                matrixChar[1] = str[i];
+                write(cons, matrixChar, sizeof (matrixChar));
+                x++;
                 break;
         } /* switch */
 
+        if (x > columns)
+        {
+            y++;
+            x = 0;
+        } /* if */
 
-        else if (inStr[i] == 9)                     /* tab char. */
-
-            
+        if (y > winBottom)
+        {
+            __scrollConsole(STATEARGS);
+            y = winBottom;
+        } /* if */
     } /* for */
 
-    __setCursorXY(STATEARGS, x, y);
-
+    __setCursorXY(x, y);
     __releaseThreadLock(STATEARGS, &consoleLock);
-#endif
-} /* __cons_vbpS_print */
+} /* cons_printNChars */
 
 
 static void __cons_printNewLine(STATEPARAMS)
@@ -227,15 +234,19 @@ static void __cons_printNewLine(STATEPARAMS)
  *   returns : void.
  */
 {
+    __obtainThreadLock(STATEARGS, &consoleLock);
+
     x = 0;
     y++;
 
     if (__xyToConsoleMatrix(x, y) > winBottom)
     {
-        y--;
+        y = winBottom;
         __scrollConsole(STATEARGS);
-        __setCursorXY(STATEARGS, x, y);
     } /* if */
+    __setCursorXY(STATEARGS, x, y);
+
+    __releaseThreadLock(STATEARGS, &consoleLock);
 } /* __cons_printNewLine */
 
 
@@ -286,7 +297,7 @@ static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
 #ifdef WIN32   /* stubs for now for win32. */
 static int  __cons_openConsole(STATEPARAMS) { return(-1); }
 static void __cons_deinitConsoleHandler(STATEPARAMS) {}
-static void __cons_vbpS_print(STATEPARAMS, PBasicString pStr) {}
+static void __cons_printNChars(STATEPARAMSm char *str, int n) {}
 static void __cons_vbp_cls(STATEPARAMS) {}
 static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord) {}
 static void __cons_printNewLine(STATEPARAMS) {}
@@ -332,7 +343,6 @@ static void __cons_vbp_viewPrint(STATEPARAMS)
     __setCursorXY(STATEARGS, 0, 0);
     __releaseThreadLock(STATEARGS, &consoleLock);
 } /* __cons_vbp_viewPrint */
-
 
 
 static int __cons_vbi_csrline(STATEPARAMS)
@@ -408,7 +418,7 @@ boolean __initDirectConsole(STATEPARAMS)
         __deinitConsoleHandler = __cons_deinitConsoleHandler;
         __getConsoleHandlerName = __cons_getConsoleHandlerName;
         __printNewLine = __cons_printNewLine;
-        vbpS_print = __cons_vbpS_print;
+        __printNChars = __cons_printNChars;
         vbpii_viewPrint = __cons_vbpii_viewPrint;
         vbp_viewPrint = __cons_vbp_viewPrint;
         vbp_cls = __cons_vbp_cls;
