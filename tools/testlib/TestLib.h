@@ -8,7 +8,7 @@
 #define _INCLUDE_TESTLIB_H_
 
 void testOnEvents(void);
-vodi testThreads(void);
+void testThreads(void);
 void testConversions(void);
 
 #endif

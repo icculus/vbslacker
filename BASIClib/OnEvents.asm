@@ -30,13 +30,17 @@
 
 extern basePtrIndexes
 
+; Thread Lock for OnEvents stuff...
+
+extern onEventsLock
+
 ;
 ; Other external stuff...
 ;
 
 extern __getCurrentThreadIndex         ; See Threads.c ...
-extern __enterCriticalThreadSection    ; See Threads.c ...
-extern __exitCriticalThreadSection     ; See Threads.c ...
+extern __obtainThreadLock              ; See Threads.c ...
+extern __releaseThreadLock             ; See Threads.c ...
 extern __calcBasePtrStorage            ; See OnEvents.c ...
 
 
@@ -157,8 +161,14 @@ __callOnEventHandler:                   ; proc
 
 __decrementBPIndexes:                   ; proc
         pushad                          ; Save everything.
+
         call    __getCurrentThreadIndex ; Get current thread index in eax.
-        call    __enterCriticalThreadSection
+
+        mov     eax,onEventsLock        ; Get a lock on Thread-sensitive data.
+        push    eax
+        call    __obtainThreadLock
+        add     esp,4
+
         mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
         mul     ebx                     ; ebx*eax make it into offset in array.
         mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
@@ -166,7 +176,12 @@ __decrementBPIndexes:                   ; proc
         mov     eax,[esi]               ; get value pointed to by esi.
         dec     eax                     ; decrement it.
         mov     dword [esi],eax         ; store it back in addr esi points to.
-        call    __exitCriticalThreadSection
+
+        mov     eax,onEventsLock        ; Drop lock on Thread-sensitive data.
+        push    eax
+        call    __releaseThreadLock
+        add     esp,4
+
         popad                           ; restore everything.
         ret                             ; return.
 ;__decrementBPIndexes    endp

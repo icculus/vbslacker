@@ -7,6 +7,8 @@
 #ifndef _INCLUDE_THREADS_H_
 #define _INCLUDE_THREADS_H_
 
+#include <pthread.h>
+
 #define ThreadLock pthread_mutex_t
 #define PThreadLock pthread_mutex_t *
 

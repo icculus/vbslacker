@@ -47,7 +47,7 @@ TestOnEvents.o : TestOnEvents.c $(BASICLIBDIR)/OnEvents.h \
 	$(CC) $(COPTIONS) TestOnEvents.o TestOnEvents.c
 
 
-TestThreads.o : TestThreads.c 
+TestThreads.o : TestThreads.c \
                 $(BASICLIBDIR)/Boolean.h \
                 $(BASICLIBDIR)/Threads.h 
 	$(CC) $(COPTIONS) TestThreads.o TestThreads.c

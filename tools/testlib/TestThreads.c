@@ -22,8 +22,6 @@ void threadFunc(void *args)
 } /* threadFunc */
 
 
-
-
 void test__spinThread(void)
 /*
  * Test __spinThread() functionality.
@@ -38,7 +36,7 @@ void test__spinThread(void)
 
     changed = false;
 
-    tidx = __spinThread(threadFunc, NULL);
+    tidx = __spinThread((void *) threadFunc, NULL);
     if (tidx == -1)
         printf("  - Couldn't spin thread. retVal == -1.\n");
     else
@@ -61,6 +59,9 @@ void testThreads(void)
     printf("\n[TESTING THREAD FUNCTIONS...]\n");
 
     test__spinThread();
+
+    /* !!! needs more testing. */
+
 } /* testThreads */
 
 
