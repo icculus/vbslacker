@@ -9,7 +9,7 @@
 
 #ifndef boolean
 
-typedef enum {true, false} boolean;
+typedef enum {false = 0, true = 1} boolean;
 
 #endif
 
