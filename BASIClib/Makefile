@@ -12,6 +12,9 @@ export WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
 about:
 	@cat ../docs/about.txt
 
+lines:
+	@linecount *.c *.h Make*
+
 clean : 
 	rm -f $(wildcard *core)
 	rm -f $(wildcard *.o)
