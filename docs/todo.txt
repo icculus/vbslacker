@@ -1,13 +1,10 @@
 TODO list:
 
+- Catch up testlib, in general.
 - Move RANDOMIZE and RND from MathFunctions to a new module
   (RandomNumberFunctions) ?
 - Make current BASIClib code use the boxcar system, where applicable.
-- Rewrite testlib code to use new name-mangling scheme.
-- HOWTO on adding new modules to BASIClib.
 - RESUME NEXT recursive testing.
-- Testlib code for boxcar system.
-- Catch up testlib, in general.
 - Documentation: mem_management.txt and on_events.txt
 - Streamline makefiles. Most of it is just duplication.
 - Find good way to generate dependencies.
