@@ -17,7 +17,7 @@ LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -g -o
 #LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -lncurses -g -o
 
 
-all : testlib.exe
+all : testlib.exe testconsole.exe
 
 testlib.exe : $(OBJS) $(wildcard $(BASICLIBDIR)/*.o)
 	$(LINKER) $(LOPTIONS) testlib.exe $(OBJS) $(wildcard $(BASICLIBDIR)/*.o)
@@ -45,5 +45,12 @@ TestFileIOFunctions.o : TestFileIOFunctions.c
 
 TestMathFunctions.o : TestMathFunctions.c
 	$(CC) $(COPTIONS) TestMathFunctions.o TestMathFunctions.c
+
+
+testconsole.exe : TestConsole.o
+	$(LINKER) $(LOPTIONS) testconsole TestConsole.o
+
+TestConsole.o : TestConsole.c
+	$(CC) $(COPTIONS) TestConsole.o TestConsole.c
 
 # end of Makefile.win32 ...
