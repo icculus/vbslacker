@@ -258,7 +258,7 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
     POnEventHandler pHandler = NULL;
     POnEventsState pState = __getOnEventsState(STATEARGS);
     int i;
-    boolean getOut = false;
+    __boolean getOut = false;
 
         /* !!! make this __fatalRuntimeError()? */
     if ((__stBP == NULL) || (__stSP == NULL))

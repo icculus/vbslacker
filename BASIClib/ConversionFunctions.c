@@ -133,9 +133,9 @@ int __valEndOfNumberString(STATEPARAMS, PBasicString pBasicStr)
  *  returns : index in string where number to convert ends.
  */
 {
-    boolean pastFirst = false;      /* so extra '-' chars don't sneak in. */
-    boolean foundDecimal = false;   /* so extra '.' chars don't sneak in. */
-    boolean foundEnd = false;       /* loop control variable.             */
+    __boolean pastFirst = false;    /* so extra '-' chars don't sneak in. */
+    __boolean foundDecimal = false; /* so extra '.' chars don't sneak in. */
+    __boolean foundEnd = false;     /* loop control variable.             */
     int max = pBasicStr->length;    /* loop control variable.             */
     int i;                          /* loop control variable.             */
     char *str = pBasicStr->data;    /* the actual string data.            */
@@ -281,9 +281,13 @@ PBasicString vbSl_oct_DC_(STATEPARAMS, long x)
 } /* vbSd_oct_DC_ */
 
 
+PBasicString vbS_mki_DC_(STATEPARAMS, int num)
+{
+} /* vbS_mki_DC_ */
+
+
 /* !!! still need: */
 /* cvi, cvl, etc... mkd$, mkl$, etc... */
-/* swap? */
 
 /* end of ConversionFunctions.c ... */
 

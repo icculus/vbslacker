@@ -9,7 +9,7 @@
 
 #include "StdBasic.h"
 
-boolean __initRedirectedConsole(STATEPARAMS);
+__boolean __initRedirectedConsole(STATEPARAMS);
 void    __forceRedirectedConsole(STATEPARAMS);
 
 #endif

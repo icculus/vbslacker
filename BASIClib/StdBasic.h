@@ -4,7 +4,7 @@
  *
  * BasicLib.h includes all this and more.
  *
- * This guarantees that the compiler will understand "boolean",
+ * This guarantees that the compiler will understand "__doGosub",
  *  "STATEPARAMS", etc...include in from your module's header, and then
  *  include your header in your module. This guarantees transparency, and
  *  the compiler always has access to the details it needs. Multiple includes
@@ -17,13 +17,14 @@
 #define _INCLUDE_STDBASIC_H_
 
 #include "Platform.h"
-#include "Language.h"
 #include "RegState.h"
+#include "Gosub.h"
+#include "MemoryManager.h"
+#include "Language.h"
 #include "Boolean.h"
 #include "BasicString.h"
 #include "Variant.h"
 #include "OnOffStopType.h"
-#include "MemoryManager.h"
 #include "BasicError.h"
 #include "Threads.h"
 #include "Initialize.h"
@@ -32,7 +33,7 @@
 #include "SignalHandlers.h"
 #include "OnEvents.h"
 
-#endif
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of StdBasic.h ... */
 

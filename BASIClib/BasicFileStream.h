@@ -32,9 +32,9 @@ typedef __BasicFileStream *__PBasicFileStream;
 
 /*** Function Declarations ***/
 __PBasicFileStream __getFileStream(STATEPARAMS, short fileNumber);
-boolean __deleteFileStream(STATEPARAMS, short fileNumber);
+__boolean __deleteFileStream(STATEPARAMS, short fileNumber);
 void __initBasicFileStream(STATEPARAMS);
-boolean __invalidFileNumber(STATEPARAMS, short fileNumber);
+__boolean __invalidFileNumber(STATEPARAMS, short fileNumber);
 __PBasicFileStream __createFileStream(STATEPARAMS, short fileNumber);
 
 #endif

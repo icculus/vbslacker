@@ -18,16 +18,7 @@
 #include "FileSystemFunctions.h"
 
 
-#if defined LINUX
-#define PATHCHAR '/'
-#define CURRENTDIR "."
-#elif defined WIN32
-#define PATHCHAR '\\'
-#define CURRENTDIR "."
-#endif
-
-
-boolean __fileExists(STATEPARAMS, char *fullPathName)
+__boolean __fileExists(STATEPARAMS, char *fullPathName)
 /*
  * Check to see if (fileName) is an existing file in the file system.
  *  This doesn't do more than verify the existance; permissions, etc...
@@ -41,8 +32,8 @@ boolean __fileExists(STATEPARAMS, char *fullPathName)
     struct dirent *ep;
     char path[strlen(fullPathName) + 1];
     char *fileName;
-    boolean getOut = false;
-    boolean retVal = false;
+    __boolean getOut = false;
+    __boolean retVal = false;
 
     strcpy(path, fullPathName);
     fileName = strrchr(path, PATHCHAR);
@@ -55,7 +46,7 @@ boolean __fileExists(STATEPARAMS, char *fullPathName)
         fileName++;        /* get past path char... */
     } /* else */
 
-    dp = opendir((fileName == path) ? CURRENTDIR : path);
+    dp = opendir((fileName == path) ? CURRENTDIRSTR : path);
     if (dp == NULL)
         __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
     else

@@ -246,7 +246,7 @@ static void __curs_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
 } /* __curs_getConsoleHandlerName */
 
 
-boolean __initCursesConsole(STATEPARAMS)
+__boolean __initCursesConsole(STATEPARAMS)
 /*
  * Attempt to initialize curses library access.
  *
@@ -254,7 +254,7 @@ boolean __initCursesConsole(STATEPARAMS)
  *  returns : boolean true if initialized, false on error.
  */
 {
-    boolean retVal = false;
+    __boolean retVal = false;
 
     if (__curs_openConsole(STATEARGS) != -1)
     {

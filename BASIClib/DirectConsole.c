@@ -403,7 +403,7 @@ static void __cons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
 } /* __cons_getConsoleHandlerName */
 
 
-boolean __initDirectConsole(STATEPARAMS)
+__boolean __initDirectConsole(STATEPARAMS)
 /*
  * Attempt to initialize direct-to-console access.
  *
@@ -411,7 +411,7 @@ boolean __initDirectConsole(STATEPARAMS)
  *  returns : boolean true if initialized, false on error.
  */
 {
-    boolean retVal = false;
+    __boolean retVal = false;
 
     if (__cons_openConsole(STATEARGS) != -1)
     {

@@ -12,7 +12,7 @@
 #include "CursesConsole.h"
 #include "RedirectedConsole.h"
 
-/*static boolean inGraphicsState = false;*/
+/*static __boolean inGraphicsState = false;*/
 
 /* internal function declarations needed at start... */
 void __preinitPrintNewLine(STATEPARAMS);
@@ -73,7 +73,7 @@ void __deinitConsoleFunctions(STATEPARAMS)
 
 void vbpV_print(STATEPARAMS, PVariant pVar)
 /*
- * Take a (pVar), convert to a string, and print it.
+ * Take a variant, convert to a string, and print it.
  *
  *   params : pVar == variable to print.
  *  returns : void.
@@ -115,7 +115,7 @@ void __printAsciz(STATEPARAMS, char *str)
 } /* __printAsciz */
 
 
-static void __preinitPrintNChars(STATEPARAMS, char *str, int n);
+static void __preinitPrintNChars(STATEPARAMS, char *str, int n)
 /*
  * This function exists to allow initialization functions to
  *  write to stderr (under the guise of a full console driver)

@@ -29,7 +29,7 @@ void __initBasicFileStream(STATEPARAMS)
 }
 
 
-boolean __invalidFileNumber(STATEPARAMS, short fileNumber)
+__boolean __invalidFileNumber(STATEPARAMS, short fileNumber)
 /*
  *  Checks if the specified fileNumber is out of range.
  *
@@ -58,7 +58,8 @@ __PBasicFileStream __getFileStream(STATEPARAMS, short fileNumber)
     return __fileNumbers[fileNumber];
 }
 
-boolean __deleteFileStream(STATEPARAMS, short fileNumber)
+
+__boolean __deleteFileStream(STATEPARAMS, short fileNumber)
 /*
  *  De-allocates memory associated with the fileNumber.
  *
