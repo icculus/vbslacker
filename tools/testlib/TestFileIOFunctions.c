@@ -2,6 +2,7 @@
  * Test file i/o functions.
  *
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *    Written by Gregory S. Read.
  */
 
 #include <stdio.h>
@@ -48,11 +49,13 @@ void testFileIOFunctions(void)
 
 #ifdef STANDALONE
 
-int main(void)
+long errors = 0;
+long warnings = 0;
+
+int main(int argc, char **argv, char **envp)
 {
-    __initBasicLib(INITFLAG_DISABLE_CONSOLE);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testFileIOFunctions();
-    __deinitBasicLib();
     return(0);
 } /* main */
 

@@ -114,7 +114,6 @@ void test_kill(void)
     PBasicString fileName = __createString("testName", false);
     struct stat statBuf;
 
-
     __ONERRORINIT;
     __setOnErrorHandler(killChoked);
 
@@ -241,6 +240,10 @@ void testFileSystemFunctions(void)
 
     dirConst = __constString("newdir");
 
+        /* in case these are laying about from a previous run... */
+    remove("testFileCopy");
+    remove("testName");
+
     test_filecopy();
     test_name();
     test_kill();
@@ -250,6 +253,9 @@ void testFileSystemFunctions(void)
 
 
 #ifdef STANDALONE
+
+long errors = 0;
+long warnings = 0;
 
 int main(int argc, char **argv, char **envp)
 {

@@ -320,14 +320,13 @@ void testConversionFunctions(void)
 
 #ifdef STANDALONE
 
-int main(int argc, char **argv)
-{
-    void *base;
+long errors = 0;
+long warnings = 0;
 
-    __getBasePointer(base);
-    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
+int main(int argc, char **argv, char **envp)
+{
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testConversionFunctions();
-    __deinitBasicLib();
     return(0);
 } /* main */
 

@@ -81,11 +81,13 @@ void testThreads(void)
 
 #ifdef STANDALONE
 
+long errors = 0;
+long warnings = 0;
+
 int main(int argc, char **argv, char **envp)
 {
     __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testThreads();
-    __deinitBasicLib();
     return(0);
 } /* main */
 
