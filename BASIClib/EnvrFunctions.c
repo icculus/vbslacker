@@ -15,14 +15,12 @@ extern char **environ;
 
 static ThreadLock envrLock;
 static PBasicString commandLine;
-static __boolean unixFileSystem;
 
 
 void __initEnvrFunctions(int argc, char **argv)
 /*
  * Initializations;
  *   - Create a ThreadLock for thread-proofing getenv() calls...
- *   - Check if the "unix file system compatible" init flag was set.
  *   - get the command line, and convert it to a BASIC string for COMMAND$().
  *
  *      params : argc, argv == same as params to main()...
@@ -35,17 +33,13 @@ void __initEnvrFunctions(int argc, char **argv)
 
     __createThreadLock(&envrLock);
 
-    unixFileSystem = ((__getInitFlags() & INITFLAG_UNIX_FILE_SYSTEM) ?
-                          true : false);
-
-
     /* !!! This is basically inefficient... */
 
     for (i = 1; i < argc; i++)        /* get size of command line string... */
         size += (__integer) (strlen(argv[i]) + 1);
 
-    cmdLine = __memAlloc(size);
-    memset(cmdLine, '\0', size);
+    cmdLine = __memAllocNoPtrs(size);
+    cmdLine[0] = '\0';
 
     for (i = 1; i < argc; i++)   /* Make argv[] one space-separated string. */
     {
@@ -56,6 +50,12 @@ void __initEnvrFunctions(int argc, char **argv)
 
                                  /* Convert to a BASIC string. */
     commandLine = __createString(cmdLine, false);
+
+
+    printf("DEBUG: command$() is [%s]\n", cmdLine);
+
+
+
     __memFree(cmdLine);
 } /* __initEnvrFunctions */
 
@@ -71,84 +71,6 @@ void __deinitEnvrFunctions(void)
 {
     __destroyThreadLock(&envrLock);
 } /* __initEnvrFunctions */
-
-
-void _vbpS_chdir(PBasicString newDir)
-/*
- * Change the current working directory. All relative paths used in
- *  file i/o will work from the new working directory from now on.
- *
- *    params : newDir == new directory to make current.
- *   returns : void. Throws a few errors, though.
- */
-{
-    __byte *str = __basicStringToAsciz(newDir);
-    int rc = chdir(str);
-
-    __memFree(str);
-
-    if (rc == -1)
-    {
-        switch (errno)
-        {
-            case ENOENT:
-            case ENOTDIR:
-                rc = ERR_PATH_NOT_FOUND;
-                break;
-
-            case ELOOP:
-            case EIO:
-                rc = ERR_PATH_FILE_ACCESS_ERROR;
-                break;
-
-            case EACCES:
-                rc = ERR_PERMISSION_DENIED;
-                break;
-
-            case EFAULT:
-            case ENAMETOOLONG:
-            case ENOMEM:
-            default:
-                rc = ERR_INTERNAL_ERROR;
-                break;
-        } /* switch */
-
-        __runtimeError(rc);
-    } /* if */
-} /* _vbpS_chdir */
-
-
-PBasicString _vbSS_curdir_DC_(PBasicString drive)
-/*
- * Return current working directory by drive letter. Under Unix-like
- *  Operating systems, the only valid drive letter is "C"...You can set
- *  the behavior of this by setting the "unix file system compatible"
- *  option at compile time. Either way on unix, you get a runtime error
- *  if you specify a drive other than C or blank, but you'll either get
- *  "/home/gordonr" or "C:\home\gordonr", depending on how you set the
- *  compatibility. 
- *
- *    params : drive == drive letter. Only first letter is read. ("") means
- *                      current drive.
- *   returns : see above.
- */
-{
-    
-} /* _vbSS_curdir */
-
-
-PBasicString _vbS_curdir_DC_(void)
-/*
- * Same as above vbSS_curdir_DC_(), but always gets current drives's
- *  working directory. Equivalent to vbSS_curdir_DC_("");
- *
- *     params : void.
- *    returns : see above.
- */
-{
-    PBasicString blankString = __createString("", false);
-    return(_vbSS_curdir_DC_(blankString));
-} /* _vbS_curdir_DC_ */
 
 
 PBasicString _vbSS_environ_DC_(PBasicString envVarName)
@@ -175,7 +97,7 @@ PBasicString _vbSS_environ_DC_(PBasicString envVarName)
 } /* vbSS_environ_DC_ */
 
 
-PBasicString _vbSi_environ_DC_(__integer n)
+PBasicString _vbSi_environ_DC_(__single n)
 /*
  * Get the (n)th string from the list of environment variables, whatever
  *  it may be.
@@ -188,8 +110,12 @@ PBasicString _vbSi_environ_DC_(__integer n)
 {
     PBasicString retVal;
     __integer i;
+    __integer rounded = (__integer) (n + 0.5);
 
-    for (i = 0; (i < n) && (environ[i] != NULL); i++)
+    if (rounded <= 0)
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+
+    for (i = 0; (i < rounded) && (environ[i] != NULL); i++)
         /* do nothing. */;
 
     retVal = __createString(((environ[i] == NULL) ? "" : environ[i]), false);
@@ -228,34 +154,6 @@ void _vbpS_environ(PBasicString newEnvrStr)
     /* !!! not done! */
 #endif
 } /* _vbpS_environ */
-
-
-__integer _vbii_fre(__integer arg)
-/*
- * Returns a byte count of available memory remaining.
- *
- *  if (arg) == -1, then FRE() returns the size of the largest (nonstring)
- *   array that can be allocated.
- *  if (arg) == -2, then FRE() returns the unused stack space.
- *  For any other value, FRE() will return the available string space.
- *
- *  Ugly. Just ugly.
- *
- *    params : arg == see above.
- *   returns : see above.
- */
-{
-    __integer retVal = 0;
-
-    if (arg == -1)       /* return available memory. */
-        /* !!! */ ;
-    else if (arg == -2)  /* return available stack space. */
-        /* !!! */ ;
-    else                 /* return string space. */
-        retVal = _vbiS_fre(NULL);
-
-    return(retVal);
-} /* _vbii_fre */
 
 
 __integer _vbiS_fre(PBasicString strExp)

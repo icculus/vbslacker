@@ -15,13 +15,9 @@ extern "C" {
 
 void __initEnvrFunctions(int argc, char **argv);
 void __deinitEnvrFunctions(void);
-void _vbpS_chdir(PBasicString newDir);
-PBasicString _vbSS_curdir_DC_(PBasicString drive);
-PBasicString _vbS_curdir_DC_(void);
 PBasicString _vbSS_environ_DC_(PBasicString envVarName);
 PBasicString _vbSi_environ_DC_(__integer n);
 void _vbpS_environ(PBasicString newEnvrStr);
-__integer _vbii_fre(__integer arg);
 __integer _vbiS_fre(PBasicString strExp);
 PBasicString _vbS_command_DC_(void);
 
