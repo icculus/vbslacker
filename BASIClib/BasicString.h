@@ -12,7 +12,7 @@
 typedef struct
 {
     unsigned int length;
-    char *data;             /* THIS IS -=NOT=- NULL-TERMINATED! */
+    unsigned char *data;      /* THIS IS -=NOT=- NULL-TERMINATED! */
     boolean fixedLength;
 } BasicString;
 
