@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "Initialize.h"
 #include "Threads.h"
 #include "OnEvents.h"
 #include "ErrorFunctions.h"

@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "Initialize.h"
 #include "ConversionFunctions.h"
 #include "BasicString.h"
 
