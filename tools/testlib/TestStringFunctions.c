@@ -8,6 +8,9 @@
 #include <string.h>
 #include "BasicLib.h"
 
+extern long errors;
+extern long warnings;
+
 
 typedef unsigned char uchar;
 uchar TEST_TEXT1[] = "This is a test string for TestStringFunctions.c!\n";
@@ -36,22 +39,35 @@ void cmpStr(PBasicString pStr, char *data,
  */
 {
     if (pStr == NULL)
+    {
         printf("  - New string is NULL!\n");
+        errors++;
+    } /* if */
     else
     {
         if (pStr->length != length)
         {
+            errors++;
             printf("  - New string's length is (%ld), should be (%ld).\n",
                    pStr->length, length);
         } /* if */
 
         if (pStr->fixedLength != fixedLength)
+        {
             printf("  - New string's fixedLength flag is incorrect.\n");
+            errors++;
+        } /* if */
 
         if ((pStr->data == NULL) && (pStr->length != 0))
+        {
+            errors++;
             printf("  - New string's data field is NULL.\n");
+        } /* if */
         else if (memcmp(pStr->data, data, length) != 0)
+        {
+            errors++;
             printf("  - New string's data does not match original!\n");
+        } /* else if */
     } /* else */
 } /* cmpStr */
 
@@ -75,7 +91,10 @@ void test___constString(void)
     if (rc != NULL)
     {
         if (rc->data != TEST_TEXT2)
+        {
             printf("  - New string's data is not constant.\n");
+            errors++;
+        } /* if */
     } /* if */
 
     /* never __freeString() anything returned by __constString()! */
@@ -162,6 +181,7 @@ void test_len(void)
     {
         printf("  - Failed. Returned (%ld), expected (%ld).\n",
                  rc, pStr->length);
+        errors++;
     } /* if */
 
     __freeString(pStr);

@@ -17,6 +17,9 @@
 #define FAILED "  - Failed.\n"
 #define FAILED_WITH_WARNING "  - Failed. Later tests may fail, too.\n"
 
+extern long errors;
+extern long warnings;
+
 static int recursive = 0;
 static void *_stack_ptr_;
 static void *_base_ptr_;
@@ -74,6 +77,7 @@ void test__getBasePointer(void)
         printf(FAILED_WITH_WARNING);
         printf("  - dword [ebp] should have been (0x%X), but is (0x%X).\n",
                 TESTVAR_VALUE1, *((int *) (((int) _base_ptr_) - 4)));
+        errors++;
         if (binaryDump("debugBP.bin", _base_ptr_ - 100, 200) == true)
             printf("  - (That's our supposed [ebp-100] to [ebp+100]...)\n");
     } /* if */
@@ -122,6 +126,7 @@ void test__getStackPointer()
     {
         printf(FAILED_WITH_WARNING);
         printf("  - expected (%p), but got (%p)\n", expected, _stack_ptr_);
+        warnings++;
     } /* if */
 } /* test__getStackPointer */
 
@@ -139,6 +144,7 @@ void test__jump(void)
     __getLabelAddr(jumpToLabel, addr);
     __jump(addr);
     printf("  - __jump() didn't jump.\n");
+    errors++;
 
 __insertLineLabel(jumpToLabel);
     return;
@@ -202,6 +208,7 @@ __insertLineLabel(errHandler1);
 
     if (_base_ptr2_ != _base_ptr_)
     {
+        errors++;
         printf("  - Base pointer is damaged.\n");
         printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
         printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
@@ -209,6 +216,7 @@ __insertLineLabel(errHandler1);
 
     if (_stack_ptr2_ != _stack_ptr_)
     {
+        errors++;
         printf("  - Stack pointer is damaged.\n");
         printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
         printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
@@ -216,6 +224,7 @@ __insertLineLabel(errHandler1);
 
     if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
     {
+        errors++;
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -241,12 +250,14 @@ __insertLineLabel(endTest1);
         case 1:   /* good. */
             break;
         case 2:
+            errors++;
             printf("  - Handler missed. Failed.\n"  
                    "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
             exit(1);
             break;
         default:
+            errors++;
             printf("  - Confused! Failed.\n"
                    "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
@@ -283,6 +294,7 @@ void testOnErrorGotoStackedHandling2(void)
     __setOnErrorHandler(errHandler2);
     __runtimeError(ERR_PERMISSION_DENIED);
     printf(FAILED);
+    errors++;
     __jumpLabel(missedHandler2);
 
 __insertLineLabel(errHandler2);
@@ -332,6 +344,7 @@ __insertLineLabel(errHandler3);
 
     if (_base_ptr2_ != _base_ptr_)
     {
+        errors++;
         printf("  - Base pointer is damaged.\n");
         printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
         printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
@@ -339,6 +352,7 @@ __insertLineLabel(errHandler3);
 
     if (_stack_ptr2_ != _stack_ptr_)
     {
+        errors++;
         printf("  - Stack pointer is damaged.\n");
         printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
         printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
@@ -346,6 +360,7 @@ __insertLineLabel(errHandler3);
 
     if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
     {
+        errors++;
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -371,12 +386,14 @@ __insertLineLabel(endTest2);
         case 1:   /* good. */
             break;
         case 2:
+            errors++;
             printf("  - Handler missed. Failed.\n"  
                    "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
             exit(1);
             break;
         default:
+            errors++;
             printf("  - Confused! Failed.\n"
                    "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
@@ -417,10 +434,12 @@ void testResumeNext(int runCount)
 __insertLineLabel(resumeNextErrHandler);
     __resumeNext;
     printf(FAILED);
+    errors++;
     __jumpLabel(resumeNextEnd);
 
 __insertLineLabel(resumeZeroWrong);
     printf("  - Resumed ZERO instead of NEXT.\n");
+    errors++;
     __jumpLabel(resumeNextEnd);
 
 __insertLineLabel(resumeNextRight);
@@ -429,6 +448,7 @@ __insertLineLabel(resumeNextRight);
 
     if (_base_ptr2_ != _base_ptr_)
     {
+        errors++;
         printf("  - Base pointer is damaged.\n");
         printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
         printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
@@ -436,6 +456,7 @@ __insertLineLabel(resumeNextRight);
 
     if (_stack_ptr2_ != _stack_ptr_)
     {
+        errors++;
         printf("  - Stack pointer is damaged.\n");
         printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
         printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
@@ -443,6 +464,7 @@ __insertLineLabel(resumeNextRight);
 
     if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
     {
+        errors++;
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -486,6 +508,7 @@ void testResumeZero(int runCount)
 __insertLineLabel(resumeZeroErrHandler);
     __resumeZero;
     printf(FAILED);
+    errors++;
     __jumpLabel(resumeZeroEnd);
 
 __insertLineLabel(resumeZeroRight);
@@ -494,6 +517,7 @@ __insertLineLabel(resumeZeroRight);
 
     if (_base_ptr2_ != _base_ptr_)
     {
+        errors++;
         printf("  - Base pointer is damaged.\n");
         printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
         printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
@@ -501,6 +525,7 @@ __insertLineLabel(resumeZeroRight);
 
     if (_stack_ptr2_ != _stack_ptr_)
     {
+        errors++;
         printf("  - Stack pointer is damaged.\n");
         printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
         printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
@@ -508,6 +533,7 @@ __insertLineLabel(resumeZeroRight);
 
     if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
     {
+        errors++;
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -521,6 +547,7 @@ __insertLineLabel(resumeZeroRight);
     __jumpLabel(resumeZeroEnd);
 
 __insertLineLabel(resumeNextWrong);
+    errors++;
     printf("  - Resumed NEXT instead of ZERO.\n");
     __jumpLabel(resumeZeroEnd);
 
@@ -552,11 +579,13 @@ void testResumeLabel(int runCount)
 
     __runtimeError(ERR_RENAME_ACROSS_DISKS);
     printf(FAILED);
+    errors++;
     __jumpLabel(resumeLabelEnd);
 
 __insertLineLabel(resumeLabelErrHandler);
     __resumeLabel(resumeLabel);
     printf(FAILED);
+    errors++;
     __jumpLabel(resumeLabelEnd);
 
 __insertLineLabel(resumeLabel);
@@ -565,6 +594,7 @@ __insertLineLabel(resumeLabel);
 
     if (_base_ptr2_ != _base_ptr_)
     {
+        errors++;
         printf("  - Base pointer is damaged.\n");
         printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
         printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
@@ -572,6 +602,7 @@ __insertLineLabel(resumeLabel);
 
     if (_stack_ptr2_ != _stack_ptr_)
     {
+        errors++;
         printf("  - Stack pointer is damaged.\n");
         printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
         printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
@@ -579,6 +610,7 @@ __insertLineLabel(resumeLabel);
 
     if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
     {
+        errors++;
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -600,6 +632,7 @@ void testOnErrorState(void)
 {
     if (__isOnErrorThreadStateNULL() != true)
     {
+        warnings++;
         printf("  - OnError was not cleaned up correctly.\n"
                "  - Later tests will probably fail inexplicably.\n");
     } /* if */

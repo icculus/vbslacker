@@ -8,6 +8,9 @@
 #include <math.h>
 #include "BasicLib.h"
 
+extern long errors;
+extern long warnings;
+
 void test_vbdd_abs(void)
 /*
  * Test abs() functionality.
@@ -27,11 +30,17 @@ void test_vbdd_abs(void)
     {
         rc = _vbdd_abs(posVals[i]);
         if (rc != posVals[i])
+        {
             printf("  - abs(%f) returned (%f) incorrectly!\n", posVals[i], rc);
+            errors++;
+        } /* if */
 
         rc = _vbdd_abs(negVals[i]);
         if (rc != posVals[i])
+        {
             printf("  - abs(%f) returned (%f) incorrectly!\n", posVals[i], rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbdd_abs */
 
@@ -64,14 +73,20 @@ __insertLineLabel(trySqr);
         rc = _vbdd_sqr(i);
 __insertLineLabel(trySqrNext);
         if ((_vbl_err() == ERR_NO_ERROR) && (rc != correct))
+        {
             printf("  - sqr(%f) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
     __exitCleanupOnError;
     return;
 
 __insertLineLabel(sqrHandler);
     if (i >= 0)
+    {
         printf("  - sqr(%f) incorrectly threw an error!\n", i);
+        errors++;
+    } /* if */
     __resumeNext;
 } /* test_vbdd_sqr */
 
@@ -96,7 +111,10 @@ void test_vbdd_atn(void)
         rc = _vbdd_atn(i);
         correct = atan(i);
         if (rc != correct)
+        {
             printf("  - atn(%f) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbdd_atn */
 
@@ -120,7 +138,10 @@ void test_vbdd_sin(void)
         rc = _vbdd_sin(i);
         correct = sin(i);
         if (rc != correct)
+        {
             printf("  - sin(%f) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbdd_sin */
 
@@ -144,7 +165,10 @@ void test_vbdd_cos(void)
         rc = _vbdd_cos(i);
         correct = cos(i);
         if (rc != correct)
+        {
             printf("  - cos(%f) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbdd_cos */
 
@@ -168,7 +192,10 @@ void test_vbdd_tan(void)
         rc = _vbdd_tan(i);
         correct = tan(i);
         if (rc != correct)
+        {
             printf("  - tan(%f) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbdd_tan */
 
@@ -200,7 +227,10 @@ void test_vbdd_exp(void)
     {
         rc = _vbdd_exp(i);
         if (rc != solutions[i])
+        {
             printf("  - exp(%d) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbdd_exp */
 #endif
@@ -234,14 +264,20 @@ __insertLineLabel(tryLog);
         rc = _vbdd_log(i);
 __insertLineLabel(tryLogNext);
         if ((_vbl_err() == ERR_NO_ERROR) && (rc != correct))
+        {
             printf("  - log(%f) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
     __exitCleanupOnError;
     return;
 
 __insertLineLabel(logHandler);
     if (i >= 0)
+    {
         printf("  - log(%f) incorrectly threw an error!\n", i);
+        errors++;
+    } /* if */
     __resumeNext;
 } /* test_vbdd_log */
 
@@ -265,7 +301,10 @@ void test_vbld_fix(void)
     {
         rc = _vbld_fix(problems[i]);
         if (rc != solutions[i])
+        {
             printf("  - fix(%d) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbld_fix */
 
@@ -289,7 +328,10 @@ void test_vbld_int(void)
     {
         rc = _vbld_int(problems[i]);
         if (rc != solutions[i])
+        {
             printf("  - int(%d) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbld_int */
 
@@ -313,7 +355,10 @@ void test_vbid_sgn(void)
     {
         rc = _vbid_sgn(problems[i]);
         if (rc != solutions[i])
+        {
             printf("  - sgn(%d) returned (%f) incorrectly!\n", i, rc);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_vbid_sgn */
 

@@ -8,7 +8,10 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
-int __basicErrno;
+extern long warnings;
+extern long errors;
+
+static int __basicErrno;
 
 void test_chr_DC_(void)
 /*
@@ -45,9 +48,13 @@ __insertLineLabel(chrErrorResumeNext);
             {  
                 printf("  - CHR$(%d) returned incorrect string length [%ld]!\n",
                         i, rc->length);
+                errors++;
             } /* if */
             else if (rc->data[0] != (unsigned char) i)
+            {
                 printf("  - CHR$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
+                errors++;
+            } /* else if */
             __freeString(rc);
         } /* if */
     } /* for */
@@ -57,7 +64,10 @@ __insertLineLabel(chrErrorResumeNext);
 
 __insertLineLabel(chrError);   /* error handler... */
     if ((i >= 0) && (i <= 255))  /* !!! string of error number? */
+    {
         printf("  - CHR$(%d) threw error %d!\n", i, __basicErrno);
+        errors++;
+    } /* if */
 
     __resumeNext;
 } /* test_chr_DC_ */
@@ -82,13 +92,17 @@ void test_str_DC_(void)
     rc = _vbSd_str_DC_(i);
 
     if (rc->length > sizeof (buffer))
+    {
         printf("  - STR$(%f) returned %ld byte string.\n", i, rc->length);
+        errors++;
+    } /* if */
 
     else if (memcmp(rc->data, buffer, rc->length) != 0)
     {
         memcpy(buffer, rc->data, rc->length);
         buffer[rc->length] = '\0';
         printf("  - STR$(%f) returned \"%s\"!\n", i, buffer);
+        errors++;
     } /* if */
 
     __freeString(rc);
@@ -106,8 +120,7 @@ void test_asc(void)
     __ONERRORVARS;
     __integer i;
     __integer rc;
-    PBasicString argStr = __createString("The Quick brown fox... ",
-                                         false);
+    PBasicString argStr = __createString("The Quick brown fox... ", false);
 
     __ONERRORINIT;
 
@@ -131,6 +144,7 @@ __insertLineLabel(ascErrorResumeNext);
             argStr->data[argStr->length - 1] = '\0';
             printf("  - ASC(\"%s\") returned [%d]! Should be (%d).\n",
                      argStr->data, rc, i);
+            errors++;
         } /* if */
     } /* for */
 
@@ -144,6 +158,7 @@ __insertLineLabel(ascError);
     {
         printf("  - ASC(\"%s\") gave error for valid argument!\n",
                 argStr->data);
+        errors++;
     } /* if */
 
     __resumeNext;
@@ -174,6 +189,7 @@ void test_hex_DC_(void)
             memcpy(buffer, rc->data, rc->length);
             buffer[rc->length] = '\0';
             printf("  - HEX$(&H%lX) returned \"%s\"!\n", i, buffer);
+            errors++;
         } /* if */
 
         __freeString(rc);
@@ -205,6 +221,7 @@ void test_oct_DC_(void)
             memcpy(buffer, rc->data, rc->length);
             buffer[rc->length] = '\0';
             printf("  - OCT$(%ld) returned \"%s\"!\n", i, buffer);
+            errors++;
         } /* if */
 
         __freeString(rc);
@@ -239,8 +256,10 @@ void test_val(void)
 
         rc = _vbdS_val(pStr);
         if (rc != i)
+        {
             printf("  - VAL(\"%s\") returned [%f]!\n", buffer, rc);
-
+            errors++;
+        } /* if */
         __freeString(pStr);
     } /* for */
 
@@ -269,7 +288,10 @@ void test_str_DC_and_val(void)
         rcD = _vbdS_val(rcS);
         __freeString(rcS);
         if (rcD != i)
+        {
             printf("  - Value (%f) came back as (%f).\n", i, rcD);
+            errors++;
+        } /* if */
     } /* for */
 } /* test_str_DC_and_val */
 

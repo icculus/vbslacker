@@ -9,6 +9,98 @@
 #include <errno.h>
 #include "BasicLib.h"
 
+extern long errors;
+extern long warnings;
+
+
+static PBasicString dirConst = NULL;
+
+
+void test_rmdir(void)
+/*
+ * Test RMDIR() functionality.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+    __ONERRORVARS;
+    struct stat statBuf;
+
+    __ONERRORINIT;
+    __setOnErrorHandler(rmdirChoked);
+
+    printf("Testing RmDir...\n");
+
+    _vbpS_rmdir(dirConst);
+
+    if (stat(__basicStringToAsciz(dirConst), &statBuf) == 0)
+    {
+        printf(" - Directory was not removed.\n");
+        errors++;
+    } /* if */
+    else
+    {
+        if (errno != ENOENT)
+        {
+            printf(" - Dir is now unstat()able, but for wrong reason.\n");
+            errors++;
+        } /* if */
+    } /* else */
+
+    __exitCleanupOnError;
+    return;
+
+__insertLineLabel(rmdirChoked);
+
+    printf(" - Threw error. (#%ld)\n", _vbl_err());
+    errors++;
+    __exitCleanupOnError;
+} /* test_rmdir */
+
+
+void test_mkdir(void)
+/*
+ * Test MKDIR() functionality.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+    __ONERRORVARS;
+    struct stat statBuf;
+
+    __ONERRORINIT;
+    __setOnErrorHandler(mkdirChoked);
+
+    printf("Testing MkDir...\n");
+
+    _vbpS_mkdir(dirConst);
+
+    if (stat(__basicStringToAsciz(dirConst), &statBuf) != 0)
+    {
+        printf(" - New directory is unstat()able.\n");
+        errors++;
+    } /* if */
+    else
+    {
+        if (!S_ISDIR(statBuf.st_mode))
+        {
+            printf(" - Created file is NOT a directory!\n");
+            errors++;
+        } /* if */
+    } /* else */
+
+    __exitCleanupOnError;
+    return;
+
+__insertLineLabel(mkdirChoked);
+
+    printf(" - Threw error. (#%ld)\n", _vbl_err());
+    errors++;
+    __exitCleanupOnError;
+} /* test_mkdir */
+
 
 void test_kill(void)
 /*
@@ -24,28 +116,33 @@ void test_kill(void)
 
 
     __ONERRORINIT;
-    __setOnErrorHandler(nameChoked);
+    __setOnErrorHandler(killChoked);
 
-    printf("Testing Kill...");
+    printf("Testing Kill...\n");
 
     _vbpS_kill(fileName);
 
     if (stat(__basicStringToAsciz(fileName), &statBuf) == 0)
-        printf("\n - File was not killed.\n");
+    {
+        printf(" - File was not killed.\n");
+        errors++;
+    } /* if */
     else
     {
-        if (errno == ENOENT)
-            printf("done.\n");
-        else
-            printf("\n - File is now unstat()able, but for wrong reason.\n");
+        if (errno != ENOENT)
+        {
+            printf(" - File is now unstat()able, but for wrong reason.\n");
+            errors++;
+        } /* if */
     } /* else */
 
     __exitCleanupOnError;
     return;
 
-__insertLineLabel(nameChoked);
+__insertLineLabel(killChoked);
 
     printf("\n - Threw error. (#%ld)\n", _vbl_err());
+    errors++;
     __exitCleanupOnError;
 } /* test_kill */
 
@@ -67,21 +164,23 @@ void test_name(void)
     __ONERRORINIT;
     __setOnErrorHandler(nameChoked);
 
-    printf("Testing Name...");
+    printf("Testing Name...\n");
 
     _vbpSS_name(copyThis, copyHere);
 
     if (stat(__basicStringToAsciz(copyHere), &statBuf) != 0)
-        printf("\n - renaming is unstat()able.\n");
-    else
-        printf("done.\n");
+    {
+        printf(" - renaming is unstat()able.\n");
+        errors++;
+    } /* if */
 
     __exitCleanupOnError;
     return;
 
 __insertLineLabel(nameChoked);
 
-    printf("\n - Threw error. (#%ld)\n", _vbl_err());
+    printf(" - Threw error. (#%ld)\n", _vbl_err());
+    errors++;
     __exitCleanupOnError;
 } /* test_name */
 
@@ -110,21 +209,23 @@ void test_filecopy(void)
     __ONERRORINIT;
     __setOnErrorHandler(fileCopyChoked);
 
-    printf("Testing FileCopy...");
+    printf("Testing FileCopy...\n");
 
     _vbpSS_filecopy(fileName, copyHere);
 
     if (stat(__basicStringToAsciz(copyHere), &statBuf) != 0)
-        printf("\n - new copy is unstat()able.\n");
-    else
-        printf("done.\n");
+    {
+        printf(" - new copy is unstat()able.\n");
+        errors++;
+    } /* if */
 
     __exitCleanupOnError;
     return;
 
 __insertLineLabel(fileCopyChoked);
 
-    printf("\n - Threw error. (#%ld)\n", _vbl_err());
+    printf(" - Threw error. (#%ld)\n", _vbl_err());
+    errors++;
     __exitCleanupOnError;
 } /* test_filecopy */
 
@@ -139,9 +240,13 @@ void testFileSystemFunctions(void)
 {
     printf("\n[TESTING FILESYSTEM FUNCTIONS...]\n");
 
+    dirConst = __constString("newdir");
+
     test_filecopy();
     test_name();
     test_kill();
+    test_mkdir();
+    test_rmdir();
 } /* testFileSystemFunctions */
 
 

@@ -11,6 +11,11 @@
 
 #define stricmp strcasecmp
 
+
+long warnings = 0;
+long errors = 0;
+
+
 static int skipCollector = 0;
 
 
@@ -36,7 +41,7 @@ void initTestLib(int argc, char **argv, char **envp)
 void deinitTestLib(void)
 {
     printf("\n[TESTLIB FOR VBSLACKER SHUTTING DOWN...]\n");
-    printf("Making call to __deinitBasicLib()...");
+    printf("Making call to __deinitBasicLib()...\n");
 
     /*
      * This is normally done automatically, but is safe to do
@@ -46,7 +51,13 @@ void deinitTestLib(void)
 
     __deinitBasicLib();
 
-    printf("done.\n\n");
+    printf("\n"
+           "TestLib execution has completed.\n"
+           "\n"
+           "    warnings : %ld\n"
+           "    errors   : %ld\n"
+           "\n",
+           warnings, errors);
 } /* deinitTestLib */
 
 
