@@ -17,6 +17,9 @@ typedef struct
 typedef HandlerVector *PHandlerVector;
 
 
+void *_stack_ptr_ = NULL;
+void *_base_ptr_ = NULL;
+
     /* !!! these will need an extra dimension if we start multithreading... */
 static HandlerVector table[(OnEventTypeEnum) TOTAL];
 
@@ -60,17 +63,18 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
 
 void __registerOnEventHandler(void *handlerAddr, void *stackStart,
                               void *stackEnd, void *origReturnAddr,
-                              OnEventTypeEnum evType)
+                              void *basePtr, OnEventTypeEnum evType)
 /*
  * This is somewhere between "low level but general" and "80x386 specific."
  *
  * Ideally, any module that contains a call to this function should
  *  do something like this:
  *
- *   _stack_ptr_ = getStackPointer();
+ *   _base_ptr = getBasePointer(&_base_ptr_);
+ *   getStackPointer(&_stack_ptr_);
  *   __registerOnEventHandler(handlerLabel, &lastArg + sizeof(lastArg),
  *                            _stack_ptr_, &firstArg - sizeof(void *),
- *                            ONERROR);
+ *                            _base_ptr_, ONERROR);
  *
  *
  * _stack_ptr_ should be a (void *) declared at the module level, if needed.
@@ -78,6 +82,8 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  *  FUBAR that later. getStackPointer() is an inline assembly macro that simply
  *  gives up the current stack pointer. We need this to be inlined, and done
  *  before the call to this function begins, so we have a stable stack pointer.
+ *
+ * Same thing applies to _base_ptr_.
  *
  * handlerAddr is the goto label we'll be blindly jumping to to handle the
  *  the runtime error.
@@ -142,6 +148,7 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
     pHandler->stackStart = stackStart;
     pHandler->stackEnd = stackEnd;
     pHandler->origReturnAddr = origReturnAddr;
+    pHandler->basePtr = basePtr;
 } /* __registerOnEventHandler */
 
 
