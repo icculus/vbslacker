@@ -252,7 +252,7 @@ static void __kickOffThread(STATEPARAMS, PThreadEntryArgs args)
 } /* __kickOffThread */
 
 
-void __threadEntry(void *_args)
+static void __threadEntry(void *_args)
 /*
  * This is a simple entry point from __spinThread(), used to pass
  *  STATEARGS and cast _args to something useful.
