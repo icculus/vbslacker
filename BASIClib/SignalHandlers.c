@@ -50,7 +50,7 @@ static void __sigintHandler(int sig)
 void __initSignalHandlers(void)
 {
     (void) signal(SIGINT, __sigintHandler);
-    (void) signal(SIGSEGV, __crashHandler);
+//    (void) signal(SIGSEGV, __crashHandler);
     (void) signal(SIGILL, __crashHandler);
     (void) signal(SIGBUS, __crashHandler);
     (void) signal(SIGFPE, __crashHandler);
