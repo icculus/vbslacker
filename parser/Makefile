@@ -29,5 +29,5 @@ clean:
 	rm *.o
 	rm BasicParser.cpp BasicParser.hpp
 	rm BasicLexer.cpp BasicLexer.hpp
-	rm BasicLexerTokenTypes.hpp BasicLexerTokenTypes.txt
 	rm BasicParserTokenTypes.hpp BasicParserTokenTypes.txt
+	rm BasicTokenTypes.hpp BasicTokenTypes.txt
