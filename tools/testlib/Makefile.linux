@@ -13,12 +13,13 @@ LINKER = gcc
 
 # Debug command lines...
 COPTIONS = -DSINGLE_THREADED -D_REENTRANT -DLANG_ENGLISH -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -c -o
+LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lncurses -o
 #COPTIONS = -D_REENTRANT -DLANG_ENGLISH -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -c -o
-LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -lncurses -o
+#LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -lncurses -o
 
 all : linux
 
-linux : testlib
+linux : testlib testconsole
 
 testlib : $(OBJS)
 	$(LINKER) $(LOPTIONS) testlib $(OBJS)
@@ -46,5 +47,12 @@ TestFileIOFunctions.o : TestFileIOFunctions.c
 
 TestMathFunctions.o : TestMathFunctions.c
 	$(CC) $(COPTIONS) TestMathFunctions.o TestMathFunctions.c
+
+
+testconsole : TestConsole.o
+	$(LINKER) $(LOPTIONS) testconsole TestConsole.o
+
+TestConsole.o : TestConsole.c
+	$(CC) $(COPTIONS) TestConsole.o TestConsole.c
 
 # end of Makefile.linux ...
