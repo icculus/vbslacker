@@ -44,8 +44,9 @@ PBasicString chr_DC_(double asciiValue)
  */
 {
     PBasicString retVal = NULL;
+    int intAscii = (int) asciiValue;
 
-    if (!isascii((int) asciiValue))
+    if ((intAscii < 0) || (intAscii > 255))
         __runtimeError(ILLEGAL_FUNCTION_CALL);
     else
     {
@@ -76,11 +77,17 @@ PBasicString str_DC_(double numeric)
     int index = 1;
     int number;
 
-    buffer[0] = ((numeric < 0.0) ? '-' : ' ');   /* negative or positive? */
+    if (numeric < 0.0)   /* negative? */
+    {
+        buffer[0] = '-';
+        numeric = -numeric;
+    } /* if */
+    else
+        buffer[0] = ' ';
 
     for (i = 1.0; i < numeric; i *= 10.0);         /* get dec. places */
 
-    for (i /= 10; numeric != 0.0; i /= 10)
+    for (i /= 10.0; numeric != 0.0; i /= 10.0)
     {
         if (i == 0.1)  /* decimal places? */
         {
