@@ -59,7 +59,7 @@ void __runtimeError(int errorNum)
         if (pHandler == NULL)
             __defaultRuntimeErrorHandler();
         else
-            __triggerOnEvent(ONERROR);
+            __triggerOnEvent(pHandler, ONERROR);
     } /* if */
 } /* __runtimeError */
 
