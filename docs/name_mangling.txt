@@ -7,10 +7,10 @@ yadda.
 
 For Basic API functions, the function names go like this (for example.) :
 
-PBasicString vbSiS_string_DC_(STATEPARAMS, int x, PBasicString y);
+PBasicString _vbSiS_string_DC_(int x, PBasicString y);
 
 To explain:
-All APIs start with "vb". The next character is the return value.
+All APIs start with "_vb". The next character is the return value.
 
 if it's a SUB (void), the character is 'p' for "procedure".
 otherwise, it'll be the type of data returned. See below.
@@ -23,9 +23,6 @@ API's name.
 
 So, in short, it's a modified hungarian notation. A little different, but
 VERY detailed.
-
-STATEPARAMS is part of every API call, and it not encoded in the name of
-the API. It's for the OnEvents stuff; don't worry about it right now.
 
 These chars can be:
 
@@ -46,7 +43,6 @@ These chars can be:
 'S' == "String BYREF" (*see note)
 'V' == "Variant BYREF" (*see note)
 'R' == "Array BYREF" (*see note)
-'O' == "OnOffStopType" (***see note)
 'N' == "Null argument" (****see note)
 '1' == "File mode" (*****see note)
 '2' == "Access mode" (*****see note)
@@ -69,11 +65,6 @@ functions are BYREF by default.
 simply any filler. That's stupid, but that's BASIC. Whatever you pass
 for these functions are cast to a (void *), regardless of what sort of
 data it really is, and sent along.
-
-***"OnOffStopType" is defined in OnOffStopType.h, in the BASIClib
-directory. It's for things like TIMER ON, or PEN STOP. It's hardly used,
-and since it's a literal that can't be directly stored in any variable,
-we made it a type of its own.
 
 ****API calls like "locate" can actually SKIP arguments, like
 [locate x, y, , 3] Yikes. The Null argument is made for the
