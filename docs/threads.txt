@@ -3,34 +3,35 @@ Notes on using BASIClib's Thread support:
 BASIClib is (hopefully) threadsafe, and has an abstraction layer for
 creating and managing threads. Here's all you need to know:
 
-- Linux is still not to the point of having a STANDARD thread library.
-  Glibc2 (the standard on Red Hat and some other distributions, and the
-  inevitable future of linux) has a thread package that is to be the
-  standard, but it doesn't come by default in the glibc2 library.
-  You have to add another package into the source, define some flags, and
-  recompile the library, which is a good 2 hours worth of processing on a
-  pentium. Ugh. (Actually, Red Hat 5.1 seems to package their binary glibc2
-  with LinuxThreads compiled in. Good. Also, anyone who is still fighting
-  for libc5 is rapidly becoming considered a primate. Doubly good.)
-
 - There's NO POSIX threads on Win95. Cygnus is working on this, but god
   knows how long it will take them to write a POSIX compliant pthreads
   package AND make all their libraries thread-safe. WinNT has some DCE
   threads libraries (older draft of POSIX standard) bundled with the OS,
-  but this is not 100% compatible with Linux (POSIX standard) threads.
-
-Ignoring those as "problems that will fix themselves," however...
+  but this is not 100% compatible with Linux (read: POSIX standard) threads.
+  This isn't a problem, necessarily. We can use the Win32 API directly, as
+  the vbSlacker Threads subsystem is pretty abstract, but we need a
+  thread-safe C library.
 
 - For reference, the thread abstraction layer is defined in
   BASIClib/Threads.c ... The current implementation uses POSIX threads, but
   there's not necessarily a need to concern yourself with the underlying
   library. As long as a threads package can fulfill the rather undemanding
   needs of BASIClib's API, it can be fitted as the backend. POSIX just seems
-  like the best way to go, but BASIClib is hardly chained to it.
+  like the best way to go, but BASIClib as a whole is not at all chained to it.
 
-- You should #include "Threads.h" in any modules that use threads in anyway.
-  Better yet, just #include "StdBasic.h", which includes Threads.h and other
-  nifites. You should ALSO define _REENTRANT on the command line for gcc.
+- You should #include "StdBasic.h" in any modules that use threads in
+  anyway. Do not directly include Threads.h, as it expects to be included
+  from StdBasic.h ...
+
+- For single-threaded programs and modules, you may define SINGLE_THREADED
+  ON THE COMMAND LINE when compiling your code. This replaces all Thread API
+  function calls with do-nothing "++ safe" macros. This allows you to use
+  identical (but more efficient) code for both single-threaded and multi-
+  threaded versions of your program. (For example, __getCurrentThreadIndex
+  is replaced with (0) (and no function call) when SINGLE_THREADED is
+  defined, since you'd always be dealing with thread index (0) anyhow.)
+
+- You need to, even for single-threaded code, define _REENTRANT.
 
   gcc -D_REENTRANT MyCode.c
 
@@ -38,9 +39,11 @@ Ignoring those as "problems that will fix themselves," however...
   (Most notably, (errno) works in a downright wrong way if you don't use this.)
   YOU SHOULD DEFINE _REENTRANT EVEN IF YOU DON'T DIRECTLY USE THREADS.
   Threads could be calling your functions, even if you don't specifically
-  make a thread do so. Including Threads.h and not defining _REENTRANT will
-  cause an error, but this check isn't foolproof, since not every module
-  will necessarily include Threads.h ...
+  create a thread do so. Including StdBasic.h and not defining _REENTRANT
+  will cause an error, just as a friendly reminder. You are still on your
+  own for thread-proofing your code, and should do so, even if in single
+  threaded mode. (Since the performance hit is so infintestimal for the
+  single-thread macros, but it will be ready for multithreaded apps.)
 
 - Spin a thread like this:
 
@@ -81,7 +84,7 @@ Ignoring those as "problems that will fix themselves," however...
 - Most (if not all) of your thread-bug problems will come from global and
   static variables. Expect to be thinking about how to protect that data.
   Remember that even thread-proofed data in a dynamically-allocated array
-  isn't safe if you plan to __memRealloc() that array at any point.
+  isn't safe if you plan to reallocate that array at any point.
 
 - Just about every other thread-bug comes from i/o to the same device/file
   simultaneously from two different threads. These are sometimes even harder
@@ -92,12 +95,12 @@ Ignoring those as "problems that will fix themselves," however...
   Keep reading.
 
 - There is no EnterCriticalThreadSection() API in the POSIX standard. Use
-  BASIClib's ThreadLocks instead. This is a abstraction layer over POSIX
+  BASIClib's ThreadLocks instead. This is an abstraction layer over POSIX
   mutexes. Like so:
 
   (at top of module:)
 
-  #include "Threads.h"
+  #include "StdBasic.h"
 
   ThreadLock myThreadLock;
 
@@ -128,17 +131,18 @@ Ignoring those as "problems that will fix themselves," however...
   is involved, like this.
 
 - If your thread is looping for any amount of time, it might be wise to
-  place a call to __timesliceThread() in your loop. This call surrenders
-  control of the processor so other threads and processes can use it.
-  Eventually control will return to the caller. VERY handy when waiting
-  endlessly for user input, or calculating a jazillion places of Pi.
+  place a call to __timesliceThread in your loop. (Note this is a macro,
+  so don't use "()"...) This call surrenders control of the processor so
+  other threads and processes can use it. Eventually control will return
+  to the caller. VERY handy when waiting endlessly for user input, or
+  calculating a jazillion places of Pi.
 
-- For accounting purposes, you can call __getThreadCount(), which returns
-  a count of all threads in this process...although this isn't as useful
-  as __getHighestThreadIndex(), which returns the highest thread index in
-  use. This is good for allocating arrays that keep one element for each
-  thread, since such arrays are inherently thread-safe (as long as use use
-  ThreadLocks when reallocating the array.)
+- For accounting purposes, you can call __getThreadCount, (a macro) which
+  returns a count of all threads in this process...although this isn't as
+  useful as __getHighestThreadIndex, (a macro) which returns the highest
+  thread index in use. This is good for allocating arrays that keep one
+  element for each thread, since such arrays are inherently thread-safe
+  (as long as we use ThreadLocks when reallocating the array.)
 
 - To be notified when a thread is created, add a function to your module
   called (for example) "void __initThreadMyModule(int tidx)", and add a
@@ -158,11 +162,11 @@ Ignoring those as "problems that will fix themselves," however...
 - Be careful about obtaining thread locks and error handling; If you own
   a thread lock, and there's a possibility of a runtime error being thrown,
   register an OnError handler that releases possession of the lock,
-  deregisters itself, and rethrows the error. Other protections include
-  making sure you don't call any routines that could possibly throw (standard
-  C library routines never do so, only BASIClib functions do), or registering
-  an OnError handler that fixes problems, and executes a RESUME of some sort.
-  If you don't take measures, other threads will block inexplicably and
+  and rethrows the error. Other protections include making sure you don't
+  call any routines that could possibly throw (standard C library routines
+  never do so, any BASIClib function may), or registering an OnError 
+  handler that fixes problems, and executes a RESUME of some sort. If you
+  don't take measures, other threads will block inexplicably and
   probably permenently if they try to obtain the lock that your error-throwing
   thread has possession of.
 
