@@ -12,8 +12,8 @@ LINKER = gcc
 #LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -s -O2 -o
 
 # Debug command lines...
-#COPTIONS = -DSINGLE_THREADED -DLANG_ENGLISH -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -c -o
-COPTIONS = -D_REENTRANT -DLANG_ENGLISH -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -c -o
+COPTIONS = -DSINGLE_THREADED -D_REENTRANT -DLANG_ENGLISH -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -c -o
+#COPTIONS = -D_REENTRANT -DLANG_ENGLISH -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -c -o
 LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -lncurses -o
 
 all : linux
@@ -23,8 +23,8 @@ linux : testlib
 testlib : $(OBJS)
 	$(LINKER) $(LOPTIONS) testlib $(OBJS)
 
-TestLib.o : TestLib.c TestLib.h
-	$(CC) $(COPTIONS) TestLib.o TestLib.c
+TestLib.o : TestLib.cc TestLib.h
+	$(CC) $(COPTIONS) TestLib.o TestLib.cc
 
 TestOnError.o : TestOnError.c
 	$(CC) $(COPTIONS) TestOnError.o TestOnError.c
