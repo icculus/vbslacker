@@ -9,6 +9,7 @@
 
 #include "RegState.h"
 
+#define INITFLAG_NO_FLAGS              0
 #define INITFLAG_NOT_INITIALIZED       0
 #define INITFLAG_DISABLE_RESUME        1
 #define INITFLAG_DISABLE_RANGE_CHECKS  2
