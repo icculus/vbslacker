@@ -1,12 +1,11 @@
 TODO list:
 
-- Change all the Runtime errors to use the enum version.
-- Make sure we're using enums correctly.
 - Examine the "!!!" and "***" comments in the source.
 - Implement arrays.
 - For greg: design the file i/o abstraction layer.
 - For ryan: finish coversion, math, and time/date functions.
 - Write the !@#$ing thing.
+- debug the ASM code. Yikes.
 - ...and much, much more.
 
 
