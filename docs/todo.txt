@@ -5,8 +5,10 @@ TODO list:
 - For greg: design the file i/o abstraction layer.
 - For ryan: finish conversion, and time/date functions.
 - For greg: finish math functions.
-- For ryan: finish thread support.
-- For the daring: See how gcc for win32 likes this code.  :)
+- Don't forget to write testlib code for all important functions!
+- Make subdirectories under BASIClib for platform-specific stuff.
+   This will probably include some small amount of POSIX thread emulation
+   under win95, and OnEvents.asm ...
 - Design full, detailed timetable.
 - Figure out a good name mangling scheme.
 - Consider marketing strategy.
