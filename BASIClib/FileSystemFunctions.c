@@ -7,11 +7,6 @@
  *     This file initially written by Ryan C. Gordon.
  */
 
-    /* fnmatch() seems to need this... */
-#ifndef _GNU_SOURCE
-#   define _GNU_SOURCE 1
-#endif
-
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
@@ -25,31 +20,13 @@
 #include "FileSystemFunctions.h"
 
 
-    /*
-     * Paths need conversion to and from Windows compatible formats.
-     *  Please write your platform-specific functions, and fill them in here.
-     *  Note that the WinToLocal function may be passed arguments that
-     *  are already in local form...so you'll have to decide if the
-     *  conversion needs to be done in the first place...
-     *
-     * Return values should be newly allocated, and collectable.
-     */
-#if (defined UNIX)
-#   define __convertPathWinToLocal(pathname)  __convertPathWinToUnix(pathname)
-#   define __convertPathLocalToWin(pathname)  __convertPathUnixToWin(pathname)
-#elif ((defined WIN32) || (defined OS2))
-#   define __convertPathWinToLocal(pathname)  __assignString(NULL, pathname)
-#   define __convertPathLocalToWin(pathname)  __assignString(NULL, pathname)
-#else
-#   error No file system compatibility routines for this system!
-#endif
-
     /* Stuff still todo... */
-#warning Filename case check!
 #warning Check if files already open!
+#warning write __basicStringToLocalAsciz()...
 
 
 /* These are according to MSDN... */
+// !!! move these?
 #define vbNormal    0
 #define vbReadOnly  1
 #define vbHidden    2
@@ -172,168 +149,6 @@ void __deinitThreadFileSystemFunctions(__integer tidx)
 } /* __deinitThreadFileSystemFunctions */
 
 
-static int fileSysErrors(void)
-/*
- * Convert (errno)'s value, set by a problem in FileCopy (and others),
- *   into a standard VB error.
- *
- *      params : void.
- *     returns : BASIC error number.
- */
-{
-    switch (errno)
-    {
-        case EACCES:
-        case EROFS:
-        case EBUSY:
-            return(ERR_PERMISSION_DENIED);
-
-        case EISDIR:
-        case ELOOP:
-        case ENOTDIR:
-        case ENOTEMPTY:
-        case EINVAL:
-            return(ERR_PATH_FILE_ACCESS_ERROR);
-
-        case ENAMETOOLONG:
-            return(ERR_BAD_FILE_NAME_OR_NUMBER);
-
-        case EEXIST:
-            return(ERR_FILE_ALREADY_EXISTS);
-
-        case EMFILE:
-        case ENFILE:
-        case EMLINK:
-            return(ERR_TOO_MANY_FILES);
-
-        case ENOENT:
-            return(ERR_FILE_NOT_FOUND);
-
-        case ENOSPC:
-            return(ERR_DISK_FULL);
-
-        case EIO:
-        case EFBIG:
-            return(ERR_DEVICE_IO_ERROR);
-    } /* switch */
-
-    return(ERR_INTERNAL_ERROR);    /* uh? */
-} /* fileSysErrors */
-
-
-#ifdef UNIX
-static __byte *__convertPathWinToUnix(__byte *pathName)
-/*
- * Convert "C:\path\path\filename.txt" to "/path/path/filename.txt"
- *
- *  The drive is removed if it exists, regardless of the letter.
- *  The return value is allocated from scratch, and is collectable.
- *
- *     params : pathName == path to convert.
- *    returns : see above.
- */
-{
-    __integer length = strlen(pathName);
-    __byte *retVal = __memAllocNoPtrs(length + 1);
-    __integer i;
-
-    if ((length >= 2) && (pathName[1] == ':'))   /* drive letter? */
-        pathName += 2;                           /* bump pathName past it. */
-
-    for (i = 0; *pathName != '\0'; pathName++, i++)
-        retVal[i] = ((*pathName == '\\') ? '/' : *pathName);
-
-    retVal[i] = '\0';
-    return(retVal);
-} /* __convertPathWinToUnix */
-
-
-static __byte *__convertPathUnixToWin(__byte *pathName)
-/*
- * Convert "/path/path/filename.txt" to "C:\path\path\filename.txt"
- *
- * A "C:" is appended. The return value is allocated from scratch and is
- *  collectable.
- *
- *     params : pathName == path to convert.
- *    returns : see above.
- */
-{
-    __integer length = strlen(pathName);
-    __byte *retVal = __memAllocNoPtrs(length + 3);
-    __integer i;
-
-    strcpy(retVal, "C:");
-
-    for (i = 2; *pathName != '\0'; pathName++, i++)
-        retVal[i] = ((*pathName == '/') ? '\\' : *pathName);
-
-    retVal[i] = '\0';
-    return(retVal);
-} /* __convertPathUnixToWin */
-#endif /* defined UNIX */
-
-
-static void parseDir(__byte *dirToParse, DIR **dirInfo,
-                     __byte **fileName, __byte **path)
-/*
- * This is an internal convenience function. Take a path (possibly
- *  containing wildcards in the filename), and check its validity
- *  by trying to open the directory (via opendir()).
- *
- * The string pointed to by (dirToParse) is split on the final
- *  path character. That char is replaced by a NULL char, and (*fileName)
- *  is set to the first char of the filename (the character after the
- *  final path char. This may be a NULL char itself.) If there are no
- *  path characters, the entire string is assumed to be a filename in the
- *  current directory, and (*fileName) points to (dirToParse).
- *
- * (*path) is either set to (dirToParse), or it points to  __CURRENTDIRSTR
- *  (".", for example.) As it might point to a constant, (*path) should be
- *  considered read only.
- *
- * (*dirInfo) will hold the retval from opendir(). This may be NULL, if
- *   there was an error, i.e. the path doesn't exist, etc...It would be
- *   wise to check this value before any others.
- *
- * Confused, yet? This comment is longer than the code!  :)
- *
- *      params : dirToParse == string of path/filename to parse.
- *               *dirInfo   == returns retval from opendir().
- *               *fileName  == returns pointer to filename part of (dirToParse).
- *               *path      == returns pointer to path part of (dirToParse).
- *     returns : void.
- */
-{
-#warning parseDir() does NOT check directory name case!
-
-    __byte *ascizFileName = __convertPathWinToLocal(dirToParse);
-
-    *fileName = strrchr(ascizFileName, __PATHCHAR);
-    if (*fileName == NULL)
-    {
-        *fileName = ascizFileName;
-        *path = __CURRENTDIRSTR;
-    } /* if */
-    else
-    {
-        *(*fileName) = '\0';   /* terminate path string.      */
-        (*fileName)++;         /* point to start of filename. */
-        *path = __memAllocNoPtrs(strlen(ascizFileName) + 1);
-        strcpy(*path, ascizFileName);
-    } /* else */
-
-        /*
-         * Even without wildcards, this call to opendir() will
-         *  make sure any leading directories in the filename
-         *  are valid. (So, "/home/????????/files*.txt" would fail.
-         *  This is normal for Visual BASIC; wildcards must be in
-         *  one directory.)   !!! I think?
-         */
-    *dirInfo = opendir(*path);
-} /* parseDir */
-
-
 static __long killWildcards(DIR *dirInfo, __byte *path, __byte *fileName)
 /*
  * Called exclusively from _vbpS_kill().
@@ -353,7 +168,7 @@ static __long killWildcards(DIR *dirInfo, __byte *path, __byte *fileName)
     struct dirent *pDir;
     int rc;
     int flags = 0;
-    char fullName[strlen(path) + NAME_MAX + 2];
+    __byte *fullName;
 
     if (ignoreFilenameCase)
         flags |= FNM_CASEFOLD;
@@ -368,16 +183,19 @@ static __long killWildcards(DIR *dirInfo, __byte *path, __byte *fileName)
             {
                 if (fnmatch(fileName, pDir->d_name, flags) == 0)
                 {
+                    fullName = __memAllocNoPtrs(strlen(path) +
+                                                strlen(pDir->d_name) + 2);
                     sprintf(fullName, "%s%c%s", path, __PATHCHAR, pDir->d_name);
                     if (unlink(fullName) == -1)
-                        retVal = fileSysErrors();
+                        retVal = __vbFileSystemErrors();
+                    __memFree(fullName);
                 } /* if */
             } /* if */
         } /* if */
     } while (rc == 0);
     
     return(retVal);
-} /* killLoop */
+} /* killWildcards */
 
 
 static inline __long killSingle(__byte *path, __byte *fileName)
@@ -390,24 +208,21 @@ static inline __long killSingle(__byte *path, __byte *fileName)
  *    returns : error code, ERR_NO_ERROR if all is cool.
  */
 {
-    char fullName[strlen(path) + strlen(fileName) + 2];
     struct stat statInfo;
     __long retVal = ERR_NO_ERROR;
 
-    sprintf(fullName, "%s%c%s", path, __PATHCHAR, fileName);
+    *(fileName - 1) = __PATHCHAR;   /* make path complete again. */
 
-#warning killSingle() does NOT check filename case.
-
-    if (stat(fullName, &statInfo) == -1)
-        retVal = fileSysErrors();
+    if (stat(path, &statInfo) == -1)
+        retVal = __vbFileSystemErrors();
     else
     {
         if (S_ISDIR(statInfo.st_mode))
             retVal = ERR_FILE_NOT_FOUND;
         else
         {
-            if (unlink(fullName) == -1)
-                retVal = fileSysErrors();
+            if (unlink(path) == -1)
+                retVal = __vbFileSystemErrors();
         } /* else */
     } /* else */
 
@@ -425,14 +240,21 @@ void _vbpS_kill(PBasicString fileSpec)
  *   returns : void.
  */
 {
+    __byte ascizPath = __convertPathWinToLocal(__basicStringToAsciz(fileSpec));
     __byte *path = NULL;
     __byte *fileName;
     __long errorCode;
     DIR *dirInfo;
 
-    parseDir(__basicStringToAsciz(fileSpec), &dirInfo, &path, &fileName);
-    if (dirInfo != NULL)
-        errorCode = ((errno == ENOENT) ? ERR_PATH_NOT_FOUND : fileSysErrors());
+    if (ignoreFilenameCase)
+        __parsePathForInsensitiveMatches(ascizPath);
+
+    __parseDir(ascizPath, &dirInfo, &path, &fileName);
+    if (dirInfo == NULL)
+    {
+        errorCode = ((errno == ENOENT) ? ERR_PATH_NOT_FOUND :
+                                         __vbFileSystemErrors());
+    } /* if */
     else
     {
         if ((strchr(fileName, '*') != NULL) || (strchr(fileName, '?') != NULL))
@@ -448,7 +270,7 @@ void _vbpS_kill(PBasicString fileSpec)
 
 static __boolean checkReadOnly(struct dirent *pDir)
 {
-#warning write checkReadOnly()!
+#warning write checkReadOnly()!  (How?)
     return(false);
 } /* checkReadOnly */
 
@@ -537,6 +359,13 @@ PBasicString _vbS_dir(void)
  *                 if the pattern was bogus, or whatnot.
  */
 {
+    /*
+     * !!! it might be better to split the recursive part into a separate
+     * !!!  function so we don't have to keep obtaining the ThreadLock
+     * !!!  unnecessarily.
+     * !!! In fact, rewrite this to not be recursive. That's probably better.
+     */
+
     __integer tidx = __getCurrentThreadIndex;
     ThreadDirInfo *tdi;
     struct dirent dirEntry;
@@ -547,7 +376,9 @@ PBasicString _vbS_dir(void)
     tdi = threadDirInfo[tidx];
     __releaseThreadLock(&fileSystemLock);
 
-    if (tdi->dir != NULL)
+    if (tdi->dir == NULL)
+        retVal = __createString("", false);
+    else
     {
         pDir = &dirEntry;
         if (readdir_r(tdi->dir, pDir, &pDir) != 0)
@@ -562,26 +393,38 @@ PBasicString _vbS_dir(void)
             else
                 retVal = _vbS_dir();
         } /* else */
-    } /* if */
+    } /* else */
 
     return(retVal);
 } /* _vbS_dir */
 
 
-PBasicString _vbSSi_dir(PBasicString pathname, __integer attributes)
+PBasicString _vbSSi_dir(PBasicString pattern, __integer attributes)
 /*
  * Start a new directory query, specifying both a wildcard pattern, and
  *  specific file attributes.
+ *
+ * Historical note: This is the first function inside BASIClib that
+ *  actually catches and handles a BASIC runtime error. Wierd.
  *
  *    params : pathname   == wildcard pattern to match.
  *             attributes == numeric attributes files must have.
  *   returns : BASIC String of first matching file. ("") if none.
  */
 {
+    __ONERRORVARS;
     DIR *dirInfo;
     ThreadDirInfo *tdi;
     __byte *path;
     __byte *filename;
+    __byte *ascizPath;
+
+
+    /*
+     * !!! If DIR() can throw errors for bogus drives, we can remove all
+     * !!!  this error-handling crap...
+     */
+
 
     __obtainThreadLock(&fileSystemLock);
     tdi = threadDirInfo[__getCurrentThreadIndex];
@@ -589,13 +432,30 @@ PBasicString _vbSSi_dir(PBasicString pathname, __integer attributes)
 
     cleanupDir(tdi);
 
-    parseDir(__basicStringToAsciz(pathname), &dirInfo, &path, &filename);
+    __ONERRORINIT;
+    __setOnErrorHandler(_vbSSi_dir_handler);
+    __setInstructs(_vbSSi_dir_this, _vbSSi_dir_next);
+
+__insertLineLabel(_vbSSi_dir_this);
+    ascizPath = __convertPathWinToLocal(__basicStringToAsciz(pattern));
+__insertLineLabel(_vbSSi_dir_next);
+
+    if (ignoreFilenameCase)
+        __parsePathForInsensitiveMatches(ascizPath);
+
+    __parseDir(ascizPath, &dirInfo, &path, &filename);
 
     tdi->attributes = attributes;
     tdi->dir = dirInfo;
     tdi->pattern = ((*filename == '\0') ? (__byte *) "*" : filename);
 
+    __exitCleanupOnError;
     return(_vbS_dir());
+
+__insertLineLabel(_vbSSi_dir_handler);
+    tdi->dir = NULL;     /* later calls to DIR() will return (""), too. */
+    __exitCleanupOnError;
+    return(__createString("", false));
 } /* _vbSSi_dir */
 
 
@@ -622,8 +482,11 @@ void _vbpS_mkdir(PBasicString dirStr)
     __byte *newDir = __convertPathWinToLocal(__basicStringToAsciz(dirStr));
     __long errorCode = ERR_NO_ERROR;
 
+    if (ignoreFilenameCase)
+        __parsePathForInsensitiveMatches(newDir);
+
     if (mkdir(newDir, S_IRWXU) == -1)
-        errorCode = fileSysErrors();
+        errorCode = __vbFileSystemErrors();
 
     __memFree(newDir);
     __runtimeError(errorCode);   /* continues normally if ERR_NO_ERROR */
@@ -641,15 +504,21 @@ void _vbpS_rmdir(PBasicString dirStr)
     __byte *newDir = __convertPathWinToLocal(__basicStringToAsciz(dirStr));
     __long errorCode = ERR_NO_ERROR;
 
+    if (ignoreFilenameCase)
+        __parsePathForInsensitiveMatches(newDir);
+
     if (rmdir(newDir) == -1)
-        errorCode = ((errno == ENOENT) ? ERR_PATH_NOT_FOUND : fileSysErrors());
+    {
+        errorCode = ((errno == ENOENT) ? ERR_PATH_NOT_FOUND :
+                                          __vbFileSystemErrors());
+    } /* if */
 
     __memFree(newDir);
     __runtimeError(errorCode);   /* continues normally if ERR_NO_ERROR */
 } /* _vbpS_rmdir */
 
 
-void _vbpSS_name(PBasicString oldName, PBasicString newName)
+void _vbpSS_name(PBasicString src, PBasicString dest)
 /*
  * Rename a file or directory. Unlike unix (which overwrites when renaming),
  *  the destination file must not exist. Files that are to be renamed
@@ -658,48 +527,55 @@ void _vbpSS_name(PBasicString oldName, PBasicString newName)
  *
  * If the file to rename is already open, ERR_FILE_ALREADY_OPEN is thrown.
  *
- *     params : oldName == string of filename to rename.
- *              newName == string of destination filename.
+ *     params : src  == string of filename to rename.
+ *              dest == string of destination filename.
  *    returns : void.
  */
 {
-    __byte *ascizOldName = __basicStringToAsciz(oldName);
-    __byte *ascizNewName = __basicStringToAsciz(newName);
+    __byte *ascizSrc  = __convertPathWinToLocal(__basicStringToAsciz(src));
+    __byte *ascizDest = __convertPathWinToLocal(__basicStringToAsciz(dest));
     __long errorCode = ERR_NO_ERROR;
     struct stat statInfo;
 
-#warning _vbpSS_name() needs to check for filename case!
+#warning should filecopy()ed files remove the original in NAME? */
 
-    if (stat(ascizNewName, &statInfo) != -1)           /* dest. file exists */
+    if (ignoreFilenameCase)  /* match case on whole path except filename. */
+    {
+        __parsePathForInsensitiveMatches(ascizSrc);
+        __parsePathForInsensitiveMatches(ascizDest);
+    } /* if */
+
+    if (stat(ascizDest, &statInfo) != -1)              /* dest. file exists */
         errorCode = ERR_FILE_ALREADY_EXISTS;
     else                                       /* dest. file may not exist. */
     {
         if (errno != ENOENT)            /* we want the dest to not exist... */
-            errorCode = fileSysErrors();
+            errorCode = __vbFileSystemErrors();
         else
         {
-            if (stat(ascizOldName, &statInfo) == -1)    /* orig must exist. */
-                errorCode = fileSysErrors();
+            if (stat(ascizSrc, &statInfo) == -1)        /* orig must exist. */
+                errorCode = __vbFileSystemErrors();
             else
             {
-                if (rename(ascizOldName, ascizNewName) == -1)
+                if (rename(ascizSrc, ascizDest) == -1)
                 {
                     if (errno != EXDEV)       /* not a rename across disks? */
-                        errorCode = fileSysErrors();
+                        errorCode = __vbFileSystemErrors();
                     else
                     {
                         if (S_ISDIR(statInfo.st_mode))
                             errorCode = ERR_RENAME_ACROSS_DISKS;
                         else
-                            _vbpSS_filecopy(oldName, newName);
+                            _vbpSS_filecopy(src, dest);
                     } /* else */
                 } /* if */
             } /* else */
         } /* else */
     } /* else */
 
-    __memFree(ascizOldName);
-    __memFree(ascizNewName);
+    __memFree(ascizSrc);
+    __memFree(ascizDest);
+
     __runtimeError(errorCode);          /* returns normally if ERR_NO_ERROR */
 } /* _vbpSS_name */
 
@@ -774,6 +650,8 @@ void _vbpSS_filecopy(PBasicString src, PBasicString dest)
  *     returns : void.
  */
 {
+    __byte *ascizSrc  = __convertPathWinToLocal(__basicStringToAsciz(src));
+    __byte *ascizDest = __convertPathWinToLocal(__basicStringToAsciz(dest));
     int inFile;
     int outFile;
     char buffer = __memAllocNoPtrs(512);
@@ -782,19 +660,26 @@ void _vbpSS_filecopy(PBasicString src, PBasicString dest)
     int br = 0;           /* total bytes read.    */
     int rc;               /* generic return code. */
 
+    if (ignoreFilenameCase)
+    {
+        __parsePathForInsensitiveMatches(ascizSrc);
+        __parsePathForInsensitiveMatches(ascizDest);
+    } /* if */
 
-#warning filecopy needs to check filename case!
-
-    inFile = open(__basicStringToAsciz(src), O_RDONLY);
+    inFile = open(ascizSrc, O_RDONLY);
     if (inFile == -1)
-        __runtimeError(fileSysErrors());
+        __runtimeError(__vbFileSystemErrors());
 
-    outFile = open(__basicStringToAsciz(dest), O_WRONLY | O_CREAT | O_TRUNC);
+    outFile = open(ascizDest, O_WRONLY | O_CREAT | O_TRUNC);
     if (outFile == -1)
     {
+        rc = __vbFileSystemErrors();
         close(inFile);
-        __runtimeError(fileSysErrors());
+        __runtimeError(rc);
     } /* if */
+
+    __memFree(ascizSrc);
+    __memFree(ascizDest);
 
     fstat(inFile, &statInfo);
 
@@ -802,12 +687,12 @@ void _vbpSS_filecopy(PBasicString src, PBasicString dest)
     {
         rc = doRead(inFile, buffer, sizeof (buffer));
         if (rc == -1)
-            errorCode = fileSysErrors();
+            errorCode = __vbFileSystemErrors();
         else
         {
             br += rc;
             if (doWrite(outFile, buffer, rc) == -1)
-                errorCode = fileSysErrors();
+                errorCode = __vbFileSystemErrors();
         } /* else if */
     } while ((br < statInfo.st_size) && (errorCode == ERR_NO_ERROR));
 
@@ -829,9 +714,10 @@ void _vbpS_chdir(PBasicString newDir)
  *   returns : void. Throws a few errors, though.
  */
 {
-    __byte *str = __convertFilenameWinToLocal(__basicStringToAsciz(newDir));
+    __byte *str = __convertPathWinToLocal(__basicStringToAsciz(newDir));
 
-#warning _vbpS_chdir() needs to check filename case!
+    if (ignoreFilenameCase)
+        __parsePathForInsensitiveMatches(str);
 
     int rc = chdir(str);
     int errorCode = ((rc == -1) ? fileSystemErrors() : ERR_NO_ERROR);
@@ -873,7 +759,7 @@ static __byte *doGetcwd(void)
 
     if (windowsFileSystem)
     {
-        retVal = __convertFilenameLocalToWin(buf);
+        retVal = __convertPathLocalToWin(buf);
         __memFree(buf);
     } /* if */
     else
@@ -928,8 +814,15 @@ PBasicString _vbS_curdir_DC_(void)
  *    returns : see above.
  */
 {
-    return(_vbSS_curdir_DC_(__createString("", false)));
+    PBasicString arg = __createString("", false);
+    PBasicString retVal;
+
+    retVal = _vbSS_curdir_DC_(arg);
+    __freeString(arg);
+
+    return(retVal);
 } /* _vbS_curdir_DC_ */
+
 
 /* end of FileSystemFunctions.c ... */
 
