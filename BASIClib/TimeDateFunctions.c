@@ -14,6 +14,15 @@
 #include "ErrorFunctions.h"
 #include "Boolean.h"
 
+#ifdef WIN32
+/* !!! cygwin32 has these functions, but no prototypes.
+ * !!!  remove this when they do.
+ */
+    int gettimeofday(struct timeval *tp, struct timezone *tzp);
+    int settimeofday (const struct timeval *tp, const struct timezone *tzp);
+#endif
+
+
 #define SECONDS_IN_A_DAY 86400
 
     /* to save every byte of storage, these are stored as chars. */
