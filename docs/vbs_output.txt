@@ -102,8 +102,8 @@ BASIC complex data types:
 Default values:
     Any variable, regardless of scope or type, needs to initialize to a
     default "safe" value. Numeric types default to 0.00, BOOLEAN to FALSE,
-    Strings to ("").  !!! and others. This can be done in the C variable
-    initialization way, as follows:
+    Strings to ("").  Objects to (NULL).  !!! and others. This can be done in 
+    the C variable initialize way, as follows:
 
     DIM x AS INTEGER
       --== becomes ==--
@@ -279,7 +279,8 @@ Cleanup upon return:
 Option Explicit:
 
 OPTION EXPLICIT in the code should set a compiler flag to require the
- declarations of variables in BASIC code. !!! can this change during parsing?
+ declarations of variables in BASIC code. This flag holds true for the entire
+ module being parsed.
 
 
 Global variables:
