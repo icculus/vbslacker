@@ -31,3 +31,4 @@ clean:
 	rm BasicLexer.cpp BasicLexer.hpp
 	rm BasicParserTokenTypes.hpp BasicParserTokenTypes.txt
 	rm BasicTokenTypes.hpp BasicTokenTypes.txt
+	rm parser
