@@ -3,9 +3,6 @@
 #  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
 
 
-
-# Makefile for building a static, win32 BASIClib  !!! For now.
-
 export MAJORVER = 0
 export MINORVER = 0
 export REVISIONVER = 1
