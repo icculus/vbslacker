@@ -16,14 +16,16 @@ CC = gcc
 LINKER = gcc
 ASM = gcc
 
+LANGUAGE = ENGLISH
+
 # Shipping command lines
-#DEFINES = -D_REENTRANT -DWIN32
+#DEFINES = -D_REENTRANT -DLANG_$(LANGUAGE) -DWIN32
 #COPTIONS = $(DEFINES) -Wall -fasm -finline-functions -s -O2 -c -o
 #LOPTIONS = $(DEFINES) -Wall -O2 -o
 #ASMOPTIONS = $(DEFINES) -Wall -c -o
 
 # Debug command lines...
-DEFINES = -D_REENTRANT -DWIN32 -DDEBUG
+DEFINES = -D_REENTRANT -DLANG_$(LANGUAGE) -DWIN32 -DDEBUG
 COPTIONS = $(DEFINES) -Wall -fasm -finline-functions -g -c -o
 LOPTIONS = $(DEFINES) -static -Wall -g -o
 ASMOPTIONS = $(DEFINES) -Wall -c -o
@@ -33,48 +35,40 @@ all : $(LIBWHOLE)
 $(LIBWHOLE) : $(OBJS)
 #	$(LINKER) $(LOPTIONS) $(LIBWHOLE) $(OBJS)
 
-BasicString.o : BasicString.c BasicString.h ErrorFunctions.h Boolean.h \
-                MathFunctions.h InternalMemManager.h
+BasicString.o : BasicString.c BasicString.h
 	$(CC) $(COPTIONS) BasicString.o BasicString.c
 
-ConversionFunctions.o : ConversionFunctions.c ConversionFunctions.h Boolean.h \
-                        InternalMemManager.h MathFunctions.h BasicString.h \
-                        ErrorFunctions.h Variant.h
+ConversionFunctions.o : ConversionFunctions.c ConversionFunctions.h
 	$(CC) $(COPTIONS) ConversionFunctions.o ConversionFunctions.c
 
-Initialize.o : Initialize.c Initialize.h Threads.h OnEvents.h \
-               TimeDateFunctions.h BasicFileStream.h
+Initialize.o : Initialize.c Initialize.h
 	$(CC) $(COPTIONS) Initialize.o Initialize.c
 
-OnEvents.o : OnEvents.c OnEvents.h InternalMemManager.h Threads.h \
-             ErrorFunctions.h
+OnEvents.o : OnEvents.c OnEvents.h InternalMemManager.h
 	$(CC) $(COPTIONS) OnEvents.o OnEvents.c
 
-ErrorFunctions.o : ErrorFunctions.c ErrorFunctions.h OnEvents.h Threads.h
+ErrorFunctions.o : ErrorFunctions.c ErrorFunctions.h
 	$(CC) $(COPTIONS) ErrorFunctions.o ErrorFunctions.c
 
 MathFunctions.o : MathFunctions.c MathFunctions.h
 	$(CC) $(COPTIONS) MathFunctions.o MathFunctions.c
 
-InternalMemManager.o : InternalMemManager.c InternalMemManager.h \
-                       ErrorFunctions.h
+InternalMemManager.o : InternalMemManager.c InternalMemManager.h
 	$(CC) $(COPTIONS) InternalMemManager.o InternalMemManager.c
 
 Threads.o : Threads.c Threads.h
 	$(CC) $(COPTIONS) Threads.o Threads.c
 
-TimeDateFunctions.o : TimeDateFunctions.c TimeDateFunctions.h BasicString.h \
-                      ErrorFunctions.h Boolean.h
+TimeDateFunctions.o : TimeDateFunctions.c TimeDateFunctions.h
 	$(CC) $(COPTIONS) TimeDateFunctions.o TimeDateFunctions.c
 
 BasicFileStream.o : BasicFileStream.c BasicFileStream.h 
 	$(CC) $(COPTIONS) BasicFileStream.o BasicFileStream.c
 
-FileIOFunctions.o : FileIOFunctions.c FileIOFunctions.h BasicString.h Variant.h
+FileIOFunctions.o : FileIOFunctions.c FileIOFunctions.h
 	$(CC) $(COPTIONS) FileIOFunctions.o FileIOFunctions.c
 
-StringFunctions.o : StringFunctions.c StringFunctions.h BasicString.h \
-                    ErrorFunctions.h
+StringFunctions.o : StringFunctions.c StringFunctions.h
 	$(CC) $(COPTIONS) StringFunctions.o StringFunctions.c
 
 LowLevelFunctions.o : LowLevelFunctions.c LowLevelFunctions.h
@@ -83,18 +77,16 @@ LowLevelFunctions.o : LowLevelFunctions.c LowLevelFunctions.h
 SignalHandlers.o : SignalHandlers.c SignalHandlers.h
 	$(CC) $(COPTIONS) SignalHandlers.o SignalHandlers.c
 
-ConsoleFunctions.o : ConsoleFunctions.o ConsoleFunctions.h
+ConsoleFunctions.o : ConsoleFunctions.c ConsoleFunctions.h
 	$(CC) $(COPTIONS) ConsoleFunctions.o ConsoleFunctions.c
 
-PenFunctions.o : PenFunctions.o PenFunctions.h
+PenFunctions.o : PenFunctions.c PenFunctions.h
 	$(CC) $(COPTIONS) PenFunctions.o PenFunctions.c
 
-ProcessFunctions.o : ProcessFunctions.c ProcessFunctions.h \
-                     Initialize.h BasicString.h 
+ProcessFunctions.o : ProcessFunctions.c ProcessFunctions.h
 	$(CC) $(COPTIONS) ProcessFunctions.o ProcessFunctions.c
 
-FileSystemFunctions.o : FileSystemFunctions.c FileSystemFunctions.h \
-                        Boolean.h
+FileSystemFunctions.o : FileSystemFunctions.c FileSystemFunctions.h
 	$(CC) $(COPTIONS) FileSystemFunctions.o FileSystemFunctions.c
 
 Variant.o : Variant.c Variant.h Boolean.h
