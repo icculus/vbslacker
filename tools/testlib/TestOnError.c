@@ -658,7 +658,7 @@ void testOnError(void)
  *   returns : void.
  */
 {
-    printf("\n[TESTING ASSEMBLER INSTRUCTIONS...]\n");
+    printf("\n[TESTING MACHINE-LEVEL MACROS...]\n");
     test__getBasePointer();
     test__getStackPointer();
     test__jump();
