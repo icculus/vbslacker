@@ -1,7 +1,7 @@
 /*
  * Some BASIC API calls for manipulation of BASIC arrays.
  *
- *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include "ArrayFunctions.h"

@@ -7,7 +7,7 @@
  *  basic) compatibility with older BASICs...modern BASICs don't include
  *  this support at all.
  *
- *    Copyright (c) Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include "PenFunctions.h"

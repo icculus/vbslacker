@@ -1,7 +1,7 @@
 /*
  * Header for internal memory management routines.
  *
- *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_STDBASIC_H_

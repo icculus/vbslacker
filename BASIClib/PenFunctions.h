@@ -1,7 +1,7 @@
 /*
  * Stub Pen functions for BASIClib, header.
  *
- *    Copyright (c) Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_PENFUNCTIONS_H_

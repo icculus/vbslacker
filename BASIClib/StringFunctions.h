@@ -3,7 +3,7 @@
  *  BasicString manipulation routines, such as __createString(),
  *  refer to BasicString.h ...
  *
- * Copyright (c) Ryan C. Gordon and Gregory S. Read.
+ * Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_STRINGFUNCTIONS_H_

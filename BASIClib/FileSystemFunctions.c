@@ -3,7 +3,7 @@
  *  collections of files, and file hierarchy. Specific file i/o can
  *  be found in the BasicFileStream and FileIOFunctions modules.
  *
- *     Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *     Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <stdio.h>

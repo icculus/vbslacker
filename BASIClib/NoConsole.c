@@ -2,7 +2,7 @@
  * Stub functions for when console support is disabled. BASIClib
  *  throws runtime errors in this case.
  *
- *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <string.h>

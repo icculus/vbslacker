@@ -2,7 +2,7 @@
  * Universal header file; include this to include all the
  *  BASIClib headers.
  *
- *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_BASICLIB_H_

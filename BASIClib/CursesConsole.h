@@ -1,7 +1,7 @@
 /*
  * Header for (n)curses console access.
  *
- *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_CURSESCONSOLE_H_

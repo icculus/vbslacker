@@ -1,4 +1,6 @@
 # Makefile for building a static, win32 BASIClib  !!! For now.
+#
+#   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
 
 W32DIR = ./platform/win32
 

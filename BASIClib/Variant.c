@@ -3,7 +3,7 @@
  *  to insert calls to these before passing variant variables to
  *  functions expecting non-variant intrinsics...
  *
- *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include "Variant.h"

@@ -2,7 +2,7 @@
  * Direct console support for BASIClib. Platform specific support for
  *  Linux (and soon, Win32.)
  *
- *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <ctype.h>

@@ -1,7 +1,7 @@
 /*
  * Console support via stdout (for redirection) for BASIClib.
  *
- *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <string.h>

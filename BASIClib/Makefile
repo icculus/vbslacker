@@ -1,6 +1,6 @@
 # Makefile entry.
 #
-#  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+#  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
 
 
 export MAJORVER = 0
