@@ -48,12 +48,12 @@ typedef struct
 typedef Variant *PVariant;
 
 /* !!! need __intrinsicToVariant() calls, too. */
-void __freeVariant(STATEPARAMS, PVariant var);
-int __variantToInt(STATEPARAMS, PVariant var);
-long __variantToLong(STATEPARAMS, PVariant var);
-float __variantToFloat(STATEPARAMS, PVariant var);
-double __variantToDouble(STATEPARAMS, PVariant var);
-PBasicString __variantToString(STATEPARAMS, PVariant pVar, __boolean byRef);
+void __freeVariant(PVariant var);
+int __variantToInt(PVariant var);
+long __variantToLong(PVariant var);
+float __variantToFloat(PVariant var);
+double __variantToDouble(PVariant var);
+PBasicString __variantToString(PVariant pVar, __boolean byRef);
 
 #endif /* _INCLUDE_VARIANT_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

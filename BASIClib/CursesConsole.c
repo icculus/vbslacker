@@ -9,7 +9,7 @@
 #ifdef WIN32   /* cygwin doesn't come with ncurses; won't compile for me. */
 
 #warning WIN32 has no curses support, yet!
-__boolean __initCursesConsole(STATEPARAMS) { return(false); }
+__boolean __initCursesConsole(void) { return(false); }
 
 #else
 
@@ -20,7 +20,7 @@ __boolean __initCursesConsole(STATEPARAMS) { return(false); }
 static WINDOW *cons = NULL;     /* WINDOW structure for printable window. */
 static ThreadLock consoleLock;
 
-static int __curs_openConsole(STATEPARAMS)
+static int __curs_openConsole(void)
 /*
  * Initialize the curses library, and do all sorts of setup.
  *
@@ -34,7 +34,7 @@ static int __curs_openConsole(STATEPARAMS)
     cons = newwin(0, 0, 0, 0);   /* full screen virtual window. */
     if (cons != NULL)
     {
-        __createThreadLock(STATEARGS, &consoleLock);
+        __createThreadLock(&consoleLock);
         keypad(cons, TRUE);
         (void) nonl();
         (void) cbreak();
@@ -47,7 +47,7 @@ static int __curs_openConsole(STATEPARAMS)
 } /* __curs_openConsole */
 
 
-static void __curs_deinitConsoleHandler(STATEPARAMS)
+static void __curs_deinitConsoleHandler(void)
 /*
  * Deinitialize the curses library.
  *
@@ -55,14 +55,14 @@ static void __curs_deinitConsoleHandler(STATEPARAMS)
  *   returns : void.
  */
 {
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     endwin();
-    __releaseThreadLock(STATEARGS, &consoleLock);
-    __destroyThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
+    __destroyThreadLock(&consoleLock);
 } /* __curs_deinitConsole */
 
 
-static void __curs_printNChars(STATEPARAMS, char *str, int n)
+static void __curs_printNChars(char *str, int n)
 /*
  * Write (n) chars at (str) to the printable window, scrolling if needed, 
  *  and moving the cursor to the new position.
@@ -74,15 +74,15 @@ static void __curs_printNChars(STATEPARAMS, char *str, int n)
 {
     int i;
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     for (i = 0; i < n; i++)
         waddch(cons, str[i]);
     wrefresh(cons);
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* __curs_printNChars */
 
 
-static void __curs_printNewLine(STATEPARAMS)
+static void __curs_printNewLine(void)
 /*
  * Move the cursor down to the start of the next line. Scroll if necessary.
  *
@@ -93,7 +93,7 @@ static void __curs_printNewLine(STATEPARAMS)
 } /* __curs_printNewLine */
 
 
-static void __curs_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
+static void __curs_vbpii_viewPrint(int topRow, int bottomRow)
 /*
  * Set console lines (top) to (bottom) as the printable window.
  *
@@ -105,13 +105,13 @@ static void __curs_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
     int lines;
     int columns;
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     getmaxyx(stdscr, lines, columns);
 
     if ( (topRow < 0) || (bottomRow < topRow) || (bottomRow > lines) )
     {
-        __releaseThreadLock(STATEARGS, &consoleLock);
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __releaseThreadLock(&consoleLock);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     } /* if */
 
     else
@@ -120,11 +120,11 @@ static void __curs_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
         mvwin(cons, topRow, 0);
     } /* else */
 
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* __curs_vbpii_viewPrint */
 
 
-static void __curs_vbp_viewPrint(STATEPARAMS)
+static void __curs_vbp_viewPrint(void)
 /*
  * Set the whole console window printable.
  *
@@ -136,16 +136,16 @@ static void __curs_vbp_viewPrint(STATEPARAMS)
     int lines;
     int columns;
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     getmaxyx(stdscr, lines, columns);
     mvwin(cons, 0, 0);
     wresize(cons, lines, columns);
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* __curs_vbp_viewPrint */
 
 
 
-static void __curs_vbp_cls(STATEPARAMS)
+static void __curs_vbp_cls(void)
 /*
  * Clear the current printable window. The window will be blanked of
  *  characters, and set to the background color. The cursor is moved to
@@ -155,14 +155,14 @@ static void __curs_vbp_cls(STATEPARAMS)
  *    returns : void.
  */
 {
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     wclear(cons);
     wrefresh(cons);
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* vbp_cls */
 
 
-static int __curs_vbi_csrline(STATEPARAMS)
+static int __curs_vbi_csrline(void)
 /*
  * Return current cursor row.
  *
@@ -173,14 +173,14 @@ static int __curs_vbi_csrline(STATEPARAMS)
     int x;
     int y;
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     getsyx(y, x);
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
     return(y);
 } /* __curs_vbi_csrline */
 
 
-static int __curs_vbia_pos(STATEPARAMS, void *pVar)
+static int __curs_vbia_pos(void *pVar)
 /*
  * Return current cursor column.
  *
@@ -191,14 +191,14 @@ static int __curs_vbia_pos(STATEPARAMS, void *pVar)
     int x;
     int y;
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     getsyx(y, x);
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
     return(x);
 } /* vbiA_pos */
 
 
-static void __curs_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
+static void __curs_vbpiii_color(int fore, int back, int bord)
 /*
  * Set a new printing color.
  *
@@ -212,27 +212,27 @@ static void __curs_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
 } /* __curs_vbpiii_color */
 
 
-static void __curs_vbpil_color(STATEPARAMS, int fore, long feh)
+static void __curs_vbpil_color(int fore, long feh)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* __curs_vbpiii_color */
 
 
-static void __curs_vbpi_color(STATEPARAMS, int fore)
+static void __curs_vbpi_color(int fore)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* __curs_vbpiii_color */
 
 
-static void __curs_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+static void __curs_getConsoleHandlerName(char *buffer, int size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -246,7 +246,7 @@ static void __curs_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
 } /* __curs_getConsoleHandlerName */
 
 
-__boolean __initCursesConsole(STATEPARAMS)
+__boolean __initCursesConsole(void)
 /*
  * Attempt to initialize curses library access.
  *
@@ -256,7 +256,7 @@ __boolean __initCursesConsole(STATEPARAMS)
 {
     __boolean retVal = false;
 
-    if (__curs_openConsole(STATEARGS) != -1)
+    if (__curs_openConsole() != -1)
     {
         __getConsoleHandlerName = __curs_getConsoleHandlerName;
         __deinitConsoleHandler = __curs_deinitConsoleHandler;

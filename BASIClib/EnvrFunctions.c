@@ -18,7 +18,7 @@ static PBasicString commandLine;
 static __boolean unixFileSystem;
 
 
-void __initEnvrFunctions(STATEPARAMS, int argc, char **argv)
+void __initEnvrFunctions(int argc, char **argv)
 /*
  * Initializations;
  *   - Create a ThreadLock for thread-proofing getenv() calls...
@@ -33,9 +33,9 @@ void __initEnvrFunctions(STATEPARAMS, int argc, char **argv)
     int size = 0;
     char *cmdLine;
 
-    __createThreadLock(STATEARGS, &envrLock);
+    __createThreadLock(&envrLock);
 
-    unixFileSystem = ((__getInitFlags(STATEARGS) & INITFLAG_UNIX_FILE_SYSTEM) ?
+    unixFileSystem = ((__getInitFlags() & INITFLAG_UNIX_FILE_SYSTEM) ?
                           true : false);
 
 
@@ -44,7 +44,7 @@ void __initEnvrFunctions(STATEPARAMS, int argc, char **argv)
     for (i = 1; i < argc; i++)        /* get size of command line string... */
         size += strlen(argv[i]) + 1;
 
-    cmdLine = __memAlloc(STATEARGS, size);
+    cmdLine = __memAlloc(size);
     memset(cmdLine, '\0', size);
 
     for (i = 1; i < argc; i++)   /* Make argv[] one space-separated string. */
@@ -55,12 +55,12 @@ void __initEnvrFunctions(STATEPARAMS, int argc, char **argv)
     } /* for */
 
                                  /* Convert to a BASIC string. */
-    commandLine = __createString(STATEARGS, cmdLine, false);
-    __memFree(STATEARGS, cmdLine);
+    commandLine = __createString(cmdLine, false);
+    __memFree(cmdLine);
 } /* __initEnvrFunctions */
 
 
-void __deinitEnvrFunctions(STATEPARAMS)
+void __deinitEnvrFunctions(void)
 /*
  * Deinitialization; Destroy the ThreadLock. The rest will take care of
  *  itself.
@@ -69,11 +69,11 @@ void __deinitEnvrFunctions(STATEPARAMS)
  *     returns : void.
  */
 {
-    __destroyThreadLock(STATEARGS, &envrLock);
+    __destroyThreadLock(&envrLock);
 } /* __initEnvrFunctions */
 
 
-void vbpS_chdir(STATEPARAMS, PBasicString newDir)
+void vbpS_chdir(PBasicString newDir)
 /*
  * Change the current working directory. All relative paths used in
  *  file i/o will work from the new working directory from now on.
@@ -82,11 +82,11 @@ void vbpS_chdir(STATEPARAMS, PBasicString newDir)
  *   returns : void. Throws a few errors, though.
  */
 {
-    char *str = __basicStringToAsciz(STATEARGS, newDir);
+    char *str = __basicStringToAsciz(newDir);
     int rc;
 
     rc = chdir(str);
-    __memFree(STATEARGS, str);
+    __memFree(str);
 
     if (rc == -1)
     {
@@ -114,12 +114,12 @@ void vbpS_chdir(STATEPARAMS, PBasicString newDir)
                 break;
         } /* switch */
 
-        __runtimeError(STATEARGS, rc);
+        __runtimeError(rc);
     } /* if */
 } /* vbpS_chdir */
 
 
-PBasicString vbSS_curdir_DC_(STATEPARAMS, PBasicString drive)
+PBasicString vbSS_curdir_DC_(PBasicString drive)
 /*
  * Return current working directory by drive letter. Under Unix-like
  *  Operating systems, the only valid drive letter is "C"...You can set
@@ -138,21 +138,21 @@ PBasicString vbSS_curdir_DC_(STATEPARAMS, PBasicString drive)
 } /* vbSS_curdir */
 
 
-PBasicString vbS_curdir_DC_(STATEPARAMS)
+PBasicString vbS_curdir_DC_(void)
 /*
  * Same as above vbSS_curdir_DC_(), but always gets current drives's
- *  working directory. Equivalent to vbSS_curdir_DC_(STATEARGS, "");
+ *  working directory. Equivalent to vbSS_curdir_DC_("");
  *
  *     params : void.
  *    returns : see above.
  */
 {
-    PBasicString blankString = __createString(STATEARGS, "", false);
-    return(vbSS_curdir_DC_(STATEARGS, blankString));
+    PBasicString blankString = __createString("", false);
+    return(vbSS_curdir_DC_(blankString));
 } /* vbS_curdir_DC_ */
 
 
-PBasicString vbSS_environ_DC_(STATEPARAMS, PBasicString envVarName)
+PBasicString vbSS_environ_DC_(PBasicString envVarName)
 /*
  * Get the value of the environment variable named by (envVarName).
  *
@@ -161,22 +161,22 @@ PBasicString vbSS_environ_DC_(STATEPARAMS, PBasicString envVarName)
  *              such a variable does not exist.
  */
 {
-    char *str = __basicStringToAsciz(STATEARGS, envVarName);
+    char *str = __basicStringToAsciz(envVarName);
     char *rc;
     PBasicString retVal;
 
         /* other threads may overwrite this, so lock it... */
-    __obtainThreadLock(STATEARGS, &envrLock);
+    __obtainThreadLock(&envrLock);
     rc = getenv(str);
-    retVal = __createString(STATEARGS, (rc == NULL) ? "" : rc, false);
-    __releaseThreadLock(STATEARGS, &envrLock);
+    retVal = __createString((rc == NULL) ? "" : rc, false);
+    __releaseThreadLock(&envrLock);
 
-    __memFree(STATEARGS, str);
+    __memFree(str);
     return(retVal);
 } /* vbSS_environ_DC_ */
 
 
-PBasicString vbSi_environ_DC_(STATEPARAMS, int n)
+PBasicString vbSi_environ_DC_(int n)
 /*
  * Get the (n)th string from the list of environment variables, whatever
  *  it may be.
@@ -193,20 +193,18 @@ PBasicString vbSi_environ_DC_(STATEPARAMS, int n)
     for (i = 0; (i < n) && (environ[i] != NULL); i++)
         /* do nothing. */;
 
-    retVal = __createString(STATEARGS,
-                            (environ[i] == NULL) ? "" : environ[i],
-                            false);
+    retVal = __createString(((environ[i] == NULL) ? "" : environ[i]), false);
     return(retVal);
 } /* vbSi_environ_DC_ */
 
 
-void vbpS_environ(STATEPARAMS, PBasicString newEnvrStr)
+void vbpS_environ(PBasicString newEnvrStr)
 {
 #warning vbpS_environ() is a stub!
 } /* vbpS_environ */
 
 
-int vbii_fre(STATEPARAMS, int arg)
+int vbii_fre(int arg)
 /*
  * Returns a byte count of available memory remaining.
  *
@@ -228,13 +226,13 @@ int vbii_fre(STATEPARAMS, int arg)
     else if (arg == -2)  /* return available stack space. */
         /* !!! */ ;
     else                 /* return string space. */
-        retVal = vbiS_fre(STATEARGS, NULL);
+        retVal = vbiS_fre(NULL);
 
     return(retVal);
 } /* vbii_fre */
 
 
-int vbiS_fre(STATEPARAMS, PBasicString strExp)
+int vbiS_fre(PBasicString strExp)
 /*
  * Compact memory (garbage collect), and return the available string space,
  *  in bytes.
@@ -243,12 +241,12 @@ int vbiS_fre(STATEPARAMS, PBasicString strExp)
  *    returns : see above.
  */
 {
-    __memForceFullBoxcarRelease(STATEARGS);
+    __memForceFullBoxcarRelease();
     return(65767);  /* !!! */
 } /* vbiS_fre */
 
 
-PBasicString vbS_command_DC_(STATEPARAMS)
+PBasicString vbS_command_DC_(void)
 /*
  * Return the command line of this application.
  *
@@ -258,7 +256,7 @@ PBasicString vbS_command_DC_(STATEPARAMS)
 {
     PBasicString retVal = NULL;
 
-    __assignString(STATEARGS, &retVal, commandLine);
+    retVal = __assignString(retVal, commandLine);
     return(retVal);
 } /* vbS_command_DC_ */
 

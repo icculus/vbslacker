@@ -18,7 +18,7 @@
 #include "FileSystemFunctions.h"
 
 
-__boolean __fileExists(STATEPARAMS, char *fullPathName)
+__boolean __fileExists(char *fullPathName)
 /*
  * Check to see if (fileName) is an existing file in the file system.
  *  This doesn't do more than verify the existance; permissions, etc...
@@ -48,7 +48,7 @@ __boolean __fileExists(STATEPARAMS, char *fullPathName)
 
     dp = opendir((fileName == path) ? CURRENTDIRSTR : path);
     if (dp == NULL)
-        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
+        __runtimeError(ERR_INTERNAL_ERROR);
     else
     {
         for (ep = readdir(dp);
@@ -65,7 +65,7 @@ __boolean __fileExists(STATEPARAMS, char *fullPathName)
 } /* __fileExists */
 
 
-static char *__convertPathWinToUnix(STATEPARAMS, char *pathName)
+static char *__convertPathWinToUnix(char *pathName)
 /*
  * Convert "C:\path\path\filename.txt" to "/path/path/filename.txt"
  *
@@ -77,7 +77,7 @@ static char *__convertPathWinToUnix(STATEPARAMS, char *pathName)
  */
 {
     int length = strlen(pathName);
-    char *retVal = __memAllocInBoxcar(STATEARGS, length + 1);
+    char *retVal = __memAllocInBoxcar(length + 1);
     int i;
 
     if ((length >= 2) && (pathName[1] == ':'))   /* drive letter? */
@@ -92,7 +92,7 @@ static char *__convertPathWinToUnix(STATEPARAMS, char *pathName)
 
 
 
-static char *__convertPathUnixToWin(STATEPARAMS, char *pathName)
+static char *__convertPathUnixToWin(char *pathName)
 /*
  * Convert "/path/path/filename.txt" to "C:\path\path\filename.txt"
  *
@@ -104,7 +104,7 @@ static char *__convertPathUnixToWin(STATEPARAMS, char *pathName)
  */
 {
     int length = strlen(pathName);
-    char *retVal = __memAllocInBoxcar(STATEARGS, length + 3);
+    char *retVal = __memAllocInBoxcar(length + 3);
     int i;
 
     strcpy(retVal, "C:");
@@ -118,7 +118,7 @@ static char *__convertPathUnixToWin(STATEPARAMS, char *pathName)
 
 
 
-static int __fileSystemErrors(STATEPARAMS)
+static int __fileSystemErrors(void)
 /*
  * Convert C's (errno) into one of the common errors in the BASIClib
  *  file system API.
@@ -160,90 +160,90 @@ static int __fileSystemErrors(STATEPARAMS)
 } /* __fileSystemErrors */
 
 
-void vbpS_kill(STATEPARAMS, PBasicString fileName)
+void vbpS_kill(PBasicString fileName)
 {
-    char *ascizFileName = __basicStringToAsciz(STATEARGS, fileName);
+    char *ascizFileName = __basicStringToAsciz(fileName);
     int errorType;
 
     if (remove(ascizFileName) == -1)   /* -1 == error. */
     {
-        errorType = __fileSystemErrors(STATEARGS);
-        __runtimeError(STATEARGS, errorType);
+        errorType = __fileSystemErrors();
+        __runtimeError(errorType);
     } /* if */
 
-    __memFree(STATEARGS, ascizFileName);
+    __memFree(ascizFileName);
 } /* vbpS_kill */
 
 
-void vbpS_mkdir(STATEPARAMS, PBasicString dirStr)
+void vbpS_mkdir(PBasicString dirStr)
 {
-    char *ascizDirName = __basicStringToAsciz(STATEARGS, dirStr);
+    char *ascizDirName = __basicStringToAsciz(dirStr);
     int errorType;
 
     if (mkdir(ascizDirName, S_IRWXU) == -1)
     {
-        errorType = __fileSystemErrors(STATEARGS);
-        __runtimeError(STATEARGS, errorType);
+        errorType = __fileSystemErrors();
+        __runtimeError(errorType);
     } /* if */
 
-    __memFree(STATEARGS, ascizDirName);
+    __memFree(ascizDirName);
 } /* vbpS_mkdir */
 
 
-void vbpS_rmdir(STATEPARAMS, PBasicString dirStr)
+void vbpS_rmdir(PBasicString dirStr)
 {
-    char *ascizDirName = __basicStringToAsciz(STATEARGS, dirStr);
+    char *ascizDirName = __basicStringToAsciz(dirStr);
     int errorType;
 
     if (rmdir(ascizDirName) == -1)
     {
-        errorType = __fileSystemErrors(STATEARGS);
-        __runtimeError(STATEARGS, errorType);
+        errorType = __fileSystemErrors();
+        __runtimeError(errorType);
     } /* if */
 
-    __memFree(STATEARGS, ascizDirName);
+    __memFree(ascizDirName);
 } /* vbpS_rmdir */
 
 
-void vbpSS_name(STATEPARAMS, PBasicString oldName, PBasicString newName)
+void vbpSS_name(PBasicString oldName, PBasicString newName)
 {
-    char *ascizOldName = __basicStringToAsciz(STATEARGS, oldName);
-    char *ascizNewName = __basicStringToAsciz(STATEARGS, newName);
+    char *ascizOldName = __basicStringToAsciz(oldName);
+    char *ascizNewName = __basicStringToAsciz(newName);
     int errorType;
 
     if (rename(ascizOldName, ascizNewName) == -1)
     {
-        errorType = __fileSystemErrors(STATEARGS);
-        __runtimeError(STATEARGS, errorType);
+        errorType = __fileSystemErrors();
+        __runtimeError(errorType);
     } /* if */
 
-    __memFree(STATEARGS, ascizOldName);
-    __memFree(STATEARGS, ascizNewName);
+    __memFree(ascizOldName);
+    __memFree(ascizNewName);
 } /* vbpSS_name */
 
 
-void vbp_files(STATEPARAMS)
+void vbp_files(void)
 {
     DIR *dp;
     struct dirent *ep;
 
     dp = opendir ("./");
     if (dp == NULL)
-        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
+        __runtimeError(ERR_INTERNAL_ERROR);
     else
     {
         /* !!! spacing won't be right. */
         while ((ep = readdir(dp)))
         {
-            __printAsciz(STATEARGS, ep->d_name);
-            __printNewLine(STATEARGS);
+            __printAsciz(ep->d_name);
+            __printNewLine();
         } /* while */
         closedir(dp);
     } /* else */
 } /* vbp_files */
 
 
-void vbpSS_filecopy(STATEPARAMS, PBasicString src, PBasicString dest)
+void vbpSS_filecopy(PBasicString src, PBasicString dest)
 {
 } /* vbpSS_filecopy */
 

@@ -9,11 +9,10 @@
 
 #include "StdBasic.h"
 
-void vbp_clear(STATEPARAMS);
-void vbpNNl_clear(STATEPARAMS, __long stackSize);
+void vbp_clear(void);
+void vbpNNl_clear(__long stackSize);
 
 #endif /* _INCLUDE_MISCFUNCTIONS_H_ */
 
 /* end of MiscFunctions.h ... */
-
 

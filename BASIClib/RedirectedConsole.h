@@ -9,10 +9,10 @@
 
 #include "StdBasic.h"
 
-__boolean __initRedirectedConsole(STATEPARAMS);
-void    __forceRedirectedConsole(STATEPARAMS);
+__boolean __initRedirectedConsole(void);
+void    __forceRedirectedConsole(void);
 
-#endif
+#endif /* _INCLUDE_REDIRECTEDCONSOLE_H_ */
 
 /* end of RedirectedConsole.h ... */
 

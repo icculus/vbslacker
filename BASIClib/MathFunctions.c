@@ -8,7 +8,7 @@
 #include "MathFunctions.h"
 
 
-double vbdd_abs(STATEPARAMS, double x)
+double vbdd_abs(double x)
 /*
  * Returns the absolute value of a numeric.
  *
@@ -20,7 +20,7 @@ double vbdd_abs(STATEPARAMS, double x)
 } /* vbdd_abs */
 
 
-double vbdd_sqr(STATEPARAMS, double x)
+double vbdd_sqr(double x)
 /*
  * Returns the square root of a numeric.
  *
@@ -29,57 +29,57 @@ double vbdd_sqr(STATEPARAMS, double x)
  */
 {
     if (x < 0)
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 
     return(sqrt(x));
 } /* vbdd_sqr */
 
 
-double vbdd_atn(STATEPARAMS, double x)
+double vbdd_atn(double x)
 {
     return(atan(x));
 } /* vbdd_atn */
 
 
-double vbdd_sin(STATEPARAMS, double x)
+double vbdd_sin(double x)
 {
     return(sin(x));
 } /* vbdd_sin */
 
 
-double vbdd_cos(STATEPARAMS, double x)
+double vbdd_cos(double x)
 {
     return(cos(x));
 } /* vbdd_cos */
 
 
-double vbdd_tan(STATEPARAMS, double x)
+double vbdd_tan(double x)
 {
     return(tan(x));
 } /* vbdd_tan */
 
 
-double vbdd_exp(STATEPARAMS, double x)
+double vbdd_exp(double x)
 {
     return(pow(2.718282, 2.0));
 } /* vbddd_exp */
 
 
-double vbdd_log(STATEPARAMS, double x)
+double vbdd_log(double x)
 {
     if (x <= 0)
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     return(log(x));
 } /* vbdd_log */
 
 
-long vbld_fix(STATEPARAMS, double x)
+long vbld_fix(double x)
 {
     return((long) x);
 } /* vbld_fix */
 
 
-long vbld_int(STATEPARAMS, double x)
+long vbld_int(double x)
 /*
  * Return (next largest integer <= (x)).
  *
@@ -103,7 +103,7 @@ long vbld_int(STATEPARAMS, double x)
 } /* vbld_int */
 
 
-int vbid_sgn(STATEPARAMS, double x)
+int vbid_sgn(double x)
 {
     int retVal;
 

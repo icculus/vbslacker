@@ -9,7 +9,7 @@
 #include "Variant.h"
 
 
-void __freeVariant(STATEPARAMS, PVariant var)
+void __freeVariant(PVariant var)
 /*
  * Free the resources occupied by a variant. The variant (and contained
  *  data) is inaccessible after this call.
@@ -18,13 +18,14 @@ void __freeVariant(STATEPARAMS, PVariant var)
  *    returns : void.
  */
 {
-    if (var->type == STRING)
-        __freeString(STATEARGS, var->data._string);
-    __memFree(STATEARGS, var);
+/*    if (var->type == STRING)
+ *        __freeString(var->data._string);
+ */
+    __memFree(var);
 } /* __freeVariant */
 
 
-int __variantToInt(STATEPARAMS, PVariant var)
+int __variantToInt(PVariant var)
 {
     int retVal = 0;
 
@@ -43,7 +44,7 @@ int __variantToInt(STATEPARAMS, PVariant var)
             retVal = (int) var->data._double;
             break;
         default:
-            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -52,7 +53,7 @@ int __variantToInt(STATEPARAMS, PVariant var)
 
 
 
-long __variantToLong(STATEPARAMS, PVariant var)
+long __variantToLong(PVariant var)
 {
     long retVal = 0;
 
@@ -71,7 +72,7 @@ long __variantToLong(STATEPARAMS, PVariant var)
             retVal = (long) var->data._double;
             break;
         default:
-            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -80,7 +81,7 @@ long __variantToLong(STATEPARAMS, PVariant var)
 
 
 
-float __variantToFloat(STATEPARAMS, PVariant var)
+float __variantToFloat(PVariant var)
 {
     float retVal = 0;
 
@@ -99,7 +100,7 @@ float __variantToFloat(STATEPARAMS, PVariant var)
             retVal = (float) var->data._double;
             break;
         default:
-            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -108,7 +109,7 @@ float __variantToFloat(STATEPARAMS, PVariant var)
 
 
 
-double __variantToDouble(STATEPARAMS, PVariant var)
+double __variantToDouble(PVariant var)
 {
     double retVal = 0;
 
@@ -127,7 +128,7 @@ double __variantToDouble(STATEPARAMS, PVariant var)
             retVal = var->data._double;
             break;
         default:
-            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -136,7 +137,7 @@ double __variantToDouble(STATEPARAMS, PVariant var)
 
 
 
-PBasicString __variantToString(STATEPARAMS, PVariant pVar, __boolean byRef)
+PBasicString __variantToString(PVariant pVar, __boolean byRef)
 /*
  * The parser/compiler will be responsible for free()ing the return value
  *  from this call after the program is done with it...
@@ -155,10 +156,10 @@ PBasicString __variantToString(STATEPARAMS, PVariant pVar, __boolean byRef)
         if (byRef)
             retVal = pVar->data._string;
         else
-            __assignString(STATEARGS, &retVal, pVar->data._string);
+            retVal = __assignString(retVal, pVar->data._string);
     } /* if */
     else
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
 
     return(retVal);
 } /* __variantToString */

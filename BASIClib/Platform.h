@@ -54,6 +54,11 @@
 #ifndef _INCLUDE_PLATFORM_H_
 #define _INCLUDE_PLATFORM_H_
 
+    /* just in case... */
+#if (defined __GNUG__) && (!defined __GNUC__)
+#   define __GNUC___
+#endif
+
 
 /* !!! Check for more than one defined platform... */
 

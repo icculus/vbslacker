@@ -12,7 +12,7 @@
 #include "StringFunctions.h"
 
 
-PBasicString vbSSi_right_DC_(STATEPARAMS, PBasicString pStr, int count)
+PBasicString vbSSi_right_DC_(PBasicString pStr, int count)
 /*
  * BASIC RIGHT$() function. Returns rightmost (count) chars in
  *  (pStr) in a new string.
@@ -25,12 +25,12 @@ PBasicString vbSSi_right_DC_(STATEPARAMS, PBasicString pStr, int count)
     PBasicString retVal = NULL;
 
     if (count < 0)
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else if ((unsigned int) count > pStr->length)
-        __assignString(STATEARGS, &retVal, pStr);
+        retVal = __assignString(retVal, pStr);
     else
     {
-        retVal = __allocString(STATEARGS, count, false);
+        retVal = __allocString(count, false);
         memcpy(retVal->data, pStr->data + (pStr->length - count), count);
     } /* else */
 
@@ -38,7 +38,7 @@ PBasicString vbSSi_right_DC_(STATEPARAMS, PBasicString pStr, int count)
 } /* vbSSi_right_DC_ */
 
 
-PBasicString vbSSi_left_DC_(STATEPARAMS, PBasicString pStr, int count)
+PBasicString vbSSi_left_DC_(PBasicString pStr, int count)
 /*
  * BASIC LEFT$() function. Returns leftmost (count) chars in
  *  (pStr) in a new string.
@@ -51,12 +51,12 @@ PBasicString vbSSi_left_DC_(STATEPARAMS, PBasicString pStr, int count)
     PBasicString retVal = NULL;
 
     if (count < 0)
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else if ((unsigned int) count > pStr->length)
-        __assignString(STATEARGS, &retVal, pStr);
+        retVal = __assignString(retVal, pStr);
     else
     {
-        retVal = __allocString(STATEARGS, count, false);
+        retVal = __allocString(count, false);
         memcpy(retVal->data, pStr->data, count);
     } /* else */
 
@@ -64,7 +64,7 @@ PBasicString vbSSi_left_DC_(STATEPARAMS, PBasicString pStr, int count)
 } /* vbSSi_left_DC_ */
 
 
-PBasicString vbSS_rtrim_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_rtrim_DC_(PBasicString pStr)
 /*
  * BASIC RTRIM$() function. Returns a new string with a copy of (pStr),
  *  minus any (' ') chars from the righthand side.
@@ -81,17 +81,17 @@ PBasicString vbSS_rtrim_DC_(STATEPARAMS, PBasicString pStr)
 
     if (i >= 0)    /* chars to trim? */
     {
-        retVal = __allocString(STATEARGS, i + 1, false);
+        retVal = __allocString(i + 1, false);
         memcpy(retVal->data, pStr->data, i + 1);
     } /* if */
     else        /* no trim? Just copy it to retVal. */
-        __assignString(STATEARGS, &retVal, pStr);
+        retVal = __assignString(retVal, pStr);
 
     return(retVal);
 } /* vbSS_rtrim_DC_ */
 
 
-PBasicString vbSS_ltrim_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_ltrim_DC_(PBasicString pStr)
 /*
  * BASIC LTRIM$() function. Returns a new string with a copy of (pStr),
  *  minus any (' ') chars from the lefthand side.
@@ -111,17 +111,17 @@ PBasicString vbSS_ltrim_DC_(STATEPARAMS, PBasicString pStr)
     if (i < max)    /* chars to trim? */
     {
         newSize = max - i;
-        retVal = __allocString(STATEARGS, newSize, false);
+        retVal = __allocString(newSize, false);
         memcpy(retVal->data, pStr->data + i, newSize);
     } /* if */
     else        /* no trim? Just copy it to retVal. */
-        __assignString(STATEARGS, &retVal, pStr);
+        retVal = __assignString(retVal, pStr);
 
     return(retVal);
 } /* vbSS_ltrim_DC_ */
 
 
-PBasicString vbSS_lcase_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_lcase_DC_(PBasicString pStr)
 /*
  * Returns a lowercased copy of (pStr).
  *
@@ -133,7 +133,7 @@ PBasicString vbSS_lcase_DC_(STATEPARAMS, PBasicString pStr)
     char *i;
     char *max;
 
-    __assignString(STATEARGS, &retVal, pStr);
+    retVal = __assignString(retVal, pStr);
 
     max = (retVal->data + retVal->length) - 1;
 
@@ -145,7 +145,7 @@ PBasicString vbSS_lcase_DC_(STATEPARAMS, PBasicString pStr)
 
 
 
-PBasicString vbSS_ucase_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_ucase_DC_(PBasicString pStr)
 /*
  * Returns a uppercased copy of (pStr).
  *
@@ -157,7 +157,7 @@ PBasicString vbSS_ucase_DC_(STATEPARAMS, PBasicString pStr)
     char *i;
     char *max;
 
-    __assignString(STATEARGS, &retVal, pStr);
+    retVal = __assignString(retVal, pStr);
 
     max = (retVal->data + retVal->length) - 1;
 
@@ -168,7 +168,7 @@ PBasicString vbSS_ucase_DC_(STATEPARAMS, PBasicString pStr)
 } /* vbSS_ucase_DC_ */
 
 
-int vbiS_len(STATEPARAMS, PBasicString pStr)
+int vbiS_len(PBasicString pStr)
 /*
  * Return the number of characters contained by (pStr). Remember that
  *  the data in the BasicString structure is NOT null-terminated, and
@@ -183,7 +183,7 @@ int vbiS_len(STATEPARAMS, PBasicString pStr)
 } /* vbiS_len */
 
 
-PBasicString vbSi_space_DC_(STATEPARAMS, int length)
+PBasicString vbSi_space_DC_(int length)
 /*
  * Create a BasicString consisting of (length) (' ') chars.
  *
@@ -194,10 +194,10 @@ PBasicString vbSi_space_DC_(STATEPARAMS, int length)
     PBasicString retVal;
 
     if (length < 0)
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
-        retVal = __allocString(STATEARGS, length, false);
+        retVal = __allocString(length, false);
         memset(retVal->data, ' ', length);
     } /* else */
 
@@ -205,7 +205,7 @@ PBasicString vbSi_space_DC_(STATEPARAMS, int length)
 } /* vbSi_space_DC_ */
 
 
-int vbiiSS_instr(STATEPARAMS, int start, PBasicString str1, PBasicString str2)
+int vbiiSS_instr(int start, PBasicString str1, PBasicString str2)
 /*
  * Search a string for the first occurrence of a substring.
  *
@@ -221,21 +221,21 @@ int vbiiSS_instr(STATEPARAMS, int start, PBasicString str1, PBasicString str2)
     char *rc;
 
     if (start <= 0)
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
         if (start <= str1->length)
         {
             start--;   /* make option base 0. */
-            ascizStr1 = __basicStringToAsciz(STATEARGS, str1);
-            ascizStr2 = __basicStringToAsciz(STATEARGS, str2);
+            ascizStr1 = __basicStringToAsciz(str1);
+            ascizStr2 = __basicStringToAsciz(str2);
             rc = strstr(ascizStr1 + start, ascizStr2);
 
             if (rc != NULL)
                 retVal = ((rc - ascizStr1) + 1);
 
-            __memFree(STATEARGS, ascizStr1);
-            __memFree(STATEARGS, ascizStr2);
+            __memFree(ascizStr1);
+            __memFree(ascizStr2);
         } /* if */
     } /* else */
 
@@ -243,7 +243,7 @@ int vbiiSS_instr(STATEPARAMS, int start, PBasicString str1, PBasicString str2)
 } /* vbiiSS_instr */
 
 
-int vbiSS_instr(STATEPARAMS, PBasicString str1, PBasicString str2)
+int vbiSS_instr(PBasicString str1, PBasicString str2)
 /*
  * Search a string for the first occurrence of a substring, starting
  *  the search at position #1 of (str1).
@@ -253,27 +253,27 @@ int vbiSS_instr(STATEPARAMS, PBasicString str1, PBasicString str2)
  *   returns : index of first char of (str2) in (str1), (0) if not found.
  */
 {
-    return(vbiiSS_instr(STATEARGS, 1, str1, str2));
+    return(vbiiSS_instr(1, str1, str2));
 } /* vbiSS_instr */
 
 
 
-PBasicString vbSii_string_DC_(STATEPARAMS, int rep, int ch)
+PBasicString vbSii_string_DC_(int rep, int ch)
 {
-    PBasicString retVal = __allocString(STATEARGS, rep, false);
+    PBasicString retVal = __allocString(rep, false);
     memset(retVal->data, ch, rep);
     return(retVal);
 } /* vbSii_string_DC_ */
 
 
-PBasicString vbSiS_string_DC_(STATEPARAMS, int rep, PBasicString strCh)
+PBasicString vbSiS_string_DC_(int rep, PBasicString strCh)
 {
     PBasicString retVal = NULL;
 
     if (strCh->length == 0)
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
-        retVal = vbSii_string_DC_(STATEARGS, rep, (int) strCh->data[0]);
+        retVal = vbSii_string_DC_(rep, (int) strCh->data[0]);
 
     return(retVal);
 } /* vbSiS_string_DC_ */

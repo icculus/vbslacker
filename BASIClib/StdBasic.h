@@ -18,7 +18,6 @@
 
 #include "Platform.h"
 #include "Assembler.h"
-#include "Gosub.h"
 #include "MemoryManager.h"
 #include "Language.h"
 #include "BasicString.h"
@@ -30,8 +29,7 @@
 #include "BasicArray.h"
 #include "BasicFileStream.h"
 #include "SignalHandlers.h"
-#include "OnEvents.h"
-#include "BasicExit.h"
+#include "Gosub.h"
 
 #include "ConsoleFunctions.h"
 

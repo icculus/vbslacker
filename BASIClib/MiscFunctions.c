@@ -6,7 +6,7 @@
 
 #include "MiscFunctions.h"
 
-void vbp_clear(STATEPARAMS)
+void vbp_clear(void)
 /*
  * There's no way in hell we're supporting this. Microsoft docs
  *  says that if it's used anywhere but the mainline, it throws
@@ -17,11 +17,11 @@ void vbp_clear(STATEPARAMS)
  *    returns : Always throws error.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* vbp_clear */
 
 
-void vbpNNl_clear(STATEPARAMS, __long stackSize)
+void vbpNNl_clear(__long stackSize)
 /*
  * Refer to vbp_clear()...
  *
@@ -29,7 +29,7 @@ void vbpNNl_clear(STATEPARAMS, __long stackSize)
  *    returns : Always throws error.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* vbNNl_clear */
 
 /* end of MiscFunctions.c ... */

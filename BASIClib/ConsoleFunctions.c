@@ -13,25 +13,25 @@
 #include "RedirectedConsole.h"
 
 /* internal function declarations needed at start... */
-static void __preinitPrintNewLine(STATEPARAMS);
-static void __preinitPrintNChars(STATEPARAMS, char *str, int n);
+static void __preinitPrintNewLine(void);
+static void __preinitPrintNChars(char *str, int n);
 
 /* variable function pointers... */
-void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size) = NULL;
-void (*__deinitConsoleHandler)(STATEPARAMS) = NULL;
-void (*__printNewLine)(STATEPARAMS) = __preinitPrintNewLine;
-void (*__printNChars)(STATEPARAMS, char *str, int n) = __preinitPrintNChars;
-void (*vbpii_viewPrint)(STATEPARAMS, int top, int bottom) = NULL;
-void (*vbp_viewPrint)(STATEPARAMS) = NULL;
-void (*vbp_cls)(STATEPARAMS) = NULL;
-int  (*vbi_csrline)(STATEPARAMS) = NULL;
-int  (*vbia_pos)(STATEPARAMS, void *pVar) = NULL;
-void (*vbpiii_color)(STATEPARAMS, int fore, int back, int bord) = NULL;
-void (*vbpil_color)(STATEPARAMS, int fore, long palette) = NULL;
-void (*vbpi_color)(STATEPARAMS, int fore) = NULL;
+void (*__getConsoleHandlerName)(char *buf, int size) = NULL;
+void (*__deinitConsoleHandler)(void) = NULL;
+void (*__printNewLine)(void) = __preinitPrintNewLine;
+void (*__printNChars)(char *str, int n) = __preinitPrintNChars;
+void (*vbpii_viewPrint)(int top, int bottom) = NULL;
+void (*vbp_viewPrint)(void) = NULL;
+void (*vbp_cls)(void) = NULL;
+int  (*vbi_csrline)(void) = NULL;
+int  (*vbia_pos)(void *pVar) = NULL;
+void (*vbpiii_color)(int fore, int back, int bord) = NULL;
+void (*vbpil_color)(int fore, long palette) = NULL;
+void (*vbpi_color)(int fore) = NULL;
 
 
-void __initConsoleFunctions(STATEPARAMS)
+void __initConsoleFunctions(void)
 /*
  * Run down the possible console handlers, in order of precedence,
  *  until we either find one that works, or we run out of options.
@@ -42,17 +42,17 @@ void __initConsoleFunctions(STATEPARAMS)
  *     returns : void.
  */
 {
-    if (__initNoConsole(STATEARGS) == true);
-    else if (__initRedirectedConsole(STATEARGS) == true);
-    else if (__initDirectConsole(STATEARGS) == true);
-    else if (__initCursesConsole(STATEARGS) == true);
-    else __forceRedirectedConsole(STATEARGS);
+    if (__initNoConsole() == true);
+    else if (__initRedirectedConsole() == true);
+    else if (__initDirectConsole() == true);
+    else if (__initCursesConsole() == true);
+    else __forceRedirectedConsole();
 } /* __initConsoleFunctions */
 
 
-void __deinitConsoleFunctions(STATEPARAMS)
+void __deinitConsoleFunctions(void)
 {
-    __deinitConsoleHandler(STATEARGS);   /* call handler-specific de-init. */
+    __deinitConsoleHandler();   /* call handler-specific de-init. */
 
     __getConsoleHandlerName = NULL;  /* blank all the func pointers out... */
     __deinitConsoleHandler = NULL;
@@ -69,7 +69,7 @@ void __deinitConsoleFunctions(STATEPARAMS)
 } /* __deinitConsoleFunctions */
 
 
-void vbpV_print(STATEPARAMS, PVariant pVar)
+void vbpV_print(PVariant pVar)
 /*
  * Take a variant, convert to a string, and print it.
  *
@@ -79,13 +79,13 @@ void vbpV_print(STATEPARAMS, PVariant pVar)
 {
     PBasicString str;
 
-    str = __variantToString(STATEARGS, pVar, true);
-    vbpS_print(STATEARGS, str);
-    __freeString(STATEARGS, str);
+    str = __variantToString(pVar, true);
+    vbpS_print(str);
+/*    __freeString(str);*/
 } /* vbpV_print */
 
 
-void vbpS_print(STATEPARAMS, PBasicString str)
+void vbpS_print(PBasicString str)
 /*
  * Print a BASIC string to the console. NULL characters do not
  *  terminate the string, and are acceptable for printing.
@@ -94,11 +94,11 @@ void vbpS_print(STATEPARAMS, PBasicString str)
  *    returns : void.
  */
 {
-    __printNChars(STATEARGS, str->data, str->length);
+    __printNChars(str->data, str->length);
 } /* vbpS_print */
 
 
-void __printAsciz(STATEPARAMS, char *str)
+void __printAsciz(char *str)
 /*
  * Print a null-terminated C string (ASCIZ string) to the console.
  *  If there is a null character in the string, it is considered the
@@ -109,11 +109,11 @@ void __printAsciz(STATEPARAMS, char *str)
  *     returns : void.
  */
 {
-    __printNChars(STATEARGS, str, strlen(str));
+    __printNChars(str, strlen(str));
 } /* __printAsciz */
 
 
-static void __preinitPrintNChars(STATEPARAMS, char *str, int n)
+static void __preinitPrintNChars(char *str, int n)
 /*
  * This function exists to allow initialization functions to
  *  write to stderr (under the guise of a full console driver)
@@ -132,7 +132,7 @@ static void __preinitPrintNChars(STATEPARAMS, char *str, int n)
 } /* __preinitPrintNChars */
 
 
-static void __preinitPrintNewLine(STATEPARAMS)
+static void __preinitPrintNewLine(void)
 /*
  * See __preinitPrintNChars(), above.
  *

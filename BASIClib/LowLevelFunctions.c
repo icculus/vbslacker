@@ -23,19 +23,19 @@
 static __boolean portAccess = false;
 
 
-int vbil_peek(STATEPARAMS, long addr)
+int vbil_peek(long addr)
 {
     return(*((char *) addr));
 } /* vbil_peek */
 
 
-void vbpli_poke(STATEPARAMS, long addr, int newVal)
+void vbpli_poke(long addr, int newVal)
 {
     *((char *) addr) = (char) newVal;
 } /* vbpli_poke */
 
 
-static void __getPortAccess(STATEPARAMS)
+static void __getPortAccess(void)
 {
     int rc;
 
@@ -45,7 +45,7 @@ static void __getPortAccess(STATEPARAMS)
 
         if (rc == -1)
         {
-            __runtimeError(STATEARGS, (errno == EPERM) ?
+            __runtimeError((errno == EPERM) ?
                             ERR_PERMISSION_DENIED : ERR_INTERNAL_ERROR);
         } /* if */
         else
@@ -54,45 +54,45 @@ static void __getPortAccess(STATEPARAMS)
 } /* __getPortAccess */
 
 
-int vbil_inp(STATEPARAMS, long ioport)
+int vbil_inp(long ioport)
 {
-    __getPortAccess(STATEARGS);
+    __getPortAccess();
     return((int) inb(ioport));
 } /* vbil_inp */
 
 
-void vbpli_out(STATEPARAMS, long ioport, int byte)
+void vbpli_out(long ioport, int byte)
 {
-    __getPortAccess(STATEARGS);
+    __getPortAccess();
     outb((char) byte, ioport);
 } /* vbpli_out */
 
 
-PBasicString vbSi_ioctl_DC_(STATEPARAMS, int devFileNum)
+PBasicString vbSi_ioctl_DC_(int devFileNum)
 {
-    return(__createString(STATEARGS, "", false));
+    return(__createString("", false));
 } /* vbSi_ioctl_DC_ */
 
 
-void vbpiS_ioctl(STATEPARAMS, int devFileNum, PBasicString ctlStr) {}
+void vbpiS_ioctl(int devFileNum, PBasicString ctlStr) {}
 
 
-long vblA_varptr(STATEPARAMS, void *myVar)
+long vblA_varptr(void *myVar)
 {
     return((long) myVar);
 } /* vblA_varptr */
 
 
-PBasicString vbSA_varptr_DC_(STATEPARAMS, void *myVar)
+PBasicString vbSA_varptr_DC_(void *myVar)
 {
-    PBasicString retVal = __allocString(STATEARGS, sizeof (void *), false);
+    PBasicString retVal = __allocString(sizeof (void *), false);
 
     memcpy(retVal->data, &myVar, sizeof (void *));
     return(retVal);
 } /* vbSA_varptr_DC_ */
 
 
-long vblA_varseg(STATEPARAMS, void *myVar)
+long vblA_varseg(void *myVar)
 {
     return(0);   /* no segments in 32-bit architecture. */
 } /* vblA_varseg */

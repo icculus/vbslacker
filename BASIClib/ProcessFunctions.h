@@ -9,15 +9,15 @@
 
 #include "StdBasic.h"
 
-void vbpS_shell(STATEPARAMS, PBasicString shCmd);
-void vbp_end(STATEPARAMS);
-void vbp_sleep(STATEPARAMS);
-void vbpl_sleep(STATEPARAMS, long napTime);
+void vbpS_shell(PBasicString shCmd);
+void vbp_end(void);
+void vbp_sleep(void);
+void vbpl_sleep(long napTime);
 
-#define vbp_system(stateargs) vbp_end(stateargs)
-#define vbp_stop(stateargs) vbp_end(stateargs)
+#define vbp_system vbp_end
+#define vbp_stop   vbp_end
 
-#endif
+#endif /* _INCLUDE_PROCESSFUNCTIONS_H_ */
 
 /* end of ProcessFunctions.h ... */
 

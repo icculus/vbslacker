@@ -10,7 +10,7 @@ static long initFlags = INITFLAG_NOT_INITIALIZED;
 static __boolean initialized = false;
 
 
-void __initBasicLib(STATEPARAMS, long flags, int argc, char **argv)
+void __initBasicLib(long flags, int argc, char **argv)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
  *  else with the library. This function just calls each other sections'
@@ -20,21 +20,19 @@ void __initBasicLib(STATEPARAMS, long flags, int argc, char **argv)
  *    returns : void.
  */
 {
-    __setStateStack;
-
     if (initialized == false)
     {
         initFlags = flags;
 
-        __initMemoryManager(STATEARGS);
-        __initSignalHandlers(STATEARGS);
-        __initBasicError(STATEARGS);
-        __initConsoleFunctions(STATEARGS);
-        __initEnvrFunctions(STATEARGS, argc, argv);
-        __initTimeDateFunctions(STATEARGS);
-        __initBasicFileStream(STATEARGS);
+        __initMemoryManager();
+        __initSignalHandlers();
+        __initBasicError();
+        __initConsoleFunctions();
+        __initEnvrFunctions(argc, argv);
+        __initTimeDateFunctions();
+        __initBasicFileStream();
 
-        __initThreads(STATEARGS);    /* Make sure this is last init call. */
+        __initThreads();    /* Make sure this is last init call. */
 
         atexit(__deinitBasicLib);
 
@@ -51,17 +49,17 @@ void __deinitBasicLib(void)
     if (initialized == true)
     {
         initFlags = INITFLAG_NOT_INITIALIZED;
-        __deinitEnvrFunctions(NULLSTATEARGS);
-        __deinitThreads(NULLSTATEARGS);
-        __deinitConsoleFunctions(NULLSTATEARGS);
-        __deinitBasicError(NULLSTATEARGS);
-        __deinitMemoryManager(NULLSTATEARGS);
+        __deinitEnvrFunctions();
+        __deinitThreads();
+        __deinitConsoleFunctions();
+        __deinitBasicError();
+        __deinitMemoryManager();
         initialized = false;
     } /* if */
 } /* __deinitBasicLib */
 
 
-void __initThread(STATEPARAMS, int tidx)
+void __initThread(int tidx)
 /*
  * This is a entry point to alert modules that a new thread has been spun, 
  *  and to allocate space as necessary. The given index might be recycled
@@ -71,12 +69,12 @@ void __initThread(STATEPARAMS, int tidx)
  *   returns : void.
  */
 {
-    __initThreadMemoryManager(STATEARGS, tidx);
-    __initThreadBasicError(STATEARGS, tidx);
+    __initThreadMemoryManager(tidx);
+    __initThreadBasicError(tidx);
 } /* __initThread */
 
 
-void __deinitThread(STATEPARAMS, int tidx)
+void __deinitThread(int tidx)
 /*
  * This is a entry point to alert modules that a thread has died, 
  *  and to handle it as necessary. The given index might be recycled
@@ -86,11 +84,11 @@ void __deinitThread(STATEPARAMS, int tidx)
  *   returns : void.
  */
 {
-    __deinitThreadMemoryManager(STATEARGS, tidx);
+    __deinitThreadMemoryManager(tidx);
 } /* __deinitThread */
 
 
-long __getInitFlags(STATEPARAMS)
+long __getInitFlags(void)
 /*
  * This function allows code to get the value of the (initFlags) variable,
  *  while protecting it from modification.
@@ -103,7 +101,7 @@ long __getInitFlags(STATEPARAMS)
 } /* __getInitFlags */
 
 
-void __shellOutNotification(STATEPARAMS)
+void __shellOutNotification(void)
 /*
  * Call this function before spawning another process. Other modules are
  *  notified from here, so they can do any cleanup they need beforehand.
@@ -112,11 +110,11 @@ void __shellOutNotification(STATEPARAMS)
  *    returns : void.
  */
 {
-    /*__shellOutConsole(STATEARGS);*/
+    /*__shellOutConsole();*/
 } /* __shellOutNotification */
 
 
-void __shellRetNotification(STATEPARAMS)
+void __shellRetNotification(void)
 /*
  * Call this function after returning from a  spawned process. Other modules
  *  are notified from here, so they can do any restoration needed.
@@ -125,7 +123,7 @@ void __shellRetNotification(STATEPARAMS)
  *    returns : void.
  */
 {
-    /*__shellRetConsole(STATEARGS);*/
+    /*__shellRetConsole();*/
 } /* __shellRetNotification */
 
 

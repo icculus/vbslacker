@@ -9,7 +9,7 @@
 
 #include "StdBasic.h"
 
-__boolean __initCursesConsole(STATEPARAMS);
+__boolean __initCursesConsole(void);
 
 #endif
 

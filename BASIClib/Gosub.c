@@ -6,7 +6,7 @@
 
 #include "Gosub.h"
 
-void __prepareGosub(STATEPARAMS, void *ret, PGosubState state)
+void __prepareGosub(void *ret, __PGosubState state)
 /*
  * This is called to prepare a vbSlacker application to perform a GOSUB.
  *  GOSUBs should only be executed via the __doGosub macro (found in
@@ -20,13 +20,13 @@ void __prepareGosub(STATEPARAMS, void *ret, PGosubState state)
  */
 {
     state->count++;
-    state->addrs = __memReallocInBoxcar(STATEARGS, state->addrs,
-                                sizeof (void *) * state->count);
+    state->addrs = __memReallocInBoxcar(state->addrs,
+                                        sizeof (void *) * state->count);
     state->addrs[state->count - 1] = ret;
 } /* __prepareGosub */
 
 
-void *__prepareReturn(STATEPARAMS, void *addr, PGosubState state)
+void *__prepareReturn(void *addr, __PGosubState state)
 /*
  * This is called to prepare a vbSlacker application to perform a RETURN.
  *  RETURNs should only be executed via the __doReturn macro (found in
@@ -43,7 +43,7 @@ void *__prepareReturn(STATEPARAMS, void *addr, PGosubState state)
     void *retVal = NULL;
 
     if (state->count <= 0)
-        __runtimeError(STATEARGS, ERR_RETURN_WITHOUT_GOSUB);
+        __runtimeError(ERR_RETURN_WITHOUT_GOSUB);
     else
     {
         state->count--;

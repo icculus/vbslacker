@@ -9,7 +9,7 @@
 
 #include "StdBasic.h"
 
-__boolean __initNoConsole(STATEPARAMS);
+__boolean __initNoConsole(void);
 
 #endif /* _INCLUDE_NOCONSOLE_H_ */
 

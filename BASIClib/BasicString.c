@@ -9,7 +9,7 @@
 
 #define __min(x, y) ((x) < (y) ? (x) : (y))
 
-PBasicString __allocString(STATEPARAMS, int length, __boolean isFixed)
+PBasicString __allocString(int length, __boolean isFixed)
 /*
  * Build a string, but don't initialize the data.
  *
@@ -20,8 +20,8 @@ PBasicString __allocString(STATEPARAMS, int length, __boolean isFixed)
 {
     PBasicString retVal;
 
-    retVal = __memAllocInBoxcar(STATEARGS, sizeof (BasicString));
-    retVal->data = (length > 0) ? __memAllocInBoxcar(STATEARGS, length) : NULL;
+    retVal = __memAllocInBoxcar(sizeof (BasicString));
+    retVal->data = (length > 0) ? __memAllocInBoxcar(length) : NULL;
     retVal->length = length;
     retVal->fixedLength = isFixed;
 
@@ -29,7 +29,7 @@ PBasicString __allocString(STATEPARAMS, int length, __boolean isFixed)
 } /* __allocString */
 
 
-PBasicString __createString(STATEPARAMS, char *asciz, __boolean fixedLength)
+PBasicString __createString(char *asciz, __boolean fixedLength)
 /*
  * Create a BASIC string from a ASCII zero-terminated "C" string.
  *
@@ -39,14 +39,14 @@ PBasicString __createString(STATEPARAMS, char *asciz, __boolean fixedLength)
  */
 {
     int length = strlen(asciz);
-    PBasicString retVal = __allocString(STATEARGS, length, fixedLength);
+    PBasicString retVal = __allocString(length, fixedLength);
 
     memcpy(retVal->data, asciz, length);
     return(retVal);
 } /* __createString */
 
 
-PBasicString __constString(STATEPARAMS, char *asciz)
+PBasicString __constString(char *asciz)
 /*
  * This builds a new BASIC string, but rather than copy the string data
  *  over, it just copies the pointer. You have to be careful never to
@@ -60,7 +60,7 @@ PBasicString __constString(STATEPARAMS, char *asciz)
  *     returns : newly created BASIC string. NOT IN A BOXCAR!
  */
 {
-    PBasicString retVal = __memAlloc(STATEARGS, sizeof (BasicString));
+    PBasicString retVal = __memAlloc(sizeof (BasicString));
 
     retVal->data = asciz;
     retVal->length = strlen(asciz);
@@ -72,7 +72,7 @@ PBasicString __constString(STATEPARAMS, char *asciz)
 
 #if 0
 /* !!! This is not needed, thanks to the boxcar system. I think. */
-void __freeString(STATEPARAMS, PBasicString pBasicStr)
+void __freeString(PBasicString pBasicStr)
 /*
  * Free a previously allocated BASIC String.
  *
@@ -83,15 +83,15 @@ void __freeString(STATEPARAMS, PBasicString pBasicStr)
     if (pBasicStr != NULL)
     {
         if (pBasicStr->data != NULL)
-            __memFree(STATEARGS, pBasicStr->data);
+            __memFree(pBasicStr->data);
 
-        __memFree(STATEARGS, pBasicStr);
+        __memFree(pBasicStr);
     } /* if */
 } /* __freeString */
 #endif
 
 
-PBasicString __assignString(STATEPARAMS, PBasicString to, PBasicString from)
+PBasicString __assignString(PBasicString to, PBasicString from)
 /*
  * Assign a BASIC string value to a BASIC string variable.
  *
@@ -130,14 +130,14 @@ PBasicString __assignString(STATEPARAMS, PBasicString to, PBasicString from)
         /*
          * Build the new string...
          */
-    retVal = __allocString(STATEARGS, copyCount, isFixedLength);
+    retVal = __allocString(copyCount, isFixedLength);
     memcpy(retVal->data, from->data, __min(copyCount, from->length));
 
     return(retVal);
 } /* __assignString */
 
 
-PBasicString __catString(STATEPARAMS, PBasicString str1, PBasicString str2)
+PBasicString __catString(PBasicString str1, PBasicString str2)
 /*
  * Concatenate two BASIC strings.
  *
@@ -159,11 +159,11 @@ PBasicString __catString(STATEPARAMS, PBasicString str1, PBasicString str2)
     int newLength;
 
     if ((str1 == NULL) || (str2 == NULL))
-        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
+        __runtimeError(ERR_INTERNAL_ERROR);
     else
     {
         newLength = str1->length + str2->length;
-        retVal = __allocString(STATEARGS, newLength, false);
+        retVal = __allocString(newLength, false);
         retVal->length = newLength;
         memcpy(retVal->data, str1->data, str1->length);
         memcpy(retVal->data + str1->length, str2->data, str2->length);
@@ -173,7 +173,7 @@ PBasicString __catString(STATEPARAMS, PBasicString str1, PBasicString str2)
 } /* __catString */
 
 
-char *__basicStringToAsciz(STATEPARAMS, PBasicString pStr)
+char *__basicStringToAsciz(PBasicString pStr)
 /*
  * Copy the data of a BasicString to a C-style ASCIZ (ASCII-Zero
  *  terminated) string. 
@@ -182,7 +182,7 @@ char *__basicStringToAsciz(STATEPARAMS, PBasicString pStr)
  *    returns : newly allocated C string in boxcar.
  */
 {
-    char *retVal = __memAllocInBoxcar(STATEARGS, pStr->length + 1);
+    char *retVal = __memAllocInBoxcar(pStr->length + 1);
     memcpy(retVal, pStr->data, pStr->length);
     retVal[pStr->length] = '\0';
     return(retVal);

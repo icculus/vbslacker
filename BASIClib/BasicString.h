@@ -22,12 +22,12 @@ typedef struct
 
 typedef BasicString *PBasicString;
 
-PBasicString __allocString(STATEPARAMS, int length, __boolean isFixed);
-PBasicString __createString(STATEPARAMS, char *asciz, __boolean fixedLength);
-PBasicString __constString(STATEPARAMS, char *asciz);
-PBasicString __assignString(STATEPARAMS, PBasicString to, PBasicString from);
-PBasicString __catString(STATEPARAMS, PBasicString str1, PBasicString str2);
-char *__basicStringToAsciz(STATEPARAMS, PBasicString pStr);
+PBasicString __allocString(int length, __boolean isFixed);
+PBasicString __createString(char *asciz, __boolean fixedLength);
+PBasicString __constString(char *asciz);
+PBasicString __assignString(PBasicString to, PBasicString from);
+PBasicString __catString(PBasicString str1, PBasicString str2);
+char *__basicStringToAsciz(PBasicString pStr);
 
 #endif /* _INCLUDE_BASICSTRING_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */
