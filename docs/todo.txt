@@ -1,5 +1,8 @@
 TODO list:
 
+- Write __triggerOnEvent() that takes POnEventHandler, instead of
+   OnEventTypeEnum, argument. Check to see where this would increase
+   efficiency.
 - Examine the "!!!" and "***" comments in the source.
 - Implement BASIC arrays.
 - For greg: design the file i/o abstraction layer.
