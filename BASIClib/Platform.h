@@ -27,6 +27,20 @@
  *                         come...) depending on what characters signify
  *                         an end-of-line on a given platform.
  *
+ *    PATHCHAR         ... equals '/' or '\\' (...and perhaps more to
+ *                         come...) depending on what character signifies
+ *                         a path separator on a given platform.
+ *
+ *    CURRENTDIRSTR    ... equals "." (...and perhaps more to
+ *                         come...) depending on what characters signify
+ *                         the current directory on a given platform.
+ *
+ *    __integer        ... intrinsic type for BASIC's INTEGER. (16-bit int)
+ *    __long           ... intrinsic type for BASIC's LONG.    (32-bit int)
+ *    __single         ... intrinsic type for BASIC's SINGLE.  (16-bit float)
+ *    __double         ... intrinsic type for BASIC's DOUBLE.  (32-bit float)
+ *
+ *
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
@@ -45,22 +59,49 @@
 
 /* Verify that a supported platform has been defined... */
 
-#if defined LINUXELF_I386
-#    define ARCHITECTURE      "i386"
-#    define FUNCNAME_PREPEND  ""
-#    define STACK_DIRECTION   -1
-#    define EOL_STRING        "\n"
-#elif defined WIN32_I386
-#    define ARCHITECTURE      "i386"
-#    define FUNCNAME_PREPEND  "_"
-#    define STACK_DIRECTION   -1
-#    define EOL_STRING        "\r\n"
-#else
-#    error No valid platform has been defined.
-#    error Please use one of the following with the commandline/Makefile:
-#    error  -DLINUXELF_I386
-#    error  -DWIN32_I386
-#endif /* defined platform */
+    #if defined LINUXELF_I386
+        #define ARCHITECTURE      "i386"
+        #define FUNCNAME_PREPEND  ""
+        #define STACK_DIRECTION   -1
+        #define EOL_STRING        "\n"
+        #define PATHCHAR          '/'
+        #define CURRENTDIRSTR     "."
+        typedef short  __integer;
+        typedef long   __long;
+        typedef float  __single;
+        typedef double __double;
+
+    #elif defined LINUXAOUT_I386
+        #define ARCHITECTURE      "i386"
+        #define FUNCNAME_PREPEND  "_"
+        #define STACK_DIRECTION   -1
+        #define EOL_STRING        "\n"
+        #define PATHCHAR          '/'
+        #define CURRENTDIRSTR     "."
+        typedef short  __integer;
+        typedef long   __long;
+        typedef float  __single;
+        typedef double __double;
+
+    #elif defined WIN32_I386
+        #define ARCHITECTURE      "i386"
+        #define FUNCNAME_PREPEND  "_"
+        #define STACK_DIRECTION   -1
+        #define EOL_STRING        "\r\n"
+        #define PATHCHAR          '\\'
+        #define CURRENTDIRSTR     "."
+        typedef short  __integer;
+        typedef long   __long;
+        typedef float  __single;
+        typedef double __double;
+
+    #else
+        #error No valid platform has been defined.
+        #error Please use one of the following with the commandline/Makefile:
+        #error  -DLINUXELF_I386
+        #error  -DWIN32_I386
+
+    #endif /* defined platform */
 
 #endif /* _INCLUDE_PLATFORM_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */
