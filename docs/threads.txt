@@ -23,13 +23,17 @@ Ignoring those as "problems that will fix themselves," however...
   there's no need to concern yourself with the underlying library.
 
 - You should #include "Threads.h" in any modules that use threads in anyway.
-  While it is defined in Threads.h, you should ALSO define _REENTRANT on the
-  command line for gcc.
+  You should ALSO define _REENTRANT on the command line for gcc.
 
   gcc -D_REENTRANT MyCode.c
 
   _REENTRANT changes the behavior of the C library headers to be thread safe.
   (Most notably, errno works in a downright wrong way if you don't use this.)
+  YOU SHOULD DEFINE _REENTRANT EVEN IF YOU DON'T DIRECTLY USE THREADS.
+  Threads could be calling your functions, even if you don't specifically
+  make a thread do so. Including Threads.h and not defining _REENTRANT will
+  cause an error, but this check isn't foolproof, since not every module
+  will include Threads.h ...
 
 - Spin a thread like this:
 
