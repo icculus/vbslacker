@@ -528,7 +528,7 @@ void __runtimeError(__long errorNum)
  *  runtime error is thrown (refer to the OnError subsystem docs).
  *
  * Note that if there is a runtime error during BASIClib initialization,
- *  the error immediately becomes fatal (which goes without sayingm perhaps;
+ *  the error immediately becomes fatal (which goes without saying perhaps;
  *  there wouldn't be a registered handler before initialization is finished.)
  *
  *    params : errorNum == new error number.
