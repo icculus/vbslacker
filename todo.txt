@@ -6,8 +6,6 @@ TODO list:
 - For ryan: finish coversion, math, and time/date functions.
 - debug the ASM code. Yikes. Maybe move it into an inline
    function in OnEvents.c ...
-- Make universal header file which include all individual BASIClib
-   headers.
 - Make an init.c and init.h, with function that calls all
    existing __initXXX() functions in BASIClib.
 - Start developing a portable, clean, test program that alerts us to
