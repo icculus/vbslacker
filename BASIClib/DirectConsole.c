@@ -16,21 +16,23 @@
 #define ASCII_NL  10
 #define ASCII_TAB 9
 
-#define min(x, y) ((x) < (y) ? (x) : (y))
-#define __xyToConsoleMatrix(x, y)  ((((columns * 2) * y) + (x * 2)) + 4)
-#define __consoleMatrixToX(pos) ((pos - 4) % (columns * 2))
-#define __consoleMatrixToY(pos) ((pos - 4) / (columns * 2))
+#define __xyToConsoleMatrix(x, y)  (((y) * ((columns + 1) * 2)) + ((x) * 2) + 4)
+#define __consoleMatrixToX(pos)    (((pos - 4) / 2) % (columns + 1))
+#define __consoleMatrixToY(pos)    (((pos - 4) / 2) / (columns + 1))
 
     /* various console attributes... */
-static unsigned char x = 0;
-static unsigned char y = 0;
-static unsigned char lines = 0;
-static unsigned char columns = 0;
-static int winTop = 0;
-static int winBottom = 0;
+static __integer x = 0;
+static __integer y = 0;
+static __integer lines = 0;
+static __integer columns = 0;
+static __integer winTop = 0;
+static __integer winBottom = 0;
 
 static ThreadLock consoleLock;
 
+#ifdef DEBUG
+FILE *debugFile = NULL;
+#endif
 
 #ifdef LINUX   /* Completely non-portable Linux-specific support. */
 
@@ -47,8 +49,8 @@ static void __setCursorXY(unsigned char _x, unsigned char _y)
 {
     unsigned char buf[2] = {_x, _y};
 
-    x = _x;
-    y = _y;
+    x = (__integer) _x;
+    y = (__integer) _y;
 
     __obtainThreadLock(&consoleLock);
     lseek(cons, 2, SEEK_SET);   /* position in /dev/vcsa? of X cursor. */
@@ -66,17 +68,17 @@ static void __scrollConsole(void)
  *   returns : void.
  */
 {
-    int columnBytes = columns * 2;
-    int scrollStart = winTop + (columnBytes);
-    int bufSize = winBottom - scrollStart;
-    char scrollBuf[bufSize];
-    char blankBuf[columnBytes];
-    int i;
+    __integer columnBytes = (columns + 1) * 2;
+    __integer scrollStart = winTop + columnBytes;
+    __integer bufSize = winBottom - (scrollStart + 1);
+    __byte scrollBuf[bufSize];
+    __byte blankBuf[columnBytes];
+    __integer i;
 
     for (i = 0; i < columnBytes; i += 2)
     {
-        blankBuf[i]     = curColor;
-        blankBuf[i + 1] = ' ';
+        blankBuf[i]     = ' ';
+        blankBuf[i + 1] = curColor;
     } /* for */
 
     __obtainThreadLock(&consoleLock);
@@ -85,12 +87,13 @@ static void __scrollConsole(void)
 
     lseek(cons, winTop, SEEK_SET);  /* copy it back, one line higher... */
     write(cons, scrollBuf, bufSize);
+    lseek(cons, winBottom - columnBytes, SEEK_SET);
     write(cons, blankBuf, columnBytes);  /* fill last line with spaces... */
     __releaseThreadLock(&consoleLock);
 } /* __scrollConsole */
 
 
-static int __cons_openConsole(void)
+static __boolean __cons_openConsole(void)
 /*
  * Open the virtual console for read/write, if at a virtual console, and
  *  the kernel will permit it.
@@ -120,19 +123,23 @@ static int __cons_openConsole(void)
                 else
                 {
                     __createThreadLock(&consoleLock);
-                    lines = (int) br[0];
-                    columns = (int) br[1];
-                    x = (int) br[2];
-                    y = (int) br[3];
+                    lines   = ( ((__integer) br[0]) - 1 );
+                    columns = ( ((__integer) br[1]) - 1 );
+                    x = ( ((__integer) br[2]) - 1 );
+                    y = ( ((__integer) br[3]) - 1 );
                     curColor = 7;
-                    winTop = 0;
+                    winTop = __xyToConsoleMatrix(0, 0);
                     winBottom = __xyToConsoleMatrix(columns, lines);
+
+                    #ifdef DEBUG
+                        debugFile = fopen("directcons_debug.txt", "w");
+                    #endif
                 } /* else */
             } /* if */
         } /* if */
     } /* if */
 
-    return(cons);
+    return((cons < 0) ? false : true);
 } /* __cons_openConsole */
 
 
@@ -148,6 +155,17 @@ static void __cons_deinitConsoleHandler(void)
     if (cons != -1)
     {
         __obtainThreadLock(&consoleLock);
+        if (y >= lines)
+        {
+                /*
+                 * Console won't scroll correctly unless we
+                 *  default winTop and winBottom...
+                 */
+            winTop = __xyToConsoleMatrix(0, 0);
+            winBottom = __xyToConsoleMatrix(columns, lines);
+            __scrollConsole();
+            y = lines - 1;
+        } /* if */
         __setCursorXY(0, y + 1);
         close(cons);
         __releaseThreadLock(&consoleLock);
@@ -156,9 +174,9 @@ static void __cons_deinitConsoleHandler(void)
 } /* __cons_deinitConsole */
 
 
-static void __cons_printNChars(char *str, int n)
+static void __cons_printNChars(__byte *str, __long n)
 /*
- * Write a (n) characters at pos (str) to the printable window, 
+ * Write (n) characters at pos (str) to the printable window,
  *  scrolling if needed, and moving the cursor to the new position.
  *
  *   params : str == characters to write.
@@ -166,17 +184,17 @@ static void __cons_printNChars(char *str, int n)
  *  returns : void.
  */
 {
-    int i;
-    char matrixChar[2];
+    __long i;
+    __byte matrixChar[2];
 
     __obtainThreadLock(&consoleLock);
 
-    lseek(cons, __xyToConsoleMatrix(x, y), SEEK_SET);
-    matrixChar[0] = curColor;   /* attribute byte. */
+    matrixChar[1] = curColor;   /* attribute byte. */
 
     for (i = 0; i < n; i++)
     {
-        switch (str[i])    
+        lseek(cons, __xyToConsoleMatrix(x, y), SEEK_SET);
+        switch (str[i])
         {
             case ASCII_CR:
                 if ((i + 1 < n) && (str[i] == ASCII_NL))
@@ -189,7 +207,7 @@ static void __cons_printNChars(char *str, int n)
                 break;
 
             case ASCII_TAB:
-                matrixChar[1] = ' ';
+                matrixChar[0] = ' ';
                 /* check end of line...  !!! */
                 do
                 {
@@ -202,22 +220,22 @@ static void __cons_printNChars(char *str, int n)
                 break;
 
             default:  /* "normal" chars ... */
-                matrixChar[1] = str[i];
+                matrixChar[0] = str[i];
                 write(cons, matrixChar, sizeof (matrixChar));
                 x++;
                 break;
         } /* switch */
 
-        if (x > columns)
+        if (x >= columns)
         {
             y++;
             x = 0;
         } /* if */
 
-        if (y > winBottom)
+        if (__xyToConsoleMatrix(x, y) > winBottom)
         {
             __scrollConsole();
-            y = winBottom;
+            y = __consoleMatrixToY(winBottom);
         } /* if */
     } /* for */
 
@@ -241,8 +259,8 @@ static void __cons_printNewLine(void)
 
     if (__xyToConsoleMatrix(x, y) > winBottom)
     {
-        y = winBottom;
         __scrollConsole();
+        y = __consoleMatrixToY(winBottom);
     } /* if */
     __setCursorXY(x, y);
 
@@ -260,14 +278,14 @@ static void __cons_vbp_cls(void)
  *    returns : void.
  */
 {
-    int max = winBottom - winTop;
-    unsigned char buffer[max];
-    int i;
+    __integer max = winBottom - winTop;
+    __byte buffer[max];
+    __integer i;
 
     for (i = 0; i < max; i += 2)
     {
-        buffer[i]     = curColor;
-        buffer[i + 1] = ' ';
+        buffer[i] = ' ';
+        buffer[i + 1]     = curColor;
     } /* for */
 
     __obtainThreadLock(&consoleLock);
@@ -279,7 +297,7 @@ static void __cons_vbp_cls(void)
 } /* __cons_vbp_cls */
 
 
-static void __cons_vbpiii_color(int fore, int back, int bord)
+static void __cons_vbpiii_color(__integer fore, __integer back, __integer bord)
 /*
  * Set a new printing color.
  *
@@ -299,12 +317,13 @@ static int  __cons_openConsole(void) { return(-1); }
 static void __cons_deinitConsoleHandler(void) {}
 static void __cons_printNChars(char *str, int n) {}
 static void __cons_vbp_cls(void) {}
-static void __cons_vbpiii_color(int fore, int back, int bord) {}
+static void __cons_vbpiii_color(__integer fore, __integer back, __integer bord) {}
 static void __cons_printNewLine(void) {}
-static void __setCursorXY(int _x, int _y) {}
+static void __setCursorXY(__integer _x, __integer _y) {}
 #endif
 
-static void __cons_vbpii_viewPrint(int top, int bottom)
+
+static void __cons_vbpii_viewPrint(__integer top, __integer bottom)
 /*
  * Set console lines (top) to (bottom) as the printable window.
  *
@@ -345,7 +364,7 @@ static void __cons_vbp_viewPrint(void)
 } /* __cons_vbp_viewPrint */
 
 
-static int __cons_vbi_csrline(void)
+static __integer __cons_vbi_csrline(void)
 /*
  * Return current cursor row.
  *
@@ -357,7 +376,7 @@ static int __cons_vbi_csrline(void)
 } /* __cons_vbi_csrline */
 
 
-static int __cons_vbia_pos(void *pVar)
+static  __integer __cons_vbia_pos(void *pVar)
 /*
  * Return current cursor column.
  *
@@ -369,7 +388,7 @@ static int __cons_vbia_pos(void *pVar)
 } /* __cons_vbia_pos */
 
 
-static void __cons_vbpil_color(int fore, long feh)
+static void __cons_vbpil_color(__integer fore, __long feh)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
@@ -379,7 +398,7 @@ static void __cons_vbpil_color(int fore, long feh)
 } /* __cons_vbpiii_color */
 
 
-static void __cons_vbpi_color(int fore)
+static void __cons_vbpi_color(__integer fore)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
@@ -389,7 +408,7 @@ static void __cons_vbpi_color(int fore)
 } /* __cons_vbpiii_color */
 
 
-static void __cons_getConsoleHandlerName(char *buffer, int size)
+static void __cons_getConsoleHandlerName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -411,23 +430,22 @@ __boolean __initDirectConsole(void)
  *  returns : boolean true if initialized, false on error.
  */
 {
-    __boolean retVal = false;
+    __boolean retVal = __cons_openConsole();
 
-    if (__cons_openConsole() != -1)
+    if (retVal == true)
     {
         __deinitConsoleHandler = __cons_deinitConsoleHandler;
         __getConsoleHandlerName = __cons_getConsoleHandlerName;
         __printNewLine = __cons_printNewLine;
         __printNChars = __cons_printNChars;
-        vbpii_viewPrint = __cons_vbpii_viewPrint;
-        vbp_viewPrint = __cons_vbp_viewPrint;
-        vbp_cls = __cons_vbp_cls;
-        vbi_csrline = __cons_vbi_csrline;
-        vbia_pos = __cons_vbia_pos;
-        vbpiii_color = __cons_vbpiii_color;
-        vbpil_color = __cons_vbpil_color;
-        vbpi_color = __cons_vbpi_color;
-        retVal = true;
+        _vbpii_viewPrint = __cons_vbpii_viewPrint;
+        _vbp_viewPrint = __cons_vbp_viewPrint;
+        _vbp_cls = __cons_vbp_cls;
+        _vbi_csrline = __cons_vbi_csrline;
+        _vbia_pos = __cons_vbia_pos;
+        _vbpiii_color = __cons_vbpiii_color;
+        _vbpil_color = __cons_vbpil_color;
+        _vbpi_color = __cons_vbpi_color;
     } /* if */
 
     return(retVal);
