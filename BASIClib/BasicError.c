@@ -75,7 +75,7 @@ void __initThreadBasicError(__integer tidx)
  *     returns : void, but all the tables could get realloc()ed.
  */
 {
-    __integer maxThreads = __getHighestThreadIndex + 1;
+    __integer maxThreads = __getHighestThreadIndex() + 1;
 
     __obtainThreadLock(&basicErrorLock);
     onErrorThreadStates = realloc(onErrorThreadStates,
@@ -112,7 +112,7 @@ __long __getBasicErrno(void)
  *   returns : see above.
  */
 {
-    return(basicErrno[__getCurrentThreadIndex]);
+    return(basicErrno[__getCurrentThreadIndex()]);
 } /* __getBasicErrno */
 
 
@@ -129,7 +129,7 @@ static __POnErrorHandler __getOnErrorThreadState(void)
     __POnErrorHandler retVal;
 
     __obtainThreadLock(&basicErrorLock);
-    retVal = onErrorThreadStates[__getCurrentThreadIndex];
+    retVal = onErrorThreadStates[__getCurrentThreadIndex()];
     __releaseThreadLock(&basicErrorLock);
 
     return(retVal);
@@ -160,7 +160,7 @@ static void __setOnErrorThreadState(__POnErrorHandler pHandler)
  */
 {
     __obtainThreadLock(&basicErrorLock);
-    onErrorThreadStates[__getCurrentThreadIndex] = pHandler;
+    onErrorThreadStates[__getCurrentThreadIndex()] = pHandler;
     __releaseThreadLock(&basicErrorLock);
 } /* __setOnErrorThreadState */
 
@@ -478,7 +478,7 @@ void __runtimeError(__long errorNum)
 
     else
     {
-        basicErrno[__getCurrentThreadIndex] = errorNum;
+        basicErrno[__getCurrentThreadIndex()] = errorNum;
 
         if (errorNum != ERR_NO_ERROR)
         {
