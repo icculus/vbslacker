@@ -462,7 +462,7 @@ PBasicString _vbSSi_dir(PBasicString pattern, __integer attributes)
 
     cleanupDir(tdi);
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setOnErrorHandler(_vbSSi_dir_handler);
     __setInstructs(_vbSSi_dir_this, _vbSSi_dir_next);
 
@@ -479,12 +479,12 @@ __insertLineLabel(_vbSSi_dir_next);
     tdi->dir = dirInfo;
     tdi->pattern = ((*filename == '\0') ? (__byte *) "*" : filename);
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return(_vbS_dir());
 
 __insertLineLabel(_vbSSi_dir_handler);
     tdi->dir = NULL;     /* later calls to DIR() will return (""), too. */
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return(__createString("", false));
 } /* _vbSSi_dir */
 
