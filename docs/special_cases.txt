@@ -3,6 +3,14 @@ APIs that need special handling in the parser/compiler:
 (Please read name_mangling.txt before this, to see if your special problem
 doesn't already have a solution encoded in the function name...)
 
+
+
+
+        Are you sure you don't want to be reading vbs_output.txt?
+
+
+
+
 --------------------------========++++++++++========--------------------------
 PRINT (and print #), with more than one parameter (separated by semicolons)
  must be broken into multiple calls. String concatenations should be done
