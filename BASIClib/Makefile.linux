@@ -18,8 +18,11 @@ ASM = gcc
 
 LANGUAGE=ENGLISH
 
+# Use this before $(COPTIONS) on modules that use inb, outb, etc ...
+IOACCESS = -O3
+
 # Shipping command lines
-#COPTIONS = -DLINUX -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -s -O2 -c -o
+#COPTIONS = -DLINUX -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -O2 -fPIC -fasm -finline-functions -s -c -o
 #LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
 #ASMOPTIONS = -Wall -c -o
 
@@ -76,7 +79,7 @@ StringFunctions.o : StringFunctions.c StringFunctions.h
 	$(CC) $(COPTIONS) StringFunctions.o StringFunctions.c
 
 LowLevelFunctions.o : LowLevelFunctions.c LowLevelFunctions.h
-	$(CC) $(COPTIONS) LowLevelFunctions.o LowLevelFunctions.c
+	$(CC) $(IOACCESS) $(COPTIONS) LowLevelFunctions.o LowLevelFunctions.c
 
 SignalHandlers.o : SignalHandlers.c SignalHandlers.h
 	$(CC) $(COPTIONS) SignalHandlers.o SignalHandlers.c
