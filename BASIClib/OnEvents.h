@@ -42,32 +42,6 @@ typedef struct
 
 typedef OnEventHandler *POnEventHandler;
 
-
-
-/* God, inline assembly is SCARY lookin' in gcc, isn't it? */
-
-/*
- *  Get the stack pointer, and store it in *retVal.
- */
-#define __getStackPointer(retVal) __asm__ __volatile__ ("movl %%esp, %0\n\t" \
-                                                        : "=q" (*retVal) )
-
-/*
- *  Get the base pointer, and store it in *retVal.
- */
-#define __getBasePointer(retVal) __asm__ __volatile__ ("movl %%ebp, %0\n\t" \
-                                                        : "=q" (*retVal) )
-/*
- * Reset compiler assumptions about optimizations. By telling gcc we fucked
- *  with memory, it believes we've "clobbered" all the registers, and will
- *  reload anything stored in them.
- */
-#define __resetAssumptions __asm__ __volatile__ ("\n\t" \
-                                                 : /* no output */ \
-                                                 : /* no input */  \
-                                                 : "memory" );
-
-
 /* function prototypes... */
 
 POnEventHandler __getOnEventHandler(STATEPARAMS, OnEventTypeEnum evType);
@@ -86,8 +60,8 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
 void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
                       OnEventTypeEnum evType);
 
-#endif
-#endif
+#endif /* _INCLUDE_ONEVENTS_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of OnEvents.h ... */
 
