@@ -9,19 +9,26 @@
 
 #include "ContextObject.h"
 
+/*
+ * Any error code added to here must also increment the NUMBER_OF_ERRORS
+ *  constant, and add the appropriate message in the ErrorMessages array.
+ *  Both of which are located in BasicError.cpp.
+ */
 enum BASIC_ERROR_CODE {
     BASIC_ERROR_UNRECOGNIZED_FILE           =   0x00,
     BASIC_ERROR_FILE_OPEN                   =   0x01,
     BASIC_ERROR_FILE_READ                   =   0x02,
-    BASIC_ERROR_UNKNOWN                     =   0x03
+    BASIC_ERROR_UNKNOWN                     =   0x03,
+    BASIC_ERROR_SYNTAX                      =   0x04,
+    BASIC_ERROR_MAX_ERRORS                  =   0x05
 };
 
 class BasicError
 {
     public:
-        void BasicError(ContextObject *pContextObject, 
+        BasicError(ContextObject *pContextObject, 
             BASIC_ERROR_CODE sErrorCode);
-        void ~BasicError();
+        ~BasicError();
 
         BASIC_ERROR_CODE GetErrorCode();
         ContextObject *GetContext();

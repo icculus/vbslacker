@@ -7,7 +7,7 @@
 #include "ContextObject.h"
 #include "string.h"
 
-void ContextObject::ContextObject(CONTEXT_TYPE ContextType, char *strContextName,
+ContextObject::ContextObject(CONTEXT_TYPE ContextType, char *strContextName,
                                   ContextObject *pParentContext)
 /*
  * Constructor
@@ -28,7 +28,7 @@ void ContextObject::ContextObject(CONTEXT_TYPE ContextType, char *strContextName
     strcpy(this->m_strContextName, strContextName);
 }
 
-void ContextObject::~ContextObject()
+ContextObject::~ContextObject()
 /*
  * Destructor
  *
@@ -39,7 +39,7 @@ void ContextObject::~ContextObject()
     delete this->m_strContextName;
 }
 
-inline ContextObject *ContextObject::GetParent()
+ContextObject *ContextObject::GetParent()
 /*
  * Returns a pointer to parent context
  *
@@ -50,7 +50,7 @@ inline ContextObject *ContextObject::GetParent()
     return this->m_pParentContext;   
 }
 
-inline CONTEXT_TYPE ContextObject::GetType()
+CONTEXT_TYPE ContextObject::GetType()
 /*
  * Returns context type associated with this ContextObject instance.
  *
@@ -61,7 +61,7 @@ inline CONTEXT_TYPE ContextObject::GetType()
     return this->m_ContextType;
 }
 
-inline char *ContextObject::GetName()
+char *ContextObject::GetName()
 /*
  * Returns a pointer to name of the context.  This pointer is valid for as long
  *  as this ContextObject instance exists.

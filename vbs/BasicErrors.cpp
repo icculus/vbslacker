@@ -5,10 +5,12 @@
  */
 
 #include "BasicErrors.h"
+#include "BasicContext.h"
+#include <stdlib.h>
 
 #define MAX_ERRORS      256
 
-void BasicErrors::BasicErrors(BasicContext *pContext)
+BasicErrors::BasicErrors(void *pBasicContext)
 /*
  * Constructor
  *
@@ -16,12 +18,12 @@ void BasicErrors::BasicErrors(BasicContext *pContext)
  *    returns : none
  */
 {
-    this->m_pContext = pContext;
-    this->m_Errors = new (BasicError*)[MAX_ERRORS];
+    this->m_pBasicContext = pBasicContext;
+    this->m_Errors = new BasicError*[MAX_ERRORS];
     m_ErrorCount = 0;           // Reset error count to none
 }
 
-void BasicErrors::~BasicErrors()
+BasicErrors::~BasicErrors()
 /*
  * Destructor
  *
@@ -41,36 +43,50 @@ void BasicErrors::~BasicErrors()
         p++;                    // Increment to next BasicError object
     }
 
-    delete this->m_ErrorCount;  // Delete the error array
+    delete this->m_Errors;      // Delete the error array
 }
 
-BOOLEAN BasicErrors::AddError(BASIC_ERROR_CODE sErrorCode)
+void BasicErrors::AddError(BASIC_ERROR_CODE sErrorCode)
 /*
  * Adds a new BasicError instance to the error collection and constructs it
  *  with the appropriate context and passed error code.
  *
  *     params : sErrorCode  ==  Error code to create BasicError object with.
- *    returns : TRUE if successful, otherwise FALSE.
+ *    returns : none
  */
 {
-    BOOLEAN blnReturnValue;     // Value to return from function
+                                // Get a "correct type" pointer to our
+                                //  BasicContext member.
+    BasicContext *pBasicContext = (BasicContext*)this->m_pBasicContext;
 
-                                // If no more errors are allowed to be added.
-    if(this->m_ErrorCount = MAX_ERRORS)
-        blnReturnValue = FALSE; // Return an error
-    else                        // It's all good
+                                // If we can still add errors
+    if(this->m_ErrorCount < MAX_ERRORS)
     {
         
                                 // Create the new error object in the next
                                 //  index.
-        *(this->m_Errors[this->m_ErrorCount]) = 
-            new BasicError(this->m_pContext->GetContext(), sErrorCode);
+        this->m_Errors[this->m_ErrorCount] = 
+            new BasicError(pBasicContext->GetContext(), sErrorCode);
 
         this->m_ErrorCount++;   // Increment counter...duh.
-    }    
+        pBasicContext->RaiseEvent(BASIC_EVENT_ERROR, this->m_Errors[this->m_ErrorCount]);
+    }
+
+                                // If we have one more error we're allowed
+                                //  to add.
+    if(this->m_ErrorCount == MAX_ERRORS - 1)
+    {
+                                // Force the last error to indicate that we've
+                                //  reached the maximum error limit.
+        this->AddError(BASIC_ERROR_MAX_ERRORS);
+                                // This will tell any BasicCompiler objects
+                                //  associated with the context to terminate
+                                //  themselves.
+        pBasicContext->SetTerminateFlag();
+    }
 }
 
-inline short BasicErrors::GetErrorCount()
+short BasicErrors::GetErrorCount()
 /*
  * Returns current number of BasicError objects added to collection
  *
@@ -81,7 +97,7 @@ inline short BasicErrors::GetErrorCount()
     return this->m_ErrorCount;
 }
 
-inline BasicError *BasicErrors::GetError(short sIndex)
+BasicError *BasicErrors::GetError(short sIndex)
 /*
  * Returns BasicError object contained in collection based on the passed index.
  *

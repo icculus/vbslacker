@@ -6,16 +6,18 @@
 
 #include "BasicError.h"
 
-#define NUMBER_OF_ERRORS    4
+#define NUMBER_OF_ERRORS    6
 
 static char *ErrorMessages[NUMBER_OF_ERRORS] = {
     "Unrecognized file type.",
     "File could not be open.",
     "File could not be read.",
     "***UNKNOWN ERROR***",
+    "Syntax error.",
+    "Maximum error limit reached."
 };
 
-void BasicError::BasicError(ContextObject *pContextObject, BASIC_ERROR_CODE sErrorCode)
+BasicError::BasicError(ContextObject *pContextObject, BASIC_ERROR_CODE sErrorCode)
 /*
  * Constructor
  *
@@ -39,7 +41,7 @@ void BasicError::BasicError(ContextObject *pContextObject, BASIC_ERROR_CODE sErr
     this->m_pContextObject = pContextObject;
 }
 
-void BasicError::~BasicError()
+BasicError::~BasicError()
 /*
  * Destructor
  *
@@ -49,7 +51,7 @@ void BasicError::~BasicError()
 {
 }
 
-inline BASIC_ERROR_CODE BasicError::GetErrorCode()
+BASIC_ERROR_CODE BasicError::GetErrorCode()
 /*
  * Returns error code associated with BasicError object upon creation
  *
@@ -60,7 +62,7 @@ inline BASIC_ERROR_CODE BasicError::GetErrorCode()
     return this->m_sErrorCode;
 }
 
-inline ContextObject *BasicError::GetContext()
+ContextObject *BasicError::GetContext()
 /*
  * Returns ContextObject associated with BasicError object upon creation
  *
@@ -71,7 +73,7 @@ inline ContextObject *BasicError::GetContext()
     return this->m_pContextObject;
 }
 
-inline char *BasicError::GetMessage()
+char *BasicError::GetMessage()
 /*
  * Returns string message associated with error code.  The message pointer that
  *  is returned is valid for the duration of the program since it points to a

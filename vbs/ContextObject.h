@@ -26,9 +26,9 @@ enum CONTEXT_TYPE {
 class ContextObject
 {
     public:
-        void ContextObject(CONTEXT_TYPE ContextType, char *strContextName, 
+        ContextObject(CONTEXT_TYPE ContextType, char *strContextName, 
                            ContextObject *pParentContext);
-        void ~ContextObject();
+        ~ContextObject();
 
         ContextObject *GetParent(); 
         CONTEXT_TYPE GetType();

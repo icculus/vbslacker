@@ -4,17 +4,18 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
-#ifndef _INCLUDE_BASICSTATEMENT_H_
-#define _INCLUDE_BASICSTATEMENT_H_
+#ifndef _INCLUDE_ASSIGNSTATEMENT_H_
+#define _INCLUDE_ASSIGNSTATEMENT_H_
 
+#include "BasicStatement.h"
 #include "BasicContext.h"
 
-class AssignmentStatement : public BasicStatement
+class AssignStatement : public BasicStatement
 {
     public:
-        void AssignStatement(BasicContext *pContext);
+        AssignStatement(void *pBasicContext);
+        ~AssignStatement();
     private:
-        short Compile()=0;
 };
 
 #endif
