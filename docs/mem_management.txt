@@ -133,10 +133,9 @@ memory released.
 Another way to speed up garbage collection is to use:
 
 void *__memAllocNoPtrs(__long amount)
-void *__memReallocNoPtrs(void *oldPtr, __long amount)
 
-These instruct the garbage collector that the allocated objects will never
-store pointers. This means they don't need to be scanned for pointers to
+This instructs the garbage collector that the allocated object will never
+store pointers. This means it doesn't need to be scanned for pointers to
 collectable objects, which means less scanning. Naturally, this means you
 can't store pointers in them, but they're good for allocating string data, and
 such.
@@ -146,7 +145,8 @@ There are some programming restrictions on garbage collection, though:
  - Do not write pointers to disk or any other device for later retrieval.
    Actually, never do this anyway. If the only copy of a pointer is not in
    memory, the collector is going to think the object is garbage, and collect
-   it prematurely.
+   it prematurely. If you REALLY need to do something strange like this,
+   use malloc(), so it won't be collected.
 
  - If you do any pointer arithmatic, keep at least one copy of the original
    pointer around until you are done. For example:
@@ -162,6 +162,11 @@ There are some programming restrictions on garbage collection, though:
     char *feh = tmp;
     feh++;
 
+ - Global and static pointers should be set to NULL when you are done with
+    them. Otherwise, a reference still exists, and the collector will not
+    collect. Local data will be overwritten sooner or later, but it couldn't
+    hurt to NULL this out, too.
+
  - Don't ever count on collection to free a pointer. It'll be freed when the
    collector deems it worthy to be freed. If there is even a possibility that
    a piece of memory is a pointer (i.e. - the pointer is 0x1234, and there's
@@ -174,11 +179,14 @@ There are some programming restrictions on garbage collection, though:
    as will compiled BASIC code, but external C code doesn't need to. Don't
    count on external code to behave properly when it comes to memory management.
 
- - Don't store pointers in memory allocated with __memAllocNoPtrs() and
-   __memReallocNoPtrs().
+ - Don't store pointers in memory allocated with __memAllocNoPtrs().
 
- - Don't use __memReallocNoPtrs() on objects that are allocated to contain
-   pointers. Don't use __memRealloc() on objects that are allocated to not
-   contain pointers. They won't work the way you think. Not right now, at least.
+ - Objects allocated with __memAllocNoPtrs() will keep their "no pointer" state
+    when reallocated with __memRealloc(). Objects allocated with __memAlloc()
+    will still be assumed to be holding pointers even after reallocation with
+    __memRealloc()...in short, the flags remain, even if a different pointer
+    is returned. calling __memRealloc(NULL, x) will return a newly allocated
+    object that is assumed to hold pointers, even though this is usually an
+    unadvised coding habit.
 
 /* end of mem_management.txt ... */
