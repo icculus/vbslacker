@@ -163,18 +163,61 @@ static void __cons_vbpS_print(STATEPARAMS, PBasicString pStr)
  *  returns : void.
  */
 {
-/*
-    int max = pStr->length * 2;
-    char data[max];
+
+#ifdef BROKEN
+    int max = pStr->length;
+    char *data = pStr->data;
+    char buffer[16];   /* 8 * 2 for tabs */
     int i;
     int n;
-    int seekpos = __xyToConsoleMatrix(x, y);
     int bw = 0;
     int bytesInRow = columns * 2;
-*/
-    
+
+    __obtainThreadLock(STATEARGS, &consoleLock);
+
+    lseek(cons, seekpos, SEEK_SET);
+
+    for (i = 0; i < max; i++)
+    {
+        switch(data[i])
+        {
+            case 13:        /* return char  */
+                if (i < max - 1) && (data[i+1] == 10)  /* newline char */
+                {
+                    x = 0;
+                    if (__xyToConsoleMatrix(x, y + 1) > winBottom)
+                        __scrollConsole(STATEARGS);
+                    else
+                        y++;
+                } /* if */
+                break;
+
+            case 9:         /* tab char */
+                n = 0
+                do
+                {
+                    x++;
+                    buffer[n++] = curcolor;
+                    buffer[n++] = ' ';
+                    if (x >= columns)
+                        x = 0;
+                } while (x % 8 != 0);
+
+                
+
+                break;
+        } /* switch */
 
 
+        else if (inStr[i] == 9)                     /* tab char. */
+
+            
+    } /* for */
+
+    __setCursorXY(STATEARGS, x, y);
+
+    __releaseThreadLock(STATEARGS, &consoleLock);
+#endif
 } /* __cons_vbpS_print */
 
 
