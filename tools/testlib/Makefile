@@ -14,15 +14,14 @@ LINKER = gcc
 ASM = nasm
 
 # Shipping command lines
-#COPTIONS = -Wall -I $(BASICLIBDIR) -O2 -s -c -o
-#LOPTIONS = -Wall -s -O2 -o
+#COPTIONS = -D_REENTRANT -Wall -fasm -finline-functions -I $(BASICLIBDIR) -s -O2 -c -o
+#LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -s -O2 -o
+#ASMOPTIONS = -f elf -o
 
 # Debug command lines...
-COPTIONS = -Wall -I $(BASICLIBDIR) -DDEBUG -g -c -o
-LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -g -o
+COPTIONS = -D_REENTRANT -Wall -fasm -finline-functions -I $(BASICLIBDIR) -DDEBUG -g -c -o
+LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -g -o
 ASMOPTIONS = -f elf -o
-
-# end of makelib ...
 
 all : linux
 
