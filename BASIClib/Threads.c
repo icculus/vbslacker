@@ -19,11 +19,13 @@
 #include "Threads.h"
 
 #if (!defined SINGLE_THREADED)
+#   define __USE_GNU
 #   include <stdlib.h>
 #   include <string.h>
 #   include <pthread.h>
 #   include <sched.h>
 #   include <signal.h>
+#   include <errno.h>
 #   include "gc.h"     /* redefines some pthread stuff; must be last. */
 
     /*
@@ -380,7 +382,7 @@ void __createThreadLock_f(PThreadLock pThreadLock)
     pthread_mutexattr_t attr;
 
     pthread_mutexattr_init(&attr);
-    attr.mutexkind = PTHREAD_MUTEX_RECURSIVE_NP;
+    attr.__mutexkind = PTHREAD_MUTEX_RECURSIVE_NP;
 
     if (pthread_mutex_init(pThreadLock, &attr) != 0)
     { 
@@ -440,6 +442,24 @@ void __releaseThreadLock_f(PThreadLock pThreadLock)
 } /* __releaseThreadLock_f */
 
 #endif /* (!defined SINGLE_THREADED) */
+
+void __vbReleaseThreadThrowError(PThreadLock pThreadLock, __long errNum)
+/*
+ * A convenience function. Release (pThreadLock), and throw (errNum).
+ *
+ *      params : pThreadLock == ThreadLock to release control of.
+ *               errNum == BASIC error to throw (see BasicError.h).
+ *     returns : technically, void, but an error is always thrown.
+ */
+{
+
+#   ifdef SINGLE_THREADED
+        *pThreadLock = 0;       /* reference to prevent compiler bitching. */
+#   endif
+
+    __releaseThreadLock(pThreadLock);
+    __runtimeError(errNum);
+} // __vbReleaseThreadThrowError
 
 /* end of Threads.c ... */
 

@@ -83,6 +83,7 @@
         /* These exist in multi and single thread mode... */
         void __initThreads(void);
         void __deinitThreads(void);
+        void __vbReleaseThreadThrowError(PThreadLock pLock, __long errNum);
 
 #       ifdef __cplusplus
             }
