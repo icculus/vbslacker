@@ -28,7 +28,7 @@ typedef struct
 typedef BasicString *PBasicString;
 
 PBasicString __allocString(__long length, __boolean isFixed);
-PBasicString __createString(__byte *asciz, __boolean fixedLength);
+PBasicString __createString(const __byte *asciz, __boolean fixedLength);
 PBasicString __constString(__byte *asciz);
 PBasicString __assignString(PBasicString to, PBasicString from);
 PBasicString __catString(PBasicString str1, PBasicString str2);

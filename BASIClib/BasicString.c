@@ -42,7 +42,7 @@ PBasicString __allocString(__long length, __boolean isFixed)
 } /* __allocString */
 
 
-PBasicString __createString(__byte *asciz, __boolean fixedLength)
+PBasicString __createString(const __byte *asciz, __boolean fixedLength)
 /*
  * Create a BASIC string from a ASCII zero-terminated "C" string.
  *

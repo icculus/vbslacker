@@ -403,7 +403,7 @@ void __parseDir(__byte *dirToParse, DIR **dirInfo,
     retValPath = strrchr(dirToParse, __PATHCHAR);
     if (retValPath == NULL)
     {
-        retValPath = __CURRENTDIRSTR;
+        retValPath = (char *) __CURRENTDIRSTR;     // cast removes const attr.
         retValFileName = dirToParse;
     } /* if */
     else
@@ -424,6 +424,7 @@ void __parseDir(__byte *dirToParse, DIR **dirInfo,
 } /* __parseDir */
 
 
+#warning write these!
 void __registerFileHandle(__byte *filename, __integer handle)
 {
 } /* __registerFileHandle */
