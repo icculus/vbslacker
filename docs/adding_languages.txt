@@ -1,0 +1,14 @@
+vbSlacker was designed and written by English-speaking people.
+
+If you want vbSlacker to output German, Spanish, or whatever, you'll
+need to do some translating.
+
+To add a new language to BASIClib, take the file English.h, and translate
+it. These are all the string literals in the program. There are directions
+in the file on how to do this. Rename the file to German.h (or whatever),
+and mail it back to the vbSlacker development team, currently residing at
+ryan_gordon@hotmail.com. They will plug it into the Language.h file, and
+add it to the distribution.
+
+/* end of adding_languages.h ... */
+
