@@ -24,6 +24,7 @@
 #include "FileIOFunctions.h"
 #include "BasicFileStream.h"
 #include "Console.h"
+#include "SignalHandlers.h"
 
 #endif
 
