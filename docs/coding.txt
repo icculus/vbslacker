@@ -8,7 +8,7 @@
 - Every file will start with a comment containing an explanation of what
    the module is for, and a copyright, in the format at the top of this
    file. The revision date is not necessary, but doesn't hurt. More detail
-   than the above is definitely welcome.
+   than the above is definitely welcome. !!! GPL?
 
 - End every file with a "/* end of MyFile.c ... */", so we know that the
    end of the file hasn't been thrashed in file transfer.
