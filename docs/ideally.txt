@@ -46,10 +46,11 @@ void butts(int fileNo, PBasicString message)
     __assignString(&totalMsg_DC_, strConst1);
     __catString(&totalMsg_DC_, message);
 
-    getStackPointer(&_stack_ptr_);
+    __getStackPointer(&_stack_ptr_);
+    __getBasePointer(&_base_ptr);
     __registerOnEventHandler(crackpipe, &message + sizeof (message),
                              _stack_ptr_, &fileNo - sizeof (void *),
-                             ONERROR);
+                             _base_ptr_, ONERROR);
 
     print_NC_(10, totalMsg_DC_);
     print(strConst2);
