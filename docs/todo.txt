@@ -1,7 +1,5 @@
 TODO list:
 
-- OnEvents should properly handle NULLSTATEARGS.
-- Make rest of testlib use STATEPARAMS. ugh.
 - Make current BASIClib code use the boxcar system, where applicable.
 - HOWTO on adding new modules to BASIClib.
 - RESUME NEXT recursive testing.
@@ -9,29 +7,23 @@ TODO list:
 - Documentation: mem_management.txt and on_events.txt
 - Streamline makefiles. Most of it is just duplication.
 - Find good way to generate dependencies.
-- Examine the "!!!" comments in the source.
+- Examine/eliminate the "!!!" comments in the source.
+- Eliminate #warnings in the source, as well.
 - GOSUB/RETURN support.
-- Implement BASIC arrays.
 - DON'T FORGET TO WRITE TESTLIB CODE FOR ALL IMPORTANT FUNCTIONS!
-- For greg: finish math functions.
-- For greg: file i/o functions. NOT FILE SYSTEM FUNCTIONS LIKE MKDIR, ETC...
+- For greg: file i/o functions. NOT FILE SYSTEM FUNCS LIKE MKDIR,ETC...
 - For ryan: finish conversion, and time/date functions.
 - For ryan: READ/DATA/RESTORE
 - For someone: Environment functions (chdir, environ set...)
-- For someone: File system stuff. (mkdir, kill, etc...)
 - For someone: process functions: shell, end, sleep, etc...
-- For someone: Non-file i/o functions. (input$, etc...)
 - For someone: Array functions (lbound, redim, etc...)
-- For someone: Low-level functions (peek, poke, inp, outp, varptr,
-                 call absolute, wait...)
-- For someone: Console stuff (print, window, cls, color, locate, etc...)
-- For someone: Randomosity functions (RANDOMIZE and RND...)
+- For someone: Console stuff (print, window, cls, color, locate)
 - For the daring: Sounds (beep, sound, play)
 - For the daring: stick, strig, and ON STRIG. Joystick API. Ugh. :)
 - For the daring: screen procedure and various graphics primitives...
-- Other miscelleanea: SWAP, TAB
+- For the daring: com port i/o (COM, ON COM, OPEN COM, etc...)
+- Other miscelleanea: SWAP
 - Design full, detailed timetable.
-- Figure out a good name mangling scheme.
 - Consider marketing strategy.
 - Write the !@#$ing thing.
 - ...and much, much more.
