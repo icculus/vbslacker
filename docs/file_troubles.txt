@@ -1,5 +1,4 @@
 -GNU only supports SHARED or EXCLUSIVE locks.  This does not satisfy VB's
  requirements for READ/WRITE/READWRITE locks.  Both GNU locks still allow
  other processes to READ the file.  SUCKS!!!!
--Why a '?' is added to a file when opened (atleast in initial testlib).
--A decent way of testing for file existence.
+
