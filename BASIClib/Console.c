@@ -5,7 +5,7 @@
  */
 
 #include <curses.h>
-#include "RegState.h"
+#include "Console.h"
 #include "Initialize.h"
 
 boolean noConsole = true;
