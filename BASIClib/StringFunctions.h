@@ -20,6 +20,7 @@ PBasicString rtrim_DC_(PBasicString pStr);
 PBasicString ltrim_DC_(PBasicString pStr);
 PBasicString lcase_DC_(PBasicString pStr);
 PBasicString ucase_DC_(PBasicString pStr);
+PBasicString space_DC_(int length);
 int len(PBasicString pStr);
 
 #endif
