@@ -3,8 +3,14 @@
  *  collections of files, and file hierarchy. Specific file i/o can
  *  be found in the FileIOFunctions module.
  *
- *     Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *     This file initially written by Ryan C. Gordon.
  */
+
+    /* fnmatch() seems to need this... */
+#ifndef _GNU_SOURCE
+#   define _GNU_SOURCE 1
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -18,64 +24,152 @@
 #include <fnmatch.h>
 #include "FileSystemFunctions.h"
 
+
+    /*
+     * Paths need conversion to and from Windows compatible formats.
+     *  Please write your platform-specific functions, and fill them in here.
+     *  Note that the WinToLocal function may be passed arguments that
+     *  are already in local form...so you'll have to decide if the
+     *  conversion needs to be done in the first place...
+     *
+     * Return values should be newly allocated, and collectable.
+     */
 #if ((defined LINUX) || (defined UNIX))
 #   define __convertPathWinToLocal(pathname)  __convertPathWinToUnix(pathname)
 #   define __convertPathLocalToWin(pathname)  __convertPathUnixToWin(pathname)
-#elif (defined WIN32)
-#   define __convertPathWinToLocal(pathname) pathname
-#   define __convertPathLocalToWin(pathname) pathname
+#elif ((defined WIN32) || (defined OS2))
+#   define __convertPathWinToLocal(pathname)  __assignString(NULL, pathname)
+#   define __convertPathLocalToWin(pathname)  __assignString(NULL, pathname)
 #else
 #   error No file system compatibility routines for this system!
 #endif
 
+    /* Stuff still todo... */
+#warning Filename case check!
+#warning Check if files already open!
 
+
+/* These are according to MSDN... */
 #define vbNormal    0
-#define vbReadOnly  8
-#define vbDirectory 32
+#define vbReadOnly  1
+#define vbHidden    2
+#define vbSystem    4
+#define vbVolume    8
+#define vbDirectory 16
 
 
-typedef struct _DIRLIST
-{
-    __byte *fileName;
-    struct _DIRLIST *next;
-} DirList;
-
+    /*
+     * This structure keeps tracks of thread-specific data. The DIR$()
+     *  functions need to keep state between calls, so an array of
+     *  pointers to these structures (one element per thread) is kept in
+     *  (threadDirInfo), defined below.
+     */
 typedef struct _THREADDIRINFO
 {
-    __integer attributes;
-    DirList *dirList;
+    __integer attributes;       /* file attributes for DIR$() matching. */
+    DIR *dir;                   /* retval from opendir(), for DIR$()... */
+    char *pattern;              /* wildcard pattern to match in DIR$(). */
 } ThreadDirInfo;
 
 
-static ThreadLock fileSystemLock;
-static ThreadDirInfo *threadDirInfo = NULL;
+
+static ThreadDirInfo **threadDirInfo = NULL;  /* Thread state. */
+static ThreadLock fileSystemLock;             /* Threadproofs threadDirInfo. */
+static __boolean ignoreFilenameCase;          /* from __getInitFlags(). */
+static __boolean windowsFileSystem;           /* from __getInitFlags(). */
+
+
+static void cleanupDir(ThreadDirInfo *tdi)
+/*
+ * This function just cleans up thread state after DIR$() is done with
+ *  an old query; this may be because a new query is requested, or an
+ *  old one has run out of new directory entries. A thread termination
+ *  also calls this. It gives us a place to close the (DIR *) stream, and
+ *  remove references so the garbage collector can kick in.
+ *
+ *      params : tdi == ThreadDirInfo object for this thread.
+ *     returns : void.
+ */
+{
+    if (tdi->dir != NULL)
+    {
+        closedir(tdi->dir);
+        tdi->dir = NULL;
+    } /* if */
+
+    tdi->pattern = NULL;
+    tdi->attributes = vbNormal;
+} /* cleanupDir */
 
 
 void __initFileSystemFunctions(void)
-#warning comment me!
+/*
+ * Initialize this module. Creates a ThreadLock, and sets up a few
+ *  static variables, so we don't have to continually call __getInitFlags()...
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
     __createThreadLock(&fileSystemLock);
+    ignoreFilenameCase = ((__getInitFlags() & INITFLAG_FILENAMES_IGNORECASE) ?
+                                true : false);
+    windowsFileSystem  = ((__getInitFlags() & INITFLAG_WINDOWS_FILESYSTEM) ?
+                                true : false);
 } /* __initFileSystemFunctions */
 
 
 void __deinitFileSystemFunctions(void)
-#warning comment me!
+/*
+ * Deinitialize this module; destroy the ThreadLock.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
     __destroyThreadLock(&fileSystemLock);
 } /* __deinitFileSystemFunctions */
 
 
 void __initThreadFileSystemFunctions(__integer tidx)
-#warning comment me!
+/*
+ * This is called whenever a new thread is spun, to notify this
+ *  module that details need to be updated.
+ *
+ * We make sure the threadDirInfo array is large enough to handle
+ *  all existing threads, and plug in a newly allocated ThreadDirInfo
+ *  structure for this new thread.
+ *
+ *      params : tidx == thread index of newly-spun thread.
+ *     returns : void.
+ */
 {
+    __long alloc = (__getHighestThreadIndex + 1) * sizeof (ThreadDirInfo *);
+
     __obtainThreadLock(&fileSystemLock);
-    threadDirs = __memRealloc(threadDirInfo,
-                          __getHighestThreadIndex * sizeof (ThreadDirInfo *));
+    threadDirInfo = __memRealloc(threadDirInfo, alloc);
     threadDirInfo[tidx] = __memAlloc(sizeof (ThreadDirInfo));
     threadDirInfo[tidx]->attributes = vbNormal;
-    threadDirInfo[tidx]->dirList = NULL;
+    threadDirInfo[tidx]->dir = NULL;
+    threadDirInfo[tidx]->pattern = NULL;
     __releaseThreadLock(&fileSystemLock);
 } /* __initThreadFileSystemFunctions */
+
+
+void __deinitThreadFileSystemFunctions(__integer tidx)
+/*
+ * Cleanup thread state, and set the ThreadDirInfo element for
+ *  the dying thread to NULL to make it eligible for garbage collection.
+ *
+ *     params : tidx == thread index of dying thread.
+ *    returns : void.
+ */
+{
+    __obtainThreadLock(&fileSystemLock);
+    cleanupDir(threadDirInfo[tidx]);
+    threadDirInfo[tidx] = NULL;
+    __releaseThreadLock(&fileSystemLock);
+} /* __deinitThreadFileSystemFunctions */
 
 
 static int fileSysErrors(void)
@@ -182,8 +276,37 @@ static __byte *__convertPathUnixToWin(__byte *pathName)
 
 static void parseDir(__byte *dirToParse, DIR **dirInfo,
                      __byte **fileName, __byte **path)
-#warning comment me!
+/*
+ * This is an internal convenience function. Take a path (possibly
+ *  containing wildcards in the filename), and check its validity
+ *  by trying to open the directory (via opendir()).
+ *
+ * The string pointed to by (dirToParse) is split on the final
+ *  path character. That char is replaced by a NULL char, and (*fileName)
+ *  is set to the first char of the filename (the character after the
+ *  final path char. This may be a NULL char itself.) If there are no
+ *  path characters, the entire string is assumed to be a filename in the
+ *  current directory, and (*fileName) points to (dirToParse).
+ *
+ * (*path) is either set to (dirToParse), or it points to  __CURRENTDIRSTR
+ *  (".", for example.) As it might point to a constant, (*path) should be
+ *  considered read only.
+ *
+ * (*dirInfo) will hold the retval from opendir(). This may be NULL, if
+ *   there was an error, i.e. the path doesn't exist, etc...It would be
+ *   wise to check this value before any others.
+ *
+ * Confused, yet? This comment is longer than the code!  :)
+ *
+ *      params : dirToParse == string of path/filename to parse.
+ *               *dirInfo   == returns retval from opendir().
+ *               *fileName  == returns pointer to filename part of (dirToParse).
+ *               *path      == returns pointer to path part of (dirToParse).
+ *     returns : void.
+ */
 {
+#warning parseDir() does NOT check directory name case!
+
     __byte *ascizFileName = __convertPathWinToLocal(dirToParse);
 
     *fileName = strrchr(ascizFileName, __PATHCHAR);
@@ -213,9 +336,11 @@ static void parseDir(__byte *dirToParse, DIR **dirInfo,
 
 static __long killWildcards(DIR *dirInfo, __byte *path, __byte *fileName)
 /*
- * Called exclusively from _vbpS_kill(). Terminates a collection
- *  of files that match the pattern in (fileName). Directories are
- *  unharmed.
+ * Called exclusively from _vbpS_kill().
+ *
+ * Terminates a collection of files that match the pattern in (fileName).
+ *  Directories are unharmed. This functions is particularly dangerous if
+ *  the "ignore filename case" runtime flag is set...
  *
  *     params : dirInfo  == structure of directory where files reside.
  *              path     == pathname of directory where files reside.
@@ -228,9 +353,9 @@ static __long killWildcards(DIR *dirInfo, __byte *path, __byte *fileName)
     struct dirent *pDir;
     int rc;
     int flags = 0;
-    char fullName[strlen(path) + MAX_FILENAME + 2];
+    char fullName[strlen(path) + NAME_MAX + 2];
 
-    if (__getInitFlags() & INITFLAG_FILENAMES_IGNORECASE)
+    if (ignoreFilenameCase)
         flags |= FNM_CASEFOLD;
 
     do
@@ -270,6 +395,8 @@ static inline __long killSingle(__byte *path, __byte *fileName)
     __long retVal = ERR_NO_ERROR;
 
     sprintf(fullName, "%s%c%s", path, __PATHCHAR, fileName);
+
+#warning killSingle() does NOT check filename case.
 
     if (stat(fullName, &statInfo) == -1)
         retVal = fileSysErrors();
@@ -319,6 +446,59 @@ void _vbpS_kill(PBasicString fileSpec)
 } /* _vbpS_kill */
 
 
+static __boolean checkReadOnly(struct dirent *pDir)
+{
+#warning write checkReadOnly()!
+    return(false);
+} /* checkReadOnly */
+
+
+static __boolean checkDirAttrs(struct dirent *pDir, ThreadDirInfo *tdi)
+/*
+ * This is used by DIR$() to determine if a specified file fits the
+ *  specified attributes and wildcard pattern.
+ *
+ *     params : pDir == ptr to structure containing file under scrutiny.
+ *              tdi  == thread state containing this DIR$()'s query params.
+ *    returns : boolean (true) if file qualifies, boolean (false) otherwise.
+ */
+{
+    int flags = 0;
+    __boolean retVal = true;
+
+    if (ignoreFilenameCase)
+        flags |= FNM_CASEFOLD;
+
+        /* check pattern match, then attributes... */
+    if (fnmatch(tdi->pattern, pDir->d_name, flags) == 0)
+    {
+        if (tdi->attributes & vbDirectory)
+        {
+            if (pDir->d_type != DT_DIR)
+                retVal = false;
+        } /* if */
+
+        if (tdi->attributes & vbReadOnly)
+        {
+            if (checkReadOnly(pDir) == false)
+                retVal = false;
+        } /* if */
+    } /* if */
+
+    return(retVal);
+} /* checkDirAttrs */
+
+
+static inline PBasicString dirOutput(__byte *fname)
+#warning comment me!
+{
+    __byte *path;
+
+    path = ((windowsFileSystem) ? __convertPathLocalToWin(fname) : fname);
+    return(__createString(path, false));
+} /* dirOutput */
+
+
 PBasicString _vbS_dir(void)
 /*
  * Ooh, a recursive function!
@@ -326,16 +506,14 @@ PBasicString _vbS_dir(void)
  * This function returns the next entry in a directory, under the
  *  parameters previously specified by _vbSS_dir() or _vbSSi_dir().
  *
- * The other DIR$() functions fill in a linked list with all the
- *  return values that DIR$ without params should return. Then, they
- *  actually call this function to return the first value.
+ * The other DIR$() functions merely set up the ThreadDirInfo structure.
+ *  Then, they actually call this function to return the first value.
  *
- * This function gets the first item in the linked list, removes it
- *  from the list (moving the secondary item to the primary position, if
- *  available), and checks to make sure the file still exists by stat()ing
- *  it. If the file is gone, we call ourself again (this is the recursive
- *  part), and get the next item in the list, until we either hit the
- *  end of the list, or find a stat()able filename.
+ * This function gets the next directory entry (via readdir_r()),
+ *  and calls checkDirAttrs() to see if the entry fits the pattern and
+ *  attributes specified. If the file does not match, we call ourself again
+ *  (this is the recursive part), and get the next entry, until we either hit
+ *  the end of the list (return ("")), or find a fitting entry.
  *
  * Dir$() functions do not throw errors. They just return ("") if they can't
  *  help you. !!! is this right?
@@ -348,122 +526,94 @@ PBasicString _vbS_dir(void)
  */
 {
     __integer tidx = __getCurrentThreadIndex;
-    ThreadDirInfo *dirInfo;
+    ThreadDirInfo *tdi;
+    struct dirent dirEntry;
+    struct dirent *pDir;
     PBasicString retVal = NULL;
 
     __obtainThreadLock(&fileSystemLock);
-    dirInfo = threadDirInfo[tidx];
+    tdi = threadDirInfo[tidx];
     __releaseThreadLock(&fileSystemLock);
 
-    nextFile = dirInfo->list;
-
-    if (nextFile != NULL)
-        dirInfo->list = nextFile->next;
-
-    if (nextFile == NULL)
-        retVal = __createString("", false);
-    else
+    if (tdi->dir != NULL)
     {
-        if (checkDirAttrs(nextFile->fileName, dirInfo->attributes) == true)
-            retVal = __createString(nextFile->fileName, false);
+        pDir = &dirEntry;
+        if (readdir_r(tdi->dir, pDir, &pDir) != 0)
+        {
+            cleanupDir(tdi);
+            retVal = __createString("", false);
+        } /* if */
         else
-            retVal = _vbS_dir();   /* No? Then try next file... */
-    } /* else */
+        {
+            if (checkDirAttrs(pDir, tdi) == true)
+                retVal = dirOutput(pDir->d_name);
+            else
+                retVal = _vbS_dir();
+        } /* else */
+    } /* if */
 
     return(retVal);
 } /* _vbS_dir */
 
 
-static inline DirList *dirFillList(DIR *dirInfo, __byte *path, __byte *fname)
-#warning comment me!
-{
-    struct dirent dirEntry;
-    struct dirent *pDir;
-    int rc;
-    int flags = 0;
-    DirList *list = NULL;
-    DirList *current = NULL;
-
-    if (*fname == '\0')      /* !!! check this! */
-        fname = "*";
-
-    if (__getInitFlags() & INITFLAG_FILENAMES_IGNORECASE)
-        flags |= FNM_CASEFOLD;
-
-    do
-    {
-        pDir = &dirEntry;
-        rc = readdir_r(dirInfo, pDir, &pDir);
-        if (rc == 0)
-        {
-            if (fnmatch(fname, pDir->d_name, flags) == 0)
-            {
-                if (current == NULL)
-                    current = __memAlloc(sizeof (DirList));
-                else
-                {
-                    current->next = __memAlloc(sizeof (DirList));
-                    current = current->next;
-                } /* else */
-
-                current->next = NULL;
-                current->fileName = __memAllocNoPtrs(strlen(pDir->d_name) +
-                                                     strlen(path) + 2);
-                sprintf(current->fileName, "%s%c%s", path,
-                        __PATHCHAR, pDir->d_name);
-                if (list == NULL)
-                    list = current;
-            } /* if */
-        } /* if */
-    } while (rc == 0);
-
-    return(list);
-} /* dirFillList */
-
-
-
 PBasicString _vbSSi_dir(PBasicString pathname, __integer attributes)
-#warning comment me!
+/*
+ * Start a new directory query, specifying both a wildcard pattern, and
+ *  specific file attributes.
+ *
+ *    params : pathname   == wildcard pattern to match.
+ *             attributes == numeric attributes files must have.
+ *   returns : BASIC String of first matching file. ("") if none.
+ */
 {
     DIR *dirInfo;
     ThreadDirInfo *tdi;
     __byte *path;
     __byte *filename;
-    DirList *list = NULL;
-
-    parseDir(__basicStringToAsciz(pathname), &dirInfo, &path, &fileName);
-    if (dirInfo != NULL)
-        dirFillList(dirInfo, path, fileName, attributes);
-        /* !!! throw an error instead? */
 
     __obtainThreadLock(&fileSystemLock);
     tdi = threadDirInfo[__getCurrentThreadIndex];
     __releaseThreadLock(&fileSystemLock);
 
+    cleanupDir(tdi);
+
+    parseDir(__basicStringToAsciz(pathname), &dirInfo, &path, &filename);
+
     tdi->attributes = attributes;
-    tdi->list = list;
+    tdi->dir = dirInfo;
+    tdi->pattern = ((*filename == '\0') ? (__byte *) "*" : filename);
 
     return(_vbS_dir());
 } /* _vbSSi_dir */
 
 
 PBasicString _vbSS_dir(PBasicString pathname)
-#warning comment me!
+/*
+ * Start a new directory query, specifying only a wildcard pattern.
+ *
+ *    params : pathname   == wildcard pattern to match.
+ *   returns : BASIC String of first matching file. ("") if none.
+ */
 {
     return(_vbSSi_dir(pathname, vbNormal));
 } /* _vbSS_dir */
 
 
 void _vbpS_mkdir(PBasicString dirStr)
-#warning comment me!
+/*
+ * Create a new directory.
+ *
+ *    params : dirStr == path to create.
+ *   returns : void.
+ */
 {
-    __byte *ascizDirName = __basicStringToAsciz(dirStr);
+    __byte *newDir = __convertPathWinToLocal(__basicStringToAsciz(dirStr));
     __long errorCode = ERR_NO_ERROR;
 
-    if (mkdir(ascizDirName, S_IRWXU) == -1)
+    if (mkdir(newDir, S_IRWXU) == -1)
         errorCode = fileSysErrors();
 
-    __memFree(ascizDirName);
+    __memFree(newDir);
     __runtimeError(errorCode);   /* continues normally if ERR_NO_ERROR */
 } /* _vbpS_mkdir */
 
@@ -476,13 +626,13 @@ void _vbpS_rmdir(PBasicString dirStr)
  *   returns : void.
  */
 {
-    __byte *ascizDirName = __convertPathWinToUnix(__basicStringToAsciz(dirStr));
+    __byte *newDir = __convertPathWinToLocal(__basicStringToAsciz(dirStr));
     __long errorCode = ERR_NO_ERROR;
 
-    if (rmdir(ascizDirName) == -1)
+    if (rmdir(newDir) == -1)
         errorCode = ((errno == ENOENT) ? ERR_PATH_NOT_FOUND : fileSysErrors());
 
-    __memFree(ascizDirName);
+    __memFree(newDir);
     __runtimeError(errorCode);   /* continues normally if ERR_NO_ERROR */
 } /* _vbpS_rmdir */
 
@@ -505,6 +655,8 @@ void _vbpSS_name(PBasicString oldName, PBasicString newName)
     __byte *ascizNewName = __basicStringToAsciz(newName);
     __long errorCode = ERR_NO_ERROR;
     struct stat statInfo;
+
+#warning _vbpSS_name() needs to check for filename case!
 
     if (stat(ascizNewName, &statInfo) != -1)           /* dest. file exists */
         errorCode = ERR_FILE_ALREADY_EXISTS;
@@ -612,11 +764,14 @@ void _vbpSS_filecopy(PBasicString src, PBasicString dest)
 {
     int inFile;
     int outFile;
-    char buffer[512];
+    char buffer = __memAllocNoPtrs(512);
     struct stat statInfo;
     int errorCode = ERR_NO_ERROR;
     int br = 0;           /* total bytes read.    */
     int rc;               /* generic return code. */
+
+
+#warning filecopy needs to check filename case!
 
     inFile = open(__basicStringToAsciz(src), O_RDONLY);
     if (inFile == -1)
@@ -647,9 +802,103 @@ void _vbpSS_filecopy(PBasicString src, PBasicString dest)
     fchmod(outFile, statInfo.st_mode);      /* don't care if this fails... */
     close(inFile);
     close(outFile);
+    __memFree(buffer);
 
     __runtimeError(errorCode);          /* returns normally if ERR_NO_ERROR */
 } /* _vbpSS_filecopy */
+
+
+void _vbpS_chdir(PBasicString newDir)
+/*
+ * Change the current working directory. All relative paths used in
+ *  file i/o will work from the new working directory from now on.
+ *
+ *    params : newDir == new directory to make current.
+ *   returns : void. Throws a few errors, though.
+ */
+{
+    __byte *str = __convertFilenameWinToLocal(__basicStringToAsciz(newDir));
+
+#warning _vbpS_chdir() needs to check filename case!
+
+    int rc = chdir(str);
+    int errorCode = ((rc == -1) ? fileSystemErrors() : ERR_NO_ERROR);
+
+    __memFree(str);
+    __runtimeError(errorCode);          /* returns normally if ERR_NO_ERROR */
+} /* _vbpS_chdir */
+
+
+static __byte *doGetcwd(void)
+#warning comment me!
+{
+    char *buf = getcwd(NULL, 0);
+    __long size = strlen(buf) + 1;
+    __byte stackBuf[size];
+    __byte *retVal = NULL;
+
+        /*
+         * stackBuf must be stack-allocated; since getcwd() uses malloc(),
+         *  and using __memAlloc() can cause a runtime error, we must
+         *  free() the original buffer before allocating space for a copy.
+         */
+    strcpy(stackBuf, buf);
+    free(buf);
+
+    if (windowsFileSystem)
+        retVal = __convertFilenameLocalToWin(stackBuf);
+    else
+    {
+        retVal = __memAllocNoPtrs(size);
+        strcpy(retVal, stackBuf);
+    } /* else */
+
+    return(retVal);
+} /* doGetcwd */
+
+
+
+PBasicString _vbSS_curdir_DC_(PBasicString drive)
+/*
+ * Return current working directory by drive letter. Under Unix-like
+ *  Operating systems, the only valid drive letter is "C"...You can set
+ *  the behavior of this by setting the "windows filesystem compatible"
+ *  option at compile time. Either way on unix, you get a runtime error
+ *  if you specify a drive other than C or blank, but you'll either get
+ *  "/home/gordonr" or "C:\home\gordonr", depending on how you set the
+ *  compatibility. 
+ *
+ *    params : drive == drive letter. Only first letter is read. ("") means
+ *                      current drive.
+ *   returns : see above.
+ */
+{
+    PBasicString retVal = NULL;
+
+    #ifdef __NODRIVELETTERS
+        if ((drive->length > 0) || (toupper(drive->data[0]) != 'C'))
+            __runtimeError(ERR_PATH_FILE_ACCESS_ERROR);  /* !!! check this! */
+        else
+            retVal = __createString(doGetcwd(), false);
+    #else
+        #error Uh?
+    #endif
+
+    return(retVal);
+} /* _vbSS_curdir */
+
+
+PBasicString _vbS_curdir_DC_(void)
+/*
+ * Same as above vbSS_curdir_DC_(), but always gets current drives's
+ *  working directory.
+ *
+ *     params : void.
+ *    returns : see above.
+ */
+{
+    return(_vbSS_curdir_DC_(__createString("", false)));
+} /* _vbS_curdir_DC_ */
 
 /* end of FileSystemFunctions.c ... */
 
