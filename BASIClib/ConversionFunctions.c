@@ -15,7 +15,7 @@
 #include "Boolean.h"
 
 
-unsigned int asc(PBasicString pBasicStr)
+int asc(PBasicString pBasicStr)
 /*
  * Get the ASCII value of the first character of (str)...
  *
@@ -71,6 +71,7 @@ PBasicString str_DC_(double numeric)
  *   returns : newly allocated BASIC string.
  */
 {
+#ifdef BROKEN
     PBasicString retVal;
     int allocated = 10;
     int decimalPlaces = 0;
@@ -89,7 +90,7 @@ PBasicString str_DC_(double numeric)
 
     for (i = 1.0; i < numeric; i *= 10.0, decimalPlaces--);
 
-    for (i /= 10.0; (numeric != 0.0) && (decimalPlaces < 5); i /= 10.0)
+    for (i /= 10.0; numeric != 0.0; i /= 10.0)
     {
         if (i == 0.1)  /* decimal places? */
         {
@@ -98,10 +99,10 @@ PBasicString str_DC_(double numeric)
         } /* if */
 
         number = (int) (numeric / i);
+        numeric -= (number * i);
         buffer[index] = ('0' + number);
         index++;
         decimalPlaces++;
-        numeric -= (number * i);
 
         if (index + 1 >= allocated)
         {
@@ -114,6 +115,18 @@ PBasicString str_DC_(double numeric)
     retVal = __createString(buffer, false);
     __memFree(buffer);
     return(retVal);
+
+#else
+
+#warning "str_DC_() is still a kludge!"
+
+/* !!! fix this. */
+
+    char buffer[100];
+    sprintf(buffer, "%f", numeric);
+    return(__createString(buffer, false));
+#endif
+
 } /* str_DC_ */
 
 
@@ -186,6 +199,9 @@ double val(PBasicString pBasicStr)
  *   returns : see above.
  */
 {
+
+#warning "val() still isn't right!"
+
     double retVal = 0.0;
     int strEndIndex = __valEndOfNumberString(pBasicStr);
     int decimalPlace = 1;
