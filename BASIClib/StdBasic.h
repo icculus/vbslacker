@@ -17,7 +17,7 @@
 #define _INCLUDE_STDBASIC_H_
 
 #include "Platform.h"
-#include "RegState.h"
+#include "Assembler.h"
 #include "Gosub.h"
 #include "MemoryManager.h"
 #include "Language.h"
