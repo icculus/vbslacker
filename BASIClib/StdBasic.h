@@ -4,7 +4,7 @@
  *
  * BasicLib.h includes all this and more.
  *
- * This guarantees that the compiler will understand "__doGosub", etc...]
+ * This guarantees that the compiler will understand "__doGosub", etc...
  *  include in from your module's header, and then include your header in your
  *  module. This guarantees transparency, and the compiler always has access
  *  to the details it needs. Multiple includes of this file are karmically
