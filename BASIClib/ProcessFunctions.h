@@ -11,7 +11,7 @@
 
 void vbpS_shell(STATEPARAMS, PBasicString shCmd);
 void vbp_end(STATEPARAMS);
-void vbp_sleep(STATEPARAMS, long napTime);
+void vbp_sleep(STATEPARAMS);
 void vbpl_sleep(STATEPARAMS, long napTime);
 
 #define vbp_system(stateargs) vbp_end(stateargs)

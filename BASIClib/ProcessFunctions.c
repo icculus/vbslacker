@@ -45,7 +45,7 @@ void vbp_end(STATEPARAMS)
 } /* vbp_end */
 
 
-void vbp_sleep(STATEPARAMS, long napTime)
+void vbp_sleep(STATEPARAMS)
 /*
  * Make program (ALL THREADS) sleep (yield) until an
  *  OnEvent occurs, or A KEY IS PRESSED. Yikes.
@@ -57,7 +57,7 @@ void vbp_sleep(STATEPARAMS, long napTime)
  */
 {
 #warning vbp_sleep() is a stub!
-} /* vbpl_sleep */
+} /* vbp_sleep */
 
 
 void vbpl_sleep(STATEPARAMS, long napTime)
