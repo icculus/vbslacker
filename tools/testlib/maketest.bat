@@ -5,14 +5,13 @@ echo  Desperately seeking makefiles.
 echo  Attempting to build testlib program...and everything else.
 cd ..\..\BASIClib
 rm -f *.o
-gcc -Wall -c *.c
-
-REM nasm -f win32 -o OnEventsAsm.o OnEvents.asm
+gcc -Wall -DDEBUG -DWIN32 -c -g *.c
+gcc -Wall -DDEBUG -DWIN32 -c -g -o OnEventsAsm.o OnEvents.S
 
 mv *.o ../tools/testlib
 cd ..\tools\testlib
-gcc -I../../BASIClib -DDEBUG -g -Wall -c *.c
-gcc -lm -o testlib.exe *.o
+gcc -I../../BASIClib -DWIN32 -DDEBUG -g -Wall -c *.c
+gcc -g -lm -o testlib.exe *.o
 rm -f *.o
 
 
