@@ -129,6 +129,9 @@ void _vbpS_environ(PBasicString newEnvrStr)
  *  returns : void.
  */
 {
+#warning Write me!
+
+
 #if 0
     void *separator;
     __byte *envrName;
@@ -150,7 +153,7 @@ void _vbpS_environ(PBasicString newEnvrStr)
 } /* _vbpS_environ */
 
 
-__integer _vbiS_fre(PBasicString strExp)
+__integer _vbiS_fre(__attribute__ ((unused)) PBasicString strExp)
 /*
  * Compact memory (garbage collect), and return the available string space,
  *  in bytes.
@@ -159,6 +162,7 @@ __integer _vbiS_fre(PBasicString strExp)
  *    returns : see above.
  */
 {
+#warning lose this?
     __memDoFullCollect();
     return((__integer) 65767);  /* !!! */
 } /* _vbiS_fre */
