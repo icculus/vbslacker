@@ -33,7 +33,6 @@ void test_chr_DC_(void)
         } /* if */
         else if ((unsigned char) rc->data[0] != (unsigned char) i)
             printf("  - chr$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
-
         __freeString(rc);
     } /* for */
 
