@@ -8,6 +8,7 @@
 #define _INCLUDE_INITIALIZE_H_
 
 void __initBasicLib(void);
+void __deinitBasicLib(void);
 
 #endif
 
