@@ -15,7 +15,14 @@ All APIs start with "vb". The next character is the return value.
 if it's a SUB (void), the character is 'p' for "procedure".
 otherwise, it'll be the type of data returned. See below.
 
-The next characters are the arguments. One character per argument.
+The next characters are the arguments. One character per argument. See below.
+The end of the encoded information in the above format is signified by an
+underscore character ('_'). After that, the proper name of the function
+(like "instr" or "bsave" or whatever) is appended, completing the "mangled"
+API's name.
+
+So, in short, it's a modified hungarian notation. A little different, but
+VERY detailed.
 
 STATEPARAMS is part of every API call, and it not encoded in the name of
 the API. It's for the OnEvents stuff; don't worry about it right now.
@@ -81,12 +88,21 @@ CLOSE 1, 5, 7
 
 becomes:
 
-vbpi_close(1);
-vbpi_close(5);
-vbpi_close(7);
+vbpin_close(1);
+vbpin_close(5);
+vbpin_close(7);
 
 The identifier to signify that a given argument is repeated a variable amount
 of times is 'n'. Mathematically, 'n' is frequently used to specify iterations.
+
+'n' must follow another parameter type character; the data type it follows is
+the one that the parser/compiler will expect every argument in the variable
+list to be.
+
+'n' must be the last character in the information encoding. That is, after
+this character, the next one MUST be '_' followed by the function's actual
+name.
+
 So, CLOSE has two forms:
 
 void vbp_close(STATEPARAMS);                 /* close all files      */
@@ -100,6 +116,19 @@ to implement cleanly than using C's variable argument facilities, probably
 faster in the long run, and less bug prone in both BASIClib and end-user
 compiled code.
 
+APIs using the 'n' char are expected to have at least one argument. To have
+no arguments be valid, "overload" the API with a non-variable argument
+version.  For example, if vbp_close() didn't exist, "CLOSE" would not be
+considered a valid BASIC command unless it had at least one file number
+specified with it. This allows for both the ERASE command, which need
+at least one argument, and the CLOSE command, which does something
+different for no arguments... etc...  (That, and by this method, you'd have
+to overload your function for zero argument versions since it breaks it down
+into multiple calls...what's the parser/compiler going to do? Break it down
+into ZERO calls? That's obviously unwanted behavior.)
+
+
+Other stuff:
 
 '$' chars, like "RTRIM$()", are encoded as "_DC_" (for "dollar
 character"), as you can see above. Other potential ones are "_NC_"
