@@ -34,6 +34,7 @@ PBasicString __assignString(PBasicString to, PBasicString from);
 PBasicString __catString(PBasicString str1, PBasicString str2);
 __byte *__basicStringToAsciz(PBasicString pStr);
 void __freeString(PBasicString pStr);
+__byte *__copyAscizString(__byte *copyThis);
 
 #ifdef __cplusplus
 }
