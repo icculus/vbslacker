@@ -27,7 +27,7 @@ void test_rmdir(void)
     __ONERRORVARS;
     struct stat statBuf;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setOnErrorHandler(rmdirChoked);
 
     printf("Testing RmDir...\n");
@@ -48,14 +48,14 @@ void test_rmdir(void)
         } /* if */
     } /* else */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(rmdirChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
     warnings++;
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* test_rmdir */
 
 
@@ -70,7 +70,7 @@ void test_mkdir(void)
     __ONERRORVARS;
     struct stat statBuf;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setOnErrorHandler(mkdirChoked);
 
     printf("Testing MkDir...\n");
@@ -91,14 +91,14 @@ void test_mkdir(void)
         } /* if */
     } /* else */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(mkdirChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
     warnings++;
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* test_mkdir */
 
 
@@ -114,7 +114,7 @@ void test_kill(void)
     PBasicString fileName = __createString("testName", false);
     struct stat statBuf;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setOnErrorHandler(killChoked);
 
     printf("Testing Kill...\n");
@@ -135,14 +135,14 @@ void test_kill(void)
         } /* if */
     } /* else */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(killChoked);
 
     printf("\n - Threw error. (#%ld)\n", _vbl_err());
     warnings++;
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* test_kill */
 
 
@@ -159,7 +159,7 @@ void test_name(void)
     PBasicString copyHere = __createString("testName", false);
     struct stat statBuf;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setOnErrorHandler(nameChoked);
 
     printf("Testing Name...\n");
@@ -172,14 +172,14 @@ void test_name(void)
         errors++;
     } /* if */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(nameChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
     warnings++;
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* test_name */
 
 
@@ -204,7 +204,7 @@ void test_filecopy(void)
 #endif
 
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setOnErrorHandler(fileCopyChoked);
 
     printf("Testing FileCopy...\n");
@@ -217,14 +217,14 @@ void test_filecopy(void)
         errors++;
     } /* if */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(fileCopyChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
     warnings++;
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* test_filecopy */
 
 

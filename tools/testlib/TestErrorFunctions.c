@@ -25,14 +25,14 @@ void test_err(void)
 
     printf("Testing ERR()...\n");
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setOnErrorHandler(errError);
 
     __runtimeError(ERR_TOO_MANY_FILES);
     printf("  - Didn't call error handler.\n");
     errors++;
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(errError);              /* error handler... */
@@ -45,7 +45,7 @@ __insertLineLabel(errError);              /* error handler... */
         errors++;
     } /* if */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 } /* test_func_err */
 
@@ -64,14 +64,14 @@ void test_error(void)
 
     printf("Testing ERROR()...\n");
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     __setOnErrorHandler(errorErrorHandler);
 
     _vbpl_error(ERR_DISK_FULL);
     printf("  - Didn't call error handler.\n");
     errors++;
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(errorErrorHandler);
@@ -83,7 +83,7 @@ __insertLineLabel(errorErrorHandler);
         errors++;
     } /* if */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 } /* test_proc_err */
 

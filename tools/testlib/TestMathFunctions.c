@@ -61,7 +61,7 @@ void test_vbdd_sqr(void)
 
     printf("Testing SQR()...\n");
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __setInstructs(trySqr, trySqrNext);
 
     __setOnErrorHandler(sqrHandler);
@@ -79,7 +79,7 @@ __insertLineLabel(trySqrNext);
             errors++;
         } /* if */
     } /* for */
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(sqrHandler);
@@ -88,7 +88,7 @@ __insertLineLabel(sqrHandler);
         printf("  - sqr(%f) incorrectly threw an error!\n", i);
         errors++;
     } /* if */
-    __resumeNext;
+    __resumeNext();
 } /* test_vbdd_sqr */
 
 
@@ -252,7 +252,7 @@ void test_vbdd_log(void)
 
     printf("Testing LOG()...\n");
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     __setInstructs(tryLog, tryLogNext);
     __setOnErrorHandler(logHandler);
@@ -270,7 +270,7 @@ __insertLineLabel(tryLogNext);
             errors++;
         } /* if */
     } /* for */
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(logHandler);
@@ -279,7 +279,7 @@ __insertLineLabel(logHandler);
         printf("  - log(%f) incorrectly threw an error!\n", i);
         errors++;
     } /* if */
-    __resumeNext;
+    __resumeNext();
 } /* test_vbdd_log */
 
 
@@ -374,17 +374,17 @@ void testMathFunctions(void)
 {
     printf("\n[TESTING MATH FUNCTIONS...]\n");
 
-//    test_vbdd_abs();
+    test_vbdd_abs();
     test_vbdd_sqr();
-//    test_vbdd_atn();
-//    test_vbdd_sin();
-//    test_vbdd_cos();
-//    test_vbdd_tan();
+    test_vbdd_atn();
+    test_vbdd_sin();
+    test_vbdd_cos();
+    test_vbdd_tan();
 /*    test_vbdd_exp(); */
-//    test_vbdd_log();
-//    test_vbld_fix();
-//    test_vbld_int();
-//    test_vbid_sgn();
+    test_vbdd_log();
+    test_vbld_fix();
+    test_vbld_int();
+    test_vbid_sgn();
 } /* testMathFunctions */
 
 

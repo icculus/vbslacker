@@ -27,7 +27,7 @@ void test_chr_DC_(void)
 
     printf("Testing CHR$()...\n");
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     __setOnErrorHandler(chrError);
     __setInstructs(chrErrorResume, chrErrorResumeNext);
@@ -59,7 +59,7 @@ __insertLineLabel(chrErrorResumeNext);
         } /* if */
     } /* for */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(chrError);   /* error handler... */
@@ -69,7 +69,7 @@ __insertLineLabel(chrError);   /* error handler... */
         errors++;
     } /* if */
 
-    __resumeNext;
+    __resumeNext();
 } /* test_chr_DC_ */
 
 
@@ -122,7 +122,7 @@ void test_asc(void)
     __integer rc;
     PBasicString argStr = __createString("The Quick brown fox... ", false);
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     __setInstructs(ascErrorResume, ascErrorResumeNext);
 
@@ -149,7 +149,7 @@ __insertLineLabel(ascErrorResumeNext);
     } /* for */
 
     __freeString(argStr);
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(ascError);
@@ -161,7 +161,7 @@ __insertLineLabel(ascError);
         errors++;
     } /* if */
 
-    __resumeNext;
+    __resumeNext();
 } /* test_asc */
 
 
