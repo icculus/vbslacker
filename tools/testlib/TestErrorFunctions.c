@@ -32,7 +32,7 @@ void test_err(void)
     return;
 
 __insertLineLabel(errError);              /* error handler... */
-    rc = vbi_err();
+    rc = _vbl_err();
 
     if (rc != ERR_TOO_MANY_FILES)
     {
@@ -63,14 +63,14 @@ void test_error(void)
 
     __setOnErrorHandler(errorErrorHandler);
 
-    vbpi_error(ERR_LABEL_NOT_DEFINED);
+    _vbpl_error(ERR_LABEL_NOT_DEFINED);
     printf("  - Didn't call error handler.\n");
     __exitCleanupOnError;
     return;
 
 __insertLineLabel(errorErrorHandler);
 
-    if (vbi_err() != ERR_LABEL_NOT_DEFINED)
+    if (_vbl_err() != ERR_LABEL_NOT_DEFINED)
     {
         printf("  - returned (%d), should have returned (%d)!\n",
                         rc, ERR_LABEL_NOT_DEFINED);

@@ -19,7 +19,7 @@ void test_chr_DC_(void)
  */
 {
     __ONERRORVARS;
-    int i;
+    __integer i;
     PBasicString rc;
 
     printf("Testing CHR$()...\n");
@@ -29,22 +29,22 @@ void test_chr_DC_(void)
     __setOnErrorHandler(chrError);
     __setInstructs(chrErrorResume, chrErrorResumeNext);
 
-    for (i = -32767; i <= 32767; i++)
+    for (i = -32767; i <= 32766; i++)
     {
         __runtimeError(ERR_NO_ERROR);
 
 __insertLineLabel(chrErrorResume);
 
-        rc = vbSi_chr_DC_(i);
+        rc = _vbSi_chr_DC_(i);
 
 __insertLineLabel(chrErrorResumeNext);
 
-        if (vbi_err() == ERR_NO_ERROR)
+        if (_vbl_err() == ERR_NO_ERROR)
         {
             if (rc->length != 1)
             {  
-                printf("  - CHR$(%d) returned incorrect string length [%d]!\n",
-                   (int) i, rc->length);
+                printf("  - CHR$(%d) returned incorrect string length [%ld]!\n",
+                        i, rc->length);
             } /* if */
             else if (rc->data[0] != (unsigned char) i)
                 printf("  - CHR$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
@@ -71,18 +71,18 @@ void test_str_DC_(void)
  *   returns : void.
  */
 {
-    double i;
+    __double i;
     PBasicString rc;
-    char buffer[40];
+    __byte buffer[40];
 
     printf("Testing STR$() (simple test)...\n");
 
     i = -32523.9921;
     sprintf(buffer, "%s%f", (i < 0.0) ? "" : " ", i);
-    rc = vbSd_str_DC_(i);
+    rc = _vbSd_str_DC_(i);
 
     if (rc->length > sizeof (buffer))
-        printf("  - STR$(%f) returned %d byte string.\n", i, rc->length);
+        printf("  - STR$(%f) returned %ld byte string.\n", i, rc->length);
 
     else if (memcmp(rc->data, buffer, rc->length) != 0)
     {
@@ -104,8 +104,8 @@ void test_asc(void)
  */
 {
     __ONERRORVARS;
-    int i;
-    int rc;
+    __integer i;
+    __integer rc;
     PBasicString argStr = __createString("The Quick brown fox... ",
                                          false);
 
@@ -123,10 +123,10 @@ void test_asc(void)
         __basicErrno = ERR_NO_ERROR;
 
 __insertLineLabel(ascErrorResume);
-        rc = vbiS_asc(argStr);
+        rc = _vbiS_asc(argStr);
 
 __insertLineLabel(ascErrorResumeNext);
-        if ((vbi_err() == ERR_NO_ERROR) && (rc != i))
+        if ((_vbl_err() == ERR_NO_ERROR) && (rc != i))
         {
             argStr->data[argStr->length - 1] = '\0';
             printf("  - ASC(\"%s\") returned [%d]! Should be (%d).\n",
@@ -158,7 +158,7 @@ void test_hex_DC_(void)
  *   returns : void.
  */
 {
-    unsigned int i;
+    __long i;
     PBasicString rc;
     char buffer[30];
 
@@ -166,14 +166,14 @@ void test_hex_DC_(void)
 
     for (i = 0; i < 0xFFFF; i++)
     {
-        sprintf(buffer, "%X", i);
-        rc = vbSl_hex_DC_(i);
+        sprintf(buffer, "%lX", i);
+        rc = _vbSl_hex_DC_(i);
 
         if (memcmp(rc->data, buffer, rc->length) != 0)
         {
             memcpy(buffer, rc->data, rc->length);
             buffer[rc->length] = '\0';
-            printf("  - HEX$(&H%X) returned \"%s\"!\n", i, buffer);
+            printf("  - HEX$(&H%lX) returned \"%s\"!\n", i, buffer);
         } /* if */
 
         __freeString(rc);
@@ -189,22 +189,22 @@ void test_oct_DC_(void)
  *   returns : void.
  */
 {
-    int i;
+    __long i;
     PBasicString rc;
-    char buffer[30];
+    __byte buffer[30];
 
     printf("Testing OCT$()...\n");
 
     for (i = 0; i < 0xFFFF; i++)
     {
-        sprintf(buffer, "%o", i);
-        rc = vbSl_oct_DC_(i);
+        sprintf(buffer, "%lo", i);
+        rc = _vbSl_oct_DC_(i);
 
         if (memcmp(rc->data, buffer, rc->length) != 0)
         {
             memcpy(buffer, rc->data, rc->length);
             buffer[rc->length] = '\0';
-            printf("  - OCT$(%d) returned \"%s\"!\n", i, buffer);
+            printf("  - OCT$(%ld) returned \"%s\"!\n", i, buffer);
         } /* if */
 
         __freeString(rc);
@@ -214,12 +214,12 @@ void test_oct_DC_(void)
 
 void test_val(void)
 {
-    double i;
-    double rc;
+    __double i;
+    __double rc;
     PBasicString pStr;
-    char buffer[30];
-    int j;
-    int x = 0;
+    __byte buffer[30];
+    __integer j;
+    __integer x = 0;
 
     printf("Testing VAL() (simple test)...\n");
 
@@ -237,7 +237,7 @@ void test_val(void)
 
         pStr = __createString(buffer, false);
 
-        rc = vbdS_val(pStr);
+        rc = _vbdS_val(pStr);
         if (rc != i)
             printf("  - VAL(\"%s\") returned [%f]!\n", buffer, rc);
 
@@ -257,16 +257,16 @@ void test_str_DC_and_val(void)
  *    returns : void.
  */
 {
-    double i;
-    double rcD;
+    __double i;
+    __double rcD;
     PBasicString rcS;
     
     printf("Testing STR$() and VAL() (complex test)...\n");
 
     for (i = -2000.9274; i < 32523.9921; i += 321.3214);
     {
-        rcS = vbSd_str_DC_(i);
-        rcD = vbdS_val(rcS);
+        rcS = _vbSd_str_DC_(i);
+        rcD = _vbdS_val(rcS);
         __freeString(rcS);
         if (rcD != i)
             printf("  - Value (%f) came back as (%f).\n", i, rcD);
@@ -295,17 +295,22 @@ void testConversionFunctions(void)
 } /* testConversionFunctions */
 
 
+
 #ifdef STANDALONE
 
-int main(void)
+int main(int argc, char **argv)
 {
-    __initBasicLib(INITFLAG_DISABLE_CONSOLE);
+    void *base;
+
+    __getBasePointer(base);
+    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
     testConversionFunctions();
     __deinitBasicLib();
     return(0);
 } /* main */
 
 #endif
+
 
 /* end of TestConversionFunctions.c ... */
 

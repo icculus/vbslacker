@@ -23,7 +23,7 @@ uchar TEST_RTRIM[] = "        Here's some trimmable spaces!";
 
 
 void cmpStr(PBasicString pStr, char *data,
-            int length, __boolean fixedLength)
+            __long length, __boolean fixedLength)
 /*
  * This function checks a BasicString to verify that its various attributes
  *  are correct, and display details if they are not.
@@ -41,7 +41,7 @@ void cmpStr(PBasicString pStr, char *data,
     {
         if (pStr->length != length)
         {
-            printf("  - New string's length is (%d), should be (%d).\n",
+            printf("  - New string's length is (%ld), should be (%ld).\n",
                    pStr->length, length);
         } /* if */
 
@@ -153,13 +153,16 @@ void test_len(void)
  */
 {
     PBasicString pStr = __createString(TEST_TEXT1, false);
-    int rc;
+    __long rc;
 
     printf("Testing LEN()...\n");
 
-    rc = vbiS_len(pStr);
+    rc = _vblS_len(pStr);
     if (rc != pStr->length)
-        printf("  - Failed. Returned (%d), expected (%d).\n", rc, pStr->length);
+    {
+        printf("  - Failed. Returned (%ld), expected (%ld).\n",
+                 rc, pStr->length);
+    } /* if */
 
     __freeString(pStr);
 } /* test_len */
@@ -174,11 +177,11 @@ void test_space_DC_(void)
  */
 {
     PBasicString rc;
-    int length = strlen(TEST_SPACE);
+    __long length = strlen(TEST_SPACE);
 
     printf("Testing SPACE$()...\n");
 
-    rc = vbSi_space_DC_(length);
+    rc = _vbSl_space_DC_(length);
     cmpStr(rc, TEST_SPACE, length, false);
     __freeString(rc);
 } /* test_space_DC_ */
@@ -195,14 +198,14 @@ void test_right_DC_(void)
 {
     PBasicString pStr = __createString(TEST_TEXT3, false);
     PBasicString rc;
-    int length = pStr->length;
-    int i;
+    __long length = pStr->length;
+    __long i;
 
     printf("Testing RIGHT$()...\n");
 
     for (i = 0; i <= length; i++)
     {
-        rc = vbSSi_right_DC_(pStr, i);
+        rc = _vbSSl_right_DC_(pStr, i);
         cmpStr(rc, (TEST_TEXT3 + length) - i, i, false);
         __freeString(rc);
     } /* for */
@@ -222,14 +225,14 @@ void test_left_DC_(void)
 {
     PBasicString pStr = __createString(TEST_TEXT3, false);
     PBasicString rc;
-    int length = pStr->length;
-    int i;
+    __long length = pStr->length;
+    __long i;
 
     printf("Testing LEFT$()...\n");
 
     for (i = 1; i <= length; i++)
     {
-        rc = vbSSi_left_DC_(pStr, i);
+        rc = _vbSSl_left_DC_(pStr, i);
         cmpStr(rc, TEST_TEXT3, i, false);
         __freeString(rc);
     } /* for */
@@ -251,7 +254,7 @@ void test_ucase_DC_(void)
 
     printf("Testing UCASE$()...\n");
 
-    rc = vbSS_ucase_DC_(pStr);
+    rc = _vbSS_ucase_DC_(pStr);
     cmpStr(rc, TEST_UCASE, pStr->length, false);
     __freeString(pStr);
     __freeString(rc);
@@ -271,7 +274,7 @@ void test_lcase_DC_(void)
 
     printf("Testing LCASE$()...\n");
 
-    rc = vbSS_lcase_DC_(pStr);
+    rc = _vbSS_lcase_DC_(pStr);
     cmpStr(rc, TEST_LCASE, pStr->length, false);
     __freeString(pStr);
     __freeString(rc);
@@ -291,7 +294,7 @@ void test_ltrim_DC_(void)
 
     printf("Testing LTRIM$()...\n");
 
-    rc = vbSS_ltrim_DC_(pStr);
+    rc = _vbSS_ltrim_DC_(pStr);
     cmpStr(rc, TEST_LTRIM, strlen(TEST_LTRIM), false);
     __freeString(pStr);
     __freeString(rc);
@@ -311,7 +314,7 @@ void test_rtrim_DC_(void)
 
     printf("Testing RTRIM$()...\n");
 
-    rc = vbSS_rtrim_DC_(pStr);
+    rc = _vbSS_rtrim_DC_(pStr);
     cmpStr(rc, TEST_RTRIM, strlen(TEST_RTRIM), false);
     __freeString(pStr);
     __freeString(rc);
