@@ -1,0 +1,97 @@
+Here's the name mangling scheme:
+
+Internal-only functions, and functions that are only called by
+automatically generated code are prepended with a "__", as usual. First
+word lowercase, first letter of each extra word uppercase, yadda yadda
+yadda.
+
+For Basic API functions, the function names go like this (for example.) :
+
+PBasicString vbSiS_string_DC_(STATEPARAMS, int x, PBasicString y);
+
+To explain:
+All APIs start with "vb". The next character is the return value.
+
+if it's a SUB (void), the character is 'p' for "procedure".
+otherwise, it'll be the type of data returned. See below.
+
+The next characters are the arguments. One character per argument.
+
+STATEPARAMS is part of every API call, and it not encoded in the name of
+the API. It's for the OnEvents stuff; don't worry about it right now.
+
+These chars can be:
+
+'b' == "boolean BYVAL"
+'i' == "integer BYVAL"
+'l' == "long BYVAL"
+'f' == "single (float) BYVAL"
+'d' == "double BYVAL"
+'s' == "string BYVAL" (*see note)
+'v' == "Variant BYVAL" (*see note)
+'B' == "boolean BYREF"
+'I' == "integer BYREF"
+'L' == "long BYREF"
+'F' == "float BYREF"
+'D' == "double BYREF"
+'S' == "String BYREF" (*see note)
+'V' == "Variant BYREF" (*see note)
+'A' == "Any variable BYREF" (**see note)
+'O' == "OnOffStopType" (***see note)
+'N' == "Null argument" (****see note)
+
+*Strings and Variants are actually structures, so passing them by
+reference passes a pointer to the structure. Passing them by value
+requires the parser/compiler to insert a call to a function to produce a
+temporary copy of the data. You can see why we used 'S' and not 's' in
+the above example. Intrinsic data types passed byval and byref work just
+like their equivalents in C, and are typically passed by value in the
+average API call, even though BASIC-coded functions are BYREF by
+default.
+
+**"Any" variable type is used for things like "pos(x)", where x is
+simply any filler. That's stupid, but that's BASIC. Whatever you pass
+for these functions are cast to a (void *), and sent along.
+
+***"OnOffStopType" is defined in OnOffStopType.h, in the BASIClib
+directory. It's for things like TIMER ON, or PEN STOP. It's hardly used,
+and since it's a literal that can't be directly stored in any variable,
+we made it a type of its own.
+
+****API calls like "locate" can actually SKIP arguments, like
+[locate x, y, , 3] Yikes. The Null argument is made for the
+blank argument.
+
+'$' chars, like "RTRIM$()", are encoded as "_DC_" (for "dollar
+character"), as you can see above. Other potential ones are "_NC_"
+('#'), _EC_ ('!'), _PC_ ('%')...
+
+This system allows us to have "overloaded" functions, and gives the
+parser/compiler a more sane way than a giant conditional block to
+determine if a function exists, with a few exceptions, such as one of
+MID$()'s variants.
+
+Functions that accept variable arguments, like Print and close, will be
+broken down into multiple calls by the parser/compiler.:
+
+PRINT "Eat this " + "buttface"; "mamma said knock you out."
+
+Will (eventually) become :
+
+vbpS_print("Eat this buttface");
+vbpS_print("mamma said knock you out.");
+
+(note that the first one is made into one string before the print call.
+String literals would really be converted to BasicStrings.)
+
+CLOSE 1, 5, 7
+
+becomes:
+
+vbpi_close(1);
+vbpi_close(5);
+vbpi_close(7);
+
+
+/* end of name_mangling.txt ... */
+
