@@ -14,7 +14,7 @@
 #include "Variant.h"
 #include "ErrorFunctions.h"
 #include "Boolean.h"
-#include "InternalMemManager.h"
+#include "MemoryManager.h"
 
 /*** Private function declarations ***/
 static void __VBopen(STATEPARAMS, PBasicString pathName, FileModeEnum mode,
