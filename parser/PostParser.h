@@ -21,8 +21,8 @@ public:
     PostParser();
     ~PostParser();
 
-	void ReportError(ParserException *pException);
-	
+    void ReportError(ParserException *pException);
+
     void VarDecl(BasicScope Scope, RefToken VarName, RefToken DataType,
                  Boolean WithEvents, Boolean AsNew);
 };

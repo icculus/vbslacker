@@ -19,7 +19,7 @@ options
     exportVocab = Basic;
 
     // Lookahead is two characters.  Default is '1', but we've set it to '2' so
-	//  to prevent ambiguity on certain tokens.
+    //  to prevent ambiguity on certain tokens.
     k = 2;
 }
 

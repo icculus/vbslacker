@@ -27,8 +27,8 @@ void PostParser::ReportError(ParserException *pException)
  *      none
  */
 {
-	// We'll just report it generically for now.
-	printf("<<<%s>>>", pException->toString().data());
+    // We'll just report it generically for now.
+    printf("<<<%s>>>", pException->toString().data());
 }
 
 void PostParser::VarDecl(BasicScope Scope, RefToken VarName, RefToken DataType,
