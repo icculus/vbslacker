@@ -45,21 +45,34 @@
 ;
 ; Ugh.
 
-extern basePtrStacks;
-extern basePtrIndexes;
+extern basePtrStacks
+extern basePtrIndexes
 
 ;
 ; Other external stuff...
 ;
 
-extern __getCurrentThreadIndex;
-extern __enterCriticalThreadSection;
-extern __exitCriticalThreadSection;
-extern __calcBasePtrStorage;
+extern __getCurrentThreadIndex
+extern __enterCriticalThreadSection
+extern __exitCriticalThreadSection
+extern __calcBasePtrStorage
 
 ;
 ; Here's the procedure itself. Let's do the nasty...
 ;
+
+; !!! lose this. !!!
+extern spacer
+extern printf
+extern printText
+extern printTabs
+
+callText   db   '__callOnEventHandler()...',0Ah,0h
+survived   db   'Survived error handler. Cleaning up...',0Ah,0h
+origEBP    db   'Original EBP == (%p)',0Ah,0h
+
+; !!! lose this. !!!
+
 
 global __callOnEventHandler
 
@@ -80,15 +93,41 @@ global __callOnEventHandler
 ;  registers returned. That is taken care of by other code.
 ;
 ;     params : POnEventHandler of handler to call at [esp + 4].
-;              (This will be [ebp + 8] when we set up the base ptr.)
 ;    returns : any return value from BASIC routine in EAX.
 
 __callOnEventHandler:                   ; proc
+
+             ; !!! Lose this
+        pushad
+        mov     eax,callText
+        push    eax
+        mov     eax,[spacer]
+        push    eax
+        call    printText
+        add     esp,8
+        popad
+        
+        pushad
+        mov     eax,[spacer]
+        inc     eax
+        mov     dword [spacer],eax
+        popad
+            ; !!! Lose this
+
+
+            ; Due to all our stack voodoo, there's no need to go through
+            ;  a few "standard" assembly procedure details, like pushing
+            ;  the original base pointer. Therefore, all arguments will be
+            ;  at [ebp + 4], NOT [ebp + 8]. Local variables will still be
+            ;  at [ebp - 4], etc...
+
         mov     ebp,esp                 ; Move stack ptr to base ptr.
         sub     esp,4                   ; Allocate local variables...
 
-        mov     ebx,[ebp + 8]           ; Store POnEventHandler in ebx.
+        call    __calcBasePtrStorage    ; Return value is in edi.        
+        mov     dword [eax],ebp         ; Save base pointer.
 
+        mov     ebx,[ebp + 4]           ; Store POnEventHandler in ebx.
         mov     ecx,[ebx + 4]           ; Store ebx->stackStart in ecx.
         mov     eax,[ebx + 8]           ; Store ebx->stackEnd in eax.
         sub     ecx,eax                 ;  ...subtract to get stack size - 1...
@@ -113,10 +152,25 @@ __callOnEventHandler:                   ; proc
         loop    @stackcopy              ; ecx--; if (ecx != 0) goto @stackcopy;
 @endstackcopy:
 
-        call    __calcBasePtrStorage    ; Return value is in edi.
-        mov     dword [eax],ebp         ; Save base pointer.
-
         mov     eax,[ebx + 16]          ; Store ebx->basePtr in eax.
+
+            ; !!! lose this.
+        pushad
+        mov     ecx,[spacer]
+        push    ecx
+        call    printTabs
+        add     esp,4
+        popad
+
+        pushad
+        push    eax
+        mov     eax,origEBP
+        push    eax
+        call    printf
+        add     esp,8
+        popad
+            ; !!! lose this.
+
         dec     esi                     ; point esi to end of copied stack.
         sub     esi,esp                 ; Calculate offset between two stacks.
         add     eax,esi                 ;  ...add it to original base pointer...
@@ -129,10 +183,26 @@ __callOnEventHandler:                   ; proc
             ;  Yet, we need to preserve all of them for the calling
             ;  function. Whew.
 
-        mov     edi,[ebx]               ; Store ebx->handlerAddr in edi...
-        jmp     [edi]                   ;  ...jump blindly into it...
+        jmp     [ebx]                   ;  ...jump blindly into event handler...
 
 @returnloc:                             ;  ...and (maybe) land right here.
+
+            ; !!! lose this.
+        pushad
+        mov     ecx,[spacer]
+        push    ecx
+        call    printTabs
+        add     esp,4
+        popad
+
+        pushad
+        mov     eax,survived
+        push    eax
+        call    printf
+        add     esp,4
+        popad
+            ; !!! lose this.
+
 
         push    ebp                     ; Save all important registers.
         push    edi
@@ -160,7 +230,7 @@ __callOnEventHandler:                   ; proc
         dec     eax                     ; decrement it.
         mov     dword [esi],eax         ; store it back in addr esi points to.
 
-        mov     ebx,[ebp + 8]           ; Get POnEventHandler ptr again.
+        mov     ebx,[ebp + 4]           ; Get POnEventHandler ptr again.
 
         mov     esi,[ebx + 12]          ; Store ebx->OrigReturnAddr in esi.
         mov     eax,[ebp - 4]           ; Get original value of retaddr in eax.
@@ -175,6 +245,22 @@ __callOnEventHandler:                   ; proc
         pop     esi
         pop     edi
         pop     ebp
+
+             ; !!! Lose this
+        pushad
+        mov     eax,[spacer]
+        dec     eax
+        mov     dword [spacer],eax
+
+        mov     eax,callText
+        push    eax
+        mov     eax,[spacer]
+        push    eax
+        call    printText
+        add     esp,8
+        popad        
+            ; !!! Lose this
+
 
         mov     esp,ecx                 ; adjust stack for return call...
         ret                             ;  ...and pray for the best.
