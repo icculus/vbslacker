@@ -16,3 +16,5 @@ make linux
 
 echo "All done!"
 
+# end of buildall.sh ...
+
