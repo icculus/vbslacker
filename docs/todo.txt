@@ -1,17 +1,15 @@
 TODO list:
 
-- Put StdBasic.h in dependencies...
+- update STANDALONE sections in testlib...
+- update name scheme in test_* functions in testlib...
+- Check (and update) copyright headers in each file...
 - Complete console drivers.
 - Catch up testlib, in general.
-- Move RANDOMIZE and RND from MathFunctions to a new module
-  (RandomNumberFunctions) ?
 - Make current BASIClib code use the boxcar system, where applicable.
 - RESUME NEXT recursive testing.
-- Documentation: mem_management.txt and on_events.txt
 - Streamline makefiles. Most of it is just duplication.
 - Examine/eliminate the "!!!" comments in the source.
 - Eliminate #warnings in the source, as well.
-- GOSUB/RETURN support.
 - DON'T FORGET TO WRITE TESTLIB CODE FOR ALL IMPORTANT FUNCTIONS!
 - Check lists at end of each module for completely unimplemented APIs.
   Do something about these.
