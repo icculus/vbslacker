@@ -31,6 +31,7 @@ void _vbpS_chdir(PBasicString newDir);
 PBasicString _vbSS_curdir_DC_(PBasicString drive);
 PBasicString _vbS_curdir_DC_(void);
 
+
 #ifdef __cplusplus
 }
 #endif

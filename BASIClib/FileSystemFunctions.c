@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fnmatch.h>
+
+#define __VBUNIXDIRDEFINED__
 #include "FileSystemFunctions.h"
 
 
@@ -822,6 +824,49 @@ PBasicString _vbS_curdir_DC_(void)
 
     return(retVal);
 } /* _vbS_curdir_DC_ */
+
+
+PBasicString _vbS_curdrive_DC_(void)
+/*
+ * Return a BASIC string with the current working drive letter.
+ *  Under platforms without drive letters, this is always "C:"...
+ *
+ *    params : void.
+ *   returns : BASIC string of current working drive letter.
+ */
+{
+    char retBuf[3] = {__getCurrentDriveLetter(), ':', '\0'};
+    return(__createString(retBuf, false));
+} /* _vbS_curdrive_DC_ */
+
+
+void _vbpS_chdrive(PBasicString newDrive)
+/*
+ * Change the current working drive letter. Under platforms without
+ *  drive letters, this throws an error if you don't specify "C:",
+ *  and just returns if you do.
+ *
+ *    params : newDrive == drive letter to make current. Only the
+ *                         first character in the string is examined.
+ *   returns : BASIC string of current working drive letter.
+ */
+{
+#   if (defined __NODRIVELETTERS)
+
+        if (newDrive->length == 0)
+            __runtimeError(ERR_ILLEGAL_ARGUMENT);
+
+        else if (tolower(newDrive->data[0]) != 'c')
+            __runtimeError(ERR_PATH_NOT_FOUND);  /* !!! check this! */
+
+#   elif (defined WIN32)
+#       error WIN32 code needs to be filled in here.
+#   elif (defined OS2)
+#       error OS/2 code needs to be filled in here.
+#   else
+#       error Platform-specific code must be filled in here!
+#   endif
+} /* _vbpS_chdrive */
 
 
 /* end of FileSystemFunctions.c ... */
