@@ -132,7 +132,7 @@ void testOnErrorGotoHandling(int x)
     char testVar3[] = "Look for this string in the data dump!";
     int landed = 0;
 
-    printf("Testing ON ERROR GOTO handling...");
+    printf("Testing ON ERROR GOTO handling...\n");
 
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
