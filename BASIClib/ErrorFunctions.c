@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "ErrorFunctions.h"
 #include "OnEvents.h"
 #include "Threads.h"
@@ -19,7 +20,7 @@
 int basicErrno = ERR_NO_ERROR;
 int __basicErrno = ERR_NO_ERROR;
 
-static char errStrings[MAX_ERRS];
+static char *errStrings[MAX_ERRS];
 
 void __initErrorFunctions(void)
 /*
