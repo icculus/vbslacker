@@ -1,0 +1,13 @@
+-suffix .cc
+
+@debug
+@release
+AssignStatement
+BasicCompiler
+BasicContext
+BasicError
+BasicErrors
+BasicStatement
+BasicStatements
+ContextObject
+Main
