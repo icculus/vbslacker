@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <fcntl.h>
 #include "FileIOFunctions.h"
 #include "BasicFileStream.h"
 #include "Variant.h"
@@ -93,7 +94,7 @@ void _VBopen(PBasicString pathName, FileModeEnum *mode, FileAccessEnum *access,
     else                enuLock = *lock;
 
     /* We're all good...let's go */
-
+    
 }
 void VBopen_NoAccess_NoLock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
 									 short fileNumber)
@@ -213,6 +214,7 @@ PBasicString VBfunc_input(long number, short fileNumber)
  *  returns : PBasicString
  */
 {
+    return NULL;
 }
 
 PBasicString VBproc_input(short fileNumber, PVariant varList, ...)
@@ -225,6 +227,7 @@ PBasicString VBproc_input(short fileNumber, PVariant varList, ...)
  *  returns : PBasicString
  */
 {
+    return NULL;
 }
 
 PBasicString VBlineInput(short fileNumber, PBasicString varName)
@@ -236,6 +239,7 @@ PBasicString VBlineInput(short fileNumber, PBasicString varName)
  *  returns : void
  */
 {
+    return NULL;
 }
 
 void VBprint(short fileNumber, PVariant outputList, ...)
@@ -272,26 +276,31 @@ void VB_LOF(short fileNumber)
 /*** FreeFile Statement ***/
 short __VBFreeFile(short rangeNumber)
 {
+    return 0;
 }
 
 short VBFreeFile_Range(short rangeNumber)
 {
+    __VBFreeFile(rangeNumber);
+    return 0;
 }
 
 short VBFreeFile_NoRange(void)
 {
+    __VBFreeFile(-1);
+    return 0;
 }
 /*** End FreeFile Statement ***/
 
-VBloc(short fileNumber)
+void VBloc(short fileNumber)
 {
 }
 
-VBfunc_seek(short fileNumber)
+void VBfunc_seek(short fileNumber)
 {
 }
 
-VBproc_seek(short fileNumber, long position)
+void VBproc_seek(short fileNumber, long position)
 {
 }
 /* end of FileIOFunctions.c ... */
