@@ -204,20 +204,18 @@ void __deinitThreadOnEvents(STATEPARAMS, int tidx)
     POnEventsState pState;
     unsigned int i;
 
+    __deregisterAllOnEventHandlers(STATEARGS);
+
     __obtainThreadLock(STATEARGS, &onEventsLock);
     pState = ppState[tidx];    
     ppState[tidx] = NULL;
     __releaseThreadLock(STATEARGS, &onEventsLock);
-
-    __deregisterAllOnEventHandlers(STATEARGS);
-    free(pState->handlers);
 
     for (i = 0; i < pState->ptrCount; i++)
         free(pState->ptrs[i].protectedStack);
 
     free(pState->ptrs);
     free(pState);
-    ppState[tidx] = NULL;
 } /* __deinitThreadOnEvents */
 
 
@@ -289,9 +287,12 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
     int i;
     boolean getOut = false;
 
+        /* !!! make this __fatalRuntimeError()? */
+    if ((__stBP == NULL) || (__stSP == NULL))
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
 
-    /* delta skymiles: 2268730674 */
-    /* mom's : 215-881-5341 */
+    /* !!! delta skymiles: 2268730674 */
+    /* !!! mom's : 215-881-5341 */
 
         /* determine if we should replace a currently registered handler. */
     for (i = pState->handlerCount - 1; (i >= 0) && (getOut == false); i--)
@@ -534,6 +535,9 @@ void __doResume(STATEPARAMS, unsigned int retAddrIndex)
 
     if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_RESUME)
         __fatalRuntimeError(STATEARGS, ERR_FEATURE_UNAVAILABLE);
+
+    if ((resumeAddr == NULL) || (bp == NULL) || (sp == NULL))
+        __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
 
     else
     {
