@@ -13,12 +13,21 @@
 #   ifndef _INCLUDE_THREADS_H_
 #       define _INCLUDE_THREADS_H_
 
-#       ifdef SINGLE_THREADED
+#       ifdef __cplusplus
+            extern "C" {
+#       endif
 
+#       ifndef _REENTRANT
+#           error _REENTRANT not defined!
+#           error Please put -D_REENTRANT on the command line.
+#           error  otherwise, the C library is NOT thread-safe!
+#       endif /* _REENTRANT */
+
+#       ifdef SINGLE_THREADED
             typedef unsigned long ThreadLock;
             typedef ThreadLock *PThreadLock;
 
-#           define __terminateCurrentThread    vbp_end()
+#           define __terminateCurrentThread     vbp_end()
 #           define __terminateThread(tidx)
 #           define __waitForThreadToDie(tidx)
 #           define __spinThread(fn, args)      -1
@@ -30,12 +39,8 @@
 #           define __destroyThreadLock(pLock)
 #           define __obtainThreadLock(pLock)
 #           define __releaseThreadLock(pLock)
+
 #       else   /* multithreaded support... */
-#           ifndef _REENTRANT
-#               error _REENTRANT not defined for multithread compile!
-#               error Please put -D_REENTRANT on the command line.
-#               error  otherwise, the C library is NOT thread-safe!
-#           endif /* _REENTRANT */
 
 #           include <pthread.h>
 
@@ -69,9 +74,13 @@
 #           define __releaseThreadLock(pLock)  __releaseThreadLock_f(pLock)
 #       endif /* (!) SINGLE_THREADED */
 
-    /* These exist in multi and single thread mode... */
-    void __initThreads(void);
-    void __deinitThreads(void);
+        /* These exist in multi and single thread mode... */
+        void __initThreads(void);
+        void __deinitThreads(void);
+
+#       ifdef __cplusplus
+            }
+#       endif
 
 #   endif /* _INCLUDE_THREADS_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */
