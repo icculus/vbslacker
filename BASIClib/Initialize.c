@@ -8,6 +8,7 @@
 #include "Threads.h"
 #include "OnEvents.h"
 #include "TimeDateFunctions.h"
+#include "BasicFileStream.h"
 
 void __initBasicLib(void)
 /*
@@ -21,6 +22,7 @@ void __initBasicLib(void)
 {
     __initThreads();
     __initTimeDateFunctions();
+    __initFileStreamArray();
 } /* __initBasicLib */
 
 
