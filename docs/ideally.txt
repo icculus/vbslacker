@@ -30,10 +30,10 @@ HERE'S THE CONVERTED VERSION:
 
 #include "BASIClib.h"
 
-PBasicString strConst1 = __createString("Message is : ");
-PBasicString strConst2 = __createString("Message written.");
-PBasicString strConst3 = __createString("Inside error handler. Error number is");
-PBasicString strConst4 = __createString("BITE ME!");
+PBasicString strConst1 = __constString("Message is : ");
+PBasicString strConst2 = __constString("Message written.");
+PBasicString strConst3 = __constString("Inside error handler. Error number is");
+PBasicString strConst4 = __constString("BITE ME!");
 
 /* Start of my li'l program... */
 
@@ -41,9 +41,8 @@ void butts(int fileNo, PBasicString message)
 {
     PBasicString totalMsg_DC_ = NULL;
 
-    __copyString(&stringBuffer, strConst1); 
-    __catString(&stringBuffer, message);
-    __assignString(&totalMsg_DC_, stringBuffer);
+    __assignString(&totalMsg_DC_, strConst1);
+    __catString(&totalMsg_DC_, message);
 
     getStackPointer(&_stack_ptr_);
     __registerOnEventHandler(crackpipe, &message + sizeof (message),
@@ -53,13 +52,15 @@ void butts(int fileNo, PBasicString message)
     print_NC_(10, totalMsg_DC_);
     print(strConst2);
     __deregisterOnEventHandler(&message + sizeof (message), ONERROR);
+    __freeString(totalMsg_DC_);
     return;
 
 crackpipe:   /* error handler... */
-    __copyString(&stringBuffer, strConst3); 
+    __assignString(&stringBuffer, strConst3); 
     __catString(&stringBuffer, str_DC_(err()));
     print(stringBuffer);
     __deregisterOnEventHandler(&message + sizeof (message), ONERROR);
+    __freeString(totalMsg_DC_);
 } /* butts */
 
 
@@ -73,3 +74,4 @@ void main(int argc, char **argv, char **envp)
 } /* main */
 
 /* end of my li'l program... */
+
