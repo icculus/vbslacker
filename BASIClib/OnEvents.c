@@ -8,6 +8,20 @@
 #include "InternalMemManager.h"
 #include "Threads.h"
 
+
+    /*
+     * !!! Needs protection against out of memory errors in allocations...
+     * !!! Make sure EVERYTHING in this module won't make recursive calls
+     * !!!  to error handlers if we run out of memory while managing error
+     * !!!  handlers.
+     */
+
+
+/* !!! We need to document the allocation strategy and data structuring
+   !!!   in here. It's gotten complicated with thread-proofing... */
+
+
+
     /* internal structure for keeping track of registered event handlers... */
 typedef struct
 {
@@ -29,33 +43,74 @@ void __callOnEventHandler(POnEventHandler pHandler);
 void *_stack_ptr_ = NULL;
 void *_base_ptr_ = NULL;
 
-
-    /* !!! this will need an extra dimension if we start multithreading... */
-static HandlerVector table[(OnEventTypeEnum) TOTAL];
-
+static int threadCount = 0;
 
     /* These have an extra dimension for thread-proofing. */
+static PHandlerVector *pTables = NULL;
 void volatile ***basePtrStacks = NULL;
 int volatile *basePtrIndexes = NULL;
 
 
-
-void __initOnEvents(void)
+void __initThreadOnEvents(int tidx)
 /*
- * Call this once before making ANY 'on event' type calls...
+ * This makes sure space exists in the thread-protected arrays for the
+ *  current thread index. This is called whenever a new thread is created.
  *
- *    params : void.
+ *      params : void.
+ *     returns : void, but all the tables could get __memRealloc()ed.
+ */
+{
+    PHandlerVector table;
+    int currentThreadCount;
+    int i;
+
+    __enterCriticalThreadSection();
+
+    currentThreadCount = __getHighestThreadIndex() + 1;
+    if (threadCount != currentThreadCount)
+    {        
+        threadCount = currentThreadCount;
+
+        pTables = __memRealloc(pTables, threadCount * sizeof(PHandlerVector *));
+        basePtrStacks = __memRealloc(basePtrStacks,
+                                     threadCount * sizeof (void *));
+        basePtrIndexes = __memRealloc(basePtrIndexes,
+                                     threadCount * sizeof (int));
+    } /* if */
+
+    __exitCriticalThreadSection();
+
+    table = __memAlloc(sizeof (HandlerVector) * (OnEventTypeEnum) TOTAL);
+    pTables[tidx] = table;
+    for (i = 0; i < (OnEventTypeEnum) TOTAL; i++)
+    {
+        table[i]->count = 0;
+        table[i]->handlers = NULL;
+    } /* for */
+
+    basePtrStacks[tidx] = NULL;
+    basePtrIndexes[tidx] = NULL;
+} /* __initThreadOnEvents */
+
+
+void __deinitThreadOnEvents(int tidx)
+/*
+ * A thread has died; free its resources.
+ *
+ *    params : tidx == dead thread's index.
  *   returns : void.
  */
 {
+    PHandlerVector table;    
     int i;
 
     for (i = 0; i < (OnEventTypeEnum) TOTAL; i++)
-    {
-        table[i].count = 0;
-        table[i].handlers = NULL;
-    } /* for */
-} /* __initOnEvents */
+        __memFree(table->handlers);
+
+    __memFree(table);
+    __memFree(basePtrStacks[tidx]);
+    __memFree(basePtrIndexes[tidx]);
+} /* __deinitThreadOnEvents */
 
 
 POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
@@ -68,10 +123,14 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
  */
 {
     POnEventHandler retVal = NULL;
-    HandlerVector evVect = table[evType];
+    PHandlerVector evVect;
 
-    if (evVect.count > 0)
-        retVal = evVect.handlers[evVect.count - 1];
+    __enterCriticalThreadSection();
+    evVect = pTables[tidx][evType];
+    __exitCriticalThreadSection();
+
+    if (evVect->count > 0)
+        retVal = evVect->handlers[evVect->count - 1];
 
     return(retVal);
 } /* __getOnEventHandler */
@@ -141,26 +200,30 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  */
 {
     POnEventHandler pHandler = NULL;
-    HandlerVector evVect = table[evType];
+    PHandlerVector evVect;
 
-    if ((evVect.count <= 0) ||    /* setup new handler? */
-        (evVect.handlers[evVect.count - 1]->stackStart != stackStart))
+    __enterCriticalThreadSection();
+    evVect = pTables[tidx][evType];
+    __exitCriticalThreadSection();
+
+    if ((evVect->count <= 0) ||    /* setup new handler? */
+        (evVect->handlers[evVect->count - 1]->stackStart != stackStart))
     {
         /*
-         * we can't change evVect.count until the handler is all
+         * we can't change evVect->count until the handler is all
          *  set up, since allocating memory MAY throw an exception we'll
          *  want to handle...
          */
-        evVect.handlers = __memRealloc(evVect.handlers,
-                                      (evVect.count + 1) *
+        evVect->handlers = __memRealloc(evVect->handlers,
+                                       (evVect->count + 1) *
                                          sizeof (POnEventHandler));
         pHandler = __memAlloc(sizeof (OnEventHandler));
-        evVect.handlers[evVect.count] = pHandler;
-        evVect.count++;
+        evVect->handlers[evVect->count] = pHandler;
+        evVect->count++;
     } /* if */
 
     else    /* replace current handler... */
-        pHandler = evVect.handlers[evVect.count - 1];
+        pHandler = evVect->handlers[evVect->count - 1];
 
     pHandler->handlerAddr = handlerAddr;
     pHandler->stackStart = stackStart;
@@ -185,23 +248,48 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
  *     returns : void.
  */
 {
-    HandlerVector evVect = table[evType];
+    int tidx = __getCurrentThreadIndex();    
+    PHandlerVector evVect;
 
-    if (evVect.count > 0)
+    __enterCriticalThreadSection();
+    evVect = pTables[tidx][evType];
+    __exitCriticalThreadSection();
+
+    if (evVect->count > 0)
     {
-        if (evVect.handlers[evVect.count - 1]->stackStart == stackStart)
+        if (evVect>handlers[evVect->count - 1]->stackStart == stackStart)
         {
-            evVect.count--;
-            __memFree(evVect.handlers[evVect.count]);
-            evVect.handlers = __memRealloc(evVect.handlers,
-                                           evVect.count *
+            evVect->count--;
+            __memFree(evVect->handlers[evVect->count]);
+            evVect->handlers = __memRealloc(evVect->handlers,
+                                            evVect->count *
                                              (sizeof (POnEventHandler)));
         } /* if */
     } /* if */
 } /* __deregisterOnEventHandler */
 
 
-void triggerOnEvent(OnEventTypeEnum evType)
+void **__calcBasePtrStorage(void)
+/*
+ * Figure out precisely where the current storage location for
+ *  this thread's base pointer stack is.
+ *
+ *    params : void.
+ *   returns : pointer to (void *) storage location.
+ */
+{
+    int tidx = __getCurrentThreadIndex();
+    void **retVal;
+
+    __enterCriticalThreadSection();
+    retVal = basePtrStacks[tidx] + basePtrIndexes[tidx];
+    __exitCriticalThreadSection();
+
+    return(retVal);
+} /* __calcBasePtrStorage */
+
+
+void __triggerOnEvent(OnEventTypeEnum evType)
 /*
  * This functions sets up a globally accessable buffer for the ASM routine
  *  (which it can access when the stack state is FUBAR), and calls the
@@ -211,15 +299,18 @@ void triggerOnEvent(OnEventTypeEnum evType)
  *   returns : should never return directly, due to stack voodoo.
  */
 {
+     /* !!! Needs protection against out of memory errors in allocations... */
     POnEventHandler pHandler = __getOnEventHandler(evType);
     int tidx = __getCurrentThreadIndex();
 
+    __enterCriticalThreadSection();
     basePtrIndexes[tidx]++;
     basePtrStacks[tidx] = __memRealloc(basePtrStacks[tidx],
                                       basePtrIndexes[tidx] * sizeof (void *));
+    __exitCriticalThreadSection();
 
     __callOnEventHandler(pHandler);
-} /* triggerOnEvent */
+} /* __triggerOnEvent */
 
 
 /* end of OnEvents.c ... */
