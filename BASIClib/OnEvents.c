@@ -17,11 +17,6 @@
      */
 
 
-/* !!! We need to document the allocation strategy and data structuring
-   !!!   in here. It's gotten complicated with thread-proofing... */
-
-
-
     /* internal structure for keeping track of registered event handlers... */
 typedef struct
 {
@@ -43,10 +38,52 @@ void __callOnEventHandler(POnEventHandler pHandler);
 void *_stack_ptr_ = NULL;
 void *_base_ptr_ = NULL;
 
+    /*
+     * This is used in __initThreadOnEvents(), to determine whether we need
+     *  more memory allocated to handle new threads.
+     */
 static int threadCount = 0;
 
-    /* These have an extra dimension for thread-proofing. */
+    /*
+     * This is the array of structures that contain info about all
+     *  registered OnEvent handlers. Each structure handles one type
+     *  of event, so the array has ((OnEventTypeEnum) TOTAL) elements, and
+     *  should be accessed by one of the OnEventTypeEnum members.
+     *
+     * This has an extra dimension for thread-proofing. SOOO, we have
+     *  pTables[__getCurrentThreadIndex()][(OnEventTypeEnum) ONERROR] \ 
+     *              .handlers[n]; Ugh.
+     */
 static PHandlerVector *pTables = NULL;
+
+
+    /*
+     * When we execute the error handler, we lose the contents of every
+     *  register. Most importantly, we lose the base pointer (EBP), which
+     *  tells us where our parameters and local data can be found on the stack.
+     *
+     * The only way to keep a reference to anything in that case is to have it
+     *  in a global variable, since we always know the location of it. So we
+     *  keep a (void **) global var, called basePtrStacks. This variable
+     *  is an array of base pointers, since event handling can stack in a
+     *  recursive manner. The C code, before calling the event handler,
+     *  makes sure there's enough room in the array to handle another base
+     *  pointer, and then calls the assembly code. Before executing the
+     *  error handler, the assembly procedure will save it's base pointer at
+     *  the index specified by basePtrIndexes. After the handler, we have to
+     *  start from scratch, so we retrieve our base pointer from where we saved
+     *  it, feeling for our digital asshole with both hands and these global
+     *  variables. Once returned to a sane state, the ASM code decrements
+     *  basePtrIndexes, so that the space used by the stack of base pointers
+     *  can begin to shrink.
+     *
+     * ...of course, this is complicated by thread-protecting our data. :) 
+     *  basePtrStacks is actually a (void ***), so we have something roughly
+     *  equivalent to basePtrStacks[__getCurrentThreadIndex()] \
+     *                             [basePtrIndexes[__getCurrentThreadIndex()]];
+     *
+     * Ugh.
+     */
 void ***basePtrStacks = NULL;
 int *basePtrIndexes = NULL;
 
@@ -89,7 +126,7 @@ void __initThreadOnEvents(int tidx)
     } /* for */
 
     basePtrStacks[tidx] = NULL;
-    basePtrIndexes[tidx] = -1;
+    basePtrIndexes[tidx] = -1;  /* index set to zero on first call... */
 } /* __initThreadOnEvents */
 
 
@@ -167,7 +204,7 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  *
  * stackStart is the address of the LAST argument of the calling function, plus
  *  the size of it.  Since C pushes arguments on the stack backwards, this is
- *  actually the "top" of the stack. !!! minus one?
+ *  actually the "top" of the stack.
  *
  * stackEnd is the stack pointer we saved. The area of memory between
  *  stackStart and stackEnd covers not only arguments and local variables,
@@ -211,9 +248,9 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
         (evVect->handlers[evVect->count - 1]->stackStart != stackStart))
     {
         /*
-         * we can't change evVect->count until the handler is all
-         *  set up, since allocating memory MAY throw an exception we'll
-         *  want to handle...
+         * we can't change evVect->count until after the _mem*lloc() calls,
+         *  since allocating memory MAY throw an exception we'll want to
+         *  handle...
          */
         evVect->handlers = __memRealloc(evVect->handlers,
                                        (evVect->count + 1) *
@@ -252,7 +289,6 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
     int tidx = __getCurrentThreadIndex();    
     PHandlerVector evVect;
 
-        /* !!! can we separate this into another function? */
     __enterCriticalThreadSection();
     evVect = &pTables[tidx][evType];
     __exitCriticalThreadSection();
@@ -316,7 +352,7 @@ void __triggerOnEvent(OnEventTypeEnum evType)
                                          sizeof (void *));
     __exitCriticalThreadSection();
 
-    __callOnEventHandler(pHandler);
+    __callOnEventHandler(pHandler);     /* initialize miracle mode... */
 } /* __triggerOnEvent */
 
 
