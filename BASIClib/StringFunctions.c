@@ -26,6 +26,19 @@ PBasicString right_DC_(PBasicString pStr, int count)
  *   returns : pointer to newly allocated string, per above details.
  */
 {
+    PBasicString retVal = NULL;
+
+    if (count < 0)
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    else if (count > pStr->length)
+        __assignString(&retVal, pStr);
+    else
+    {
+        retVal = __allocString(count, false);
+        memcpy(retVal, pStr->data + (pStr->length - count), count);
+    } /* else */
+
+    return(retVal);
 } /* right_DC_ */
 
 
