@@ -1,18 +1,19 @@
 /* 
- * Coding standards. Revised 07/08/1998
+ * Coding standards. Revised 10/16/1998
  *
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
 - Every file will start with a comment contianing an explanation of what
-   the module is for, and a copyright, in the format at the top of the
-   page. The revision date is not necessary, but doesn't hurt.
+   the module is for, and a copyright, in the format at the top of this
+   file. The revision date is not necessary, but doesn't hurt. More detail
+   than the above is definitely welcome.
 
 - End every file with a "/* end of MyFile.c ... */", so we know that the
    end of the file hasn't been thrashed in file transfer.
 
-- C code should not use "//" comments. GCC doesn't like them. C++ code can
-   use them freely.
+- C code should not use "//" comments. GCC doesn't necessarily like them.
+   C++ code can use them freely.
 
 - Comment excessively. The heading of each function should explain what the
    function does, each parameter, and the return value. If there are possible
@@ -20,14 +21,6 @@
 
 - Don't overcomment. This isn't assembler; some lines of code will just
    speak for themselves.
-
-- If you make more than minor changes to a file, make a backup. Keep that
-   backup around until you're sure you haven't coded yourself into a corner.
-   Alternately, programs like CVS or SourceSafe will keep revision versions
-   for us, so that in itself might make one of these programs worthwhile.
-
-- In the leading comments it would be worthwhile to make notes of any changes
-   you've made since the last revision. Again, another job for CVS, but yeah.
 
 - If there's a problem piece of code, something to come back to, or a known
    bug that is identified but needs to be fixed, label the code with "!!!"
@@ -44,6 +37,8 @@
    Standardizing this saves us trouble when we just need to do a text search
    to find weak points in the code.
 
+- Alternately, #warning directives are acceptable, and more noticeable.
+
 - No more than 80 characters to a line. Period.
 
 - Never use TAB characters. Always spaces. Make sure your editor autoconverts.
@@ -53,14 +48,14 @@
 - This annoys me:
 
     void myFunc(Foo bar) {
-      blahblahblah();
+        blahblahblah();
     }
 
   Do this:
 
     void myFunc(Foo bar)
     {
-      blahblahblah();
+        blahblahblah();
     }
 
 
@@ -74,8 +69,8 @@
    } /* if */ <--- That thing. Do that. It helps, I promise.
 
 
-- Capitalizations. I like the Java standards on this one: variables and
-   functions are uppercase, except first word:
+- Capitalizations. I like the Java standards on this one: variables' and
+   functions' first letters are uppercase, except the first word:
 
       printToScreen(anotherCoolVariable);
 
@@ -86,8 +81,10 @@
   Exceptions to this rule are data types that try to disguise themselves as
    intrinsics. Best example is declaring a data type called "boolean."
 
-  Filenames (which in Java must be identical to the contained class's name)
-   will be capitalized like class names.
+  Filenames (which in Java must be identical to the contained class' name)
+   will be capitalized like class names. Filenames should fit the module,
+   and API modules should end with "Functions". (i.e. -- an API module might
+   be called MathFunctions.c or FileIOFunctions.c ...)
 
   Constants and macros are completely capitalized, and since they don't have
    the luxury of lowercase letters, you can signify word separations with an
@@ -103,16 +100,13 @@
    Other problem characters are "_PC_"  ('%'...percent char), "_EC_"
    ('!'...exclamation char), "_AC_" ('&'...ampersand char), etc...
 
-- Naming conventions: Functions in BASIClib that are either for internal
-  library use only OR are calls generated only by the parser/compiler
-  should start with "__"  (like __createString(), etc...). This helps
-  clarify the position of each file. Functions exported by BASIClib that
-  comprise the BASIC API should start with "VB", and contain their
-  arguments encoded in the name. For example, "VBchr_DC_i()" Ugly. I know.
+- Please refer to name_mangling.txt for a detailed explanation of function
+    naming conventions.
 
 - General, personalized coding practices should be duplicated when modifying
    others' code. Keep your own style for your own file. I don't care if the
-   tab size in someone else's file pisses you off.
+   tab size in someone else's file pisses you off. Make it easy for the
+   original author to comprehend what you've done to his work.
 
 - Keep it simple, stupid.
 
