@@ -219,7 +219,9 @@ void testConversions(void)
 
 void main(void)
 {
+    __initBasicLib();
     testConversions();
+    __deinitBasicLib();
 } /* main */
 
 #endif
