@@ -30,7 +30,7 @@ int vbiS_asc(STATEPARAMS, PBasicString pBasicStr)
 
 
 
-PBasicString vbSd_chr_DC_(STATEPARAMS, double asciiValue)
+PBasicString vbSi_chr_DC_(STATEPARAMS, int asciiValue)
 /*
  * Returns a new basic string of one character length based on the ascii
  *  value passed.
@@ -40,9 +40,8 @@ PBasicString vbSd_chr_DC_(STATEPARAMS, double asciiValue)
  */
 {
     PBasicString retVal = NULL;
-    int intAscii = (int) asciiValue;
 
-    if ((intAscii < 0) || (intAscii > 255))
+    if ((asciiValue < 0) || (asciiValue > 255))
         __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
@@ -51,7 +50,7 @@ PBasicString vbSd_chr_DC_(STATEPARAMS, double asciiValue)
     } /* else */
 
     return(retVal);
-} /* vbSd_chr_DC_ */
+} /* vbSi_chr_DC_ */
 
 
 
@@ -237,7 +236,7 @@ double vbdS_val(STATEPARAMS, PBasicString pBasicStr)
 
 
 
-PBasicString vbSd_hex_DC_(STATEPARAMS, double x)
+PBasicString vbSl_hex_DC_(STATEPARAMS, long x)
 /*
  * Convert a numeric to a string in Hexadecimal format. Numeric is rounded
  *  as necessary.
@@ -246,7 +245,7 @@ PBasicString vbSd_hex_DC_(STATEPARAMS, double x)
  *  returns : newly allocated BASIC string with hex version of (x).
  */
 {
-    int rounded;
+    unsigned int rounded;
 
     /* !!! this is a kludge. Really write this... */
 
@@ -260,7 +259,7 @@ PBasicString vbSd_hex_DC_(STATEPARAMS, double x)
 
 
 
-PBasicString vbSd_oct_DC_(STATEPARAMS, double x)
+PBasicString vbSl_oct_DC_(STATEPARAMS, long x)
 /*
  * Convert a numeric to a string in Octal format. Numeric is rounded
  *  as necessary.
@@ -269,7 +268,7 @@ PBasicString vbSd_oct_DC_(STATEPARAMS, double x)
  *  returns : newly allocated BASIC string with octal version of (x).
  */
 {
-    int rounded;
+    unsigned int rounded;
 
     /* !!! this is a kludge. Really write this... */
 
