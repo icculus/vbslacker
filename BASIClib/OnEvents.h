@@ -17,7 +17,7 @@ typedef enum
 
 typedef OnEventTypeEnum *POnEventTypeEnum;
 
-/* 
+/*
  * DO NOT REORDER THE FOLLOWING STRUCTURE! Assembly code expects this format.
  *
  *  Adding fields to the bottom should be okay, since the ASM code
@@ -34,8 +34,11 @@ typedef struct
 
 typedef OnEventHandler *POnEventHandler;
 
-extern void* _stack_ptr_;
-extern void* _base_ptr_;
+
+extern void *_label_addr_;
+extern void *_stack_ptr_;
+extern void *_base_ptr_;
+
 
 /* !!! ...hope I'm doing this right... */
 
@@ -57,28 +60,34 @@ extern void* _base_ptr_;
  * Insert this right AFTER a line label that serves as the start of an
  *  ON EVENT handler.
  *
- * The i386 version just guarantees that optimizations aren't saving any
+ * The i386 version guarantees that optimizations aren't saving any
  *  important data in the registers. By telling gcc we fucked with memory, it
  *  believes we're "clobbered" all the registers, and will reload anything
  *  stored in them.
+ *
+ * C won't let us use line labels for grabbing addresses. Inline assembly
+ *  WILL, however, so pass the name of the label in double quotes (WITHOUT the
+ *  trailing ':'...) to this macro. 
  */
-#define __markOnEventHandlerAddr __asm__ __volatile__ ("nop\n\t" : \
-                                                        : /* no output */ \
-                                                        : /* no input */ \
-                                                          "memory" );
+#define __markOnEventHandlerAddr(label) __asm__ __volatile__ (label ":\n\t" : \
+                                                              : : "memory" );
+
+/* !!! comment this. */
+
+#define __getOnEventHandlerAddr(label, retVal) __asm__ __volatile__ ( \
+                                                     "movl " label ", %0\n\t" \
+                                                      : "=q" (*retVal) );
 
 POnEventHandler __getOnEventHandler(OnEventTypeEnum evType);
 void __initOnEvents();
 void __registerOnEventHandler(void *handlerAddr, void *stackSize,
                               void *stackEnd, void *origReturnAddr,
                               void *basePtr, OnEventTypeEnum evType);
-
 void __deregisterOnEventHandler(void *handlerAddr, OnEventTypeEnum evType);
+void __triggerOnEvent(OnEventTypeEnum evType);
 
-void __callOnEventHandler(POnEventHandler pHandler);
 
 #endif
 
 /* end of OnEvents.h ... */
-
 
