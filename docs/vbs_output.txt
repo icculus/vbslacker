@@ -78,7 +78,19 @@ BASIC complex data types:
     !!! more.
 
 
+Default values:
+    Any variable, regardless of scope or type, needs to initialize to a
+    default "safe" value. Numeric types default to 0.00, BOOLEAN to FALSE,
+    Strings to ("").  !!! and others. This can be done in the C variable
+    initialization way, as follows:
+
+    DIM x AS INTEGER
+      --== becomes ==--
+    __integer x = 0;
+
+
 BASIC arrays:
+    !!! more.
 
 
 GOTOs and Line labels:
@@ -96,7 +108,7 @@ GOTOs and Line labels:
     the same line label name cannot appear more than once. (since on
     platforms that generate inline assembly for the __insertLineLabel
     macro, this will cause a namespace clash at assembly time.) Therefore,
-    "cheesypoof", above, would have to be translated into "line342" or
+    "cheesypoof", above, would have to be translated into "_line342" or
     whatever. The parser should keep track of this per module, and should
     increment its counter whenever an __insertLineLabel macro is used. This is
     consistent with how C and BASIC treat line labels internally, since labels
@@ -151,6 +163,46 @@ BASIC-specific operators:
     !!! more.
 
 
+Conditionals; IF/ELSE/ELSEIF/ENDIF:
+    !!! more.
+
+
+Conditionals; IF TYPEOF...IS...:
+    !!! more.
+
+
+Conditionals; SELECT CASE:
+    !!! more.
+
+
+Flow control: WHILE/WEND:
+    !!! more.
+
+
+Flow control: DO/LOOP:
+    !!! more.
+
+
+Flow control: DO WHILE/LOOP:
+    !!! more.
+
+
+Flow control: DO UNTIL/LOOP:
+    !!! more.
+
+
+Flow control: DO/LOOP UNTIL:
+    !!! more.
+
+
+Flow control: DO/LOOP WHILE:
+    !!! more.
+
+
+Flow control: FOR/NEXT:
+    !!! more.
+
+
 Calling conventions:
     !!! more.
 
@@ -187,6 +239,24 @@ Pointers:
     !!! more.
 
 
+SWAP:
+    SWAP should be generated inline by the parser/compiler.
+    DIM a AS INTEGER
+    DIM b AS INTEGER
+
+    SWAP a, b
+     --== becomes ==--
+    __integer a = 0;
+    __integer b = 0;
+    __integer __tmp;
+
+    __tmp = a;
+    a = b;
+    b = __tmp;
+
+    The above example does not include type and overflow checking.
+
+
 GOSUB and RETURN:
     If a GOSUB or RETURN is encountered, then in that functions' variable
     declaration section, this must appear:
@@ -216,6 +286,56 @@ GOSUB and RETURN:
 
     "RETURN without GOSUB" errors are generated at runtime and are not
     checked by the compiler. I think.
+
+
+ON ... GOSUB:
+    x = 3
+    On x GOSUB line1, line2, line3
+     --== becomes ==--
+
+    __GOSUBSUPPORT;
+    __integer x = 0;
+    __integer __tmp;
+
+    x = 3;
+    tmp = x;   /* needed in case of function...should run only once. */
+!!!    if ((tmp < 0) || (tmp > 255))  /* negatives or > 255 are errors. */
+        __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* !!! or whatever error... */
+    else if (tmp == 1)
+        __doGosub(&&line1, &&endOfOnNumGosub1);
+    else if (tmp == 2)
+        __doGosub(&&line2, &&endOfOnNumGosub1);
+    else if (tmp == 3)
+        __doGosub(&&line3, &&endOfOnNumGosub1);
+    endOfOnNumGosub1:
+
+    The above example does not include type and overflow checking.
+    This must be generated INLINE, EVERYTIME, by the parser/compiler.
+
+
+ON ... GOTO:
+    x = 3
+    On x GOTO line1, line2, line3
+     --== becomes ==--
+
+    __GOSUBSUPPORT;
+    __integer x = 0;
+    __integer __tmp;
+!!!
+    x = 3;
+    tmp = x;   /* needed in case of function...should run only once. */
+    if ((tmp < 0) || (tmp > 255))  /* negatives or > 255 are errors. */
+        __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* or whatever error... */
+    else if (tmp == 1)
+        goto line1;
+    else if (tmp == 2)
+        goto line2;
+    else if (tmp == 3)
+        goto line3;
+    endOfOnNumGoto1:
+
+    The above example does not include type and overflow checking.
+    This must be generated INLINE, EVERYTIME, by the parser/compiler.
 
 
 ON ERROR and RESUME statements:
