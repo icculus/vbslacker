@@ -2,7 +2,7 @@
 
 # move this to root makefile. export it.
 OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o \
-       TestErrorFunctions.o
+       TestErrorFunctions.o TestStringFunctions.o
 CC = gcc
 LINKER = gcc
 
@@ -44,5 +44,11 @@ TestErrorFunctions.o : TestErrorFunctions.c \
                             $(BASICLIBDIR)/OnEvents.h \
                             $(BASICLIBDIR)/ErrorFunctions.h 
 	$(CC) $(COPTIONS) TestErrorFunctions.o TestErrorFunctions.c
+
+TestStringFunctions.o : TestStringFunctions.c $(BASICLIBDIR)/Initialize.h \
+                            $(BASICLIBDIR)/BasicString.h \
+                            $(BASICLIBDIR)/StringFunctions.h \
+                            $(BASICLIBDIR)/Boolean.h
+	$(CC) $(COPTIONS) TestStringFunctions.o TestStringFunctions.c
 
 # end of Makefile.linux ...
