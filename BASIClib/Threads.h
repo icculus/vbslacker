@@ -7,6 +7,12 @@
 #ifndef _INCLUDE_THREADS_H_
 #define _INCLUDE_THREADS_H_
 
+#ifndef _REENTRANT
+#error _REENTRANT not defined!
+#error Please put -D_REENTRANT on the command line.
+#error  otherwise, the C library is NOT thread-safe!
+#endif
+
 
 #ifndef WIN32
 
