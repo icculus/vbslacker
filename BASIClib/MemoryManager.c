@@ -1,7 +1,7 @@
 /*
  * Memory management routines.
  *
- *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <stdio.h>
@@ -608,7 +608,7 @@ void __memForceFullBoxcarRelease(void)
 
     if (collectionMax > 0)
     {
-        __getBasePointer(&base_ptr);
+        __getBasePointer(base_ptr);
 
         for (pCar = __getStartOfTrain(); pCar != NULL; pCar = next)
         {
@@ -642,7 +642,7 @@ __boolean __memForcePartialBoxcarRelease(void)
     int ptrCount = 0;
     PBoxcar pCar = (PBoxcar) __getStartOfTrain();
 
-    __getBasePointer(&base_ptr);
+    __getBasePointer(base_ptr);
 
     while ((pCar != NULL) &&
            (ptrCount < collectionMax) &&
