@@ -11,7 +11,7 @@
 
 /*** Private variables ***/
                                     /* We're 1-based...so add one */
-__PBasicFileStream __fileNumbers[MAX_FILE_HANDLES + 1];
+static __PBasicFileStream __fileNumbers[MAX_FILE_HANDLES + 1];
 
 /*** File stream functions ***/
 

@@ -26,7 +26,7 @@
 #           define __getHighestThreadIndex      0
 #           define __getCurrentThreadIndex      0
 #           define __threadTimeslice
-#           define __createThreadLock(pLock)    pLock = NULL
+#           define __createThreadLock(pLock)    *(pLock) = 0
 #           define __destroyThreadLock(pLock)
 #           define __obtainThreadLock(pLock)
 #           define __releaseThreadLock(pLock)

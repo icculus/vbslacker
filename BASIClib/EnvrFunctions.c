@@ -13,9 +13,9 @@
 
 extern char **environ;
 
-ThreadLock envrLock;
-PBasicString commandLine;
-__boolean unixFileSystem;
+static ThreadLock envrLock;
+static PBasicString commandLine;
+static __boolean unixFileSystem;
 
 
 void __initEnvrFunctions(int argc, char **argv)

@@ -30,7 +30,8 @@ IOACCESS = -O3
 #ASMOPTIONS = -Wall -c -o
 
 # Debug command lines...
-COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions  -fno-omit-frame-pointer -DDEBUG -g -c -o
+#COPTIONS = -DSINGLE_THREADED -DLINUXELF_I386 -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
+COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
 LOPTIONS = -Wall -shared -Wl,-soname,$(DYNLIBMAJOR) -o
 ASMOPTIONS = -D_REENTRANT -Wall -c -o
 
