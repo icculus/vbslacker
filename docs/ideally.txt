@@ -50,8 +50,7 @@ void butts(int fileNo, PBasicString message)
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
     __registerOnEventHandler(&&crackpipe, &message + sizeof (message),
-                             _stack_ptr_, &fileNo - sizeof (void *),
-                             _base_ptr_, ONERROR);
+                             _stack_ptr_, _base_ptr_, ONERROR);
     __exitCriticalThreadSection();
 
     print_NC_(10, totalMsg_DC_);
