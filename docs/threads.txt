@@ -1,3 +1,5 @@
+Notes on using BASIClib's Thread support:
+
 BASIClib is (hopefully) threadsafe, and has an abstraction layer for
 creating and managing threads. Here's all you need to know:
 
@@ -8,7 +10,8 @@ creating and managing threads. Here's all you need to know:
   You have to add another package into the source, define some flags, and
   recompile the library, which is a good 2 hours worth of processing on a
   pentium. Ugh. (Actually, Red Hat 5.1 seems to package their binary glibc2
-  with LinuxThreads compiled in. Good.)
+  with LinuxThreads compiled in. Good. Also, anyone who is still fighting
+  for libc5 is rapidly becoming considered a primate. Doubly good.)
 
 - There's NO POSIX threads on Win95. Cygnus is working on this, but god
   knows how long it will take them to write a POSIX compliant pthreads
@@ -20,20 +23,24 @@ Ignoring those as "problems that will fix themselves," however...
 
 - For reference, the thread abstraction layer is defined in
   BASIClib/Threads.c ... The current implementation uses POSIX threads, but
-  there's no need to concern yourself with the underlying library.
+  there's not necessarily a need to concern yourself with the underlying
+  library. As long as a threads package can fulfill the rather undemanding
+  needs of BASIClib's API, it can be fitted as the backend. POSIX just seems
+  like the best way to go, but BASIClib is hardly chained to it.
 
 - You should #include "Threads.h" in any modules that use threads in anyway.
-  You should ALSO define _REENTRANT on the command line for gcc.
+  Better yet, just #include "StdBasic.h", which includes Threads.h and other
+  nifites. You should ALSO define _REENTRANT on the command line for gcc.
 
   gcc -D_REENTRANT MyCode.c
 
   _REENTRANT changes the behavior of the C library headers to be thread safe.
-  (Most notably, errno works in a downright wrong way if you don't use this.)
+  (Most notably, (errno) works in a downright wrong way if you don't use this.)
   YOU SHOULD DEFINE _REENTRANT EVEN IF YOU DON'T DIRECTLY USE THREADS.
   Threads could be calling your functions, even if you don't specifically
   make a thread do so. Including Threads.h and not defining _REENTRANT will
   cause an error, but this check isn't foolproof, since not every module
-  will include Threads.h ...
+  will necessarily include Threads.h ...
 
 - Spin a thread like this:
 
@@ -67,14 +74,22 @@ Ignoring those as "problems that will fix themselves," however...
 
 - Behavior is ALWAYS undefined if you try to manipulate threads with any
   functions other than BASIClib's threads API. Don't assume that the
-  underlying code is a POSIX implementation, or even the WIN32 API, if
-  even if you are running under Windows...maybe we got witty and created
+  underlying code is a POSIX implementation, or even the WIN32 API, even
+  if you are running under Windows...maybe we got witty and created
   a "green threads" package that runs multiple threads on one.
 
-- Most (if not all) of the problems will come from global and static variables.
-  Expect to be thinking about how to protect that data, and writing an entry
-  in this file if you use any that will affect other modules (like 
-  _stack_ptr_ and _base_ptr_, below.)
+- Most (if not all) of your thread-bug problems will come from global and
+  static variables. Expect to be thinking about how to protect that data.
+  Remember that even thread-proofed data in a dynamically-allocated array
+  isn't safe if you plan to __memRealloc() that array at any point.
+
+- Just about every other thread-bug comes from i/o to the same device/file
+  simultaneously from two different threads. These are sometimes even harder
+  to track, because crashes/unexpected behavior tend to occur inside the C
+  library, which you probably aren't willing to trace into.  :)
+
+- Almost every thread-bug can be prevented by correct use of ThreadLocks.
+  Keep reading.
 
 - There is no EnterCriticalThreadSection() API in the POSIX standard. Use
   BASIClib's ThreadLocks instead. This is a abstraction layer over POSIX
@@ -101,11 +116,13 @@ Ignoring those as "problems that will fix themselves," however...
   __destroyThreadLock(&myThreadLock);
 
   Try to group sensitive data by ThreadLocks, so we don't hog too much
-  memory with a ThreadLock for every bit of data, but there is enough
-  locks in the right places so there aren't any massive slowdowns while
-  threads wait unnecessarily to obtain a lock. Use common sense.
+  memory/processor time with a ThreadLock for every bit of data, but
+  there are enough locks in the right places so there aren't any massive
+  slowdowns while threads wait unnecessarily to obtain a lock. Use common
+  sense. Too many locks == slow. Too few locks == slower, but more idling.
+  No locks == inexplicable crashes.
 
-- If you have to wait for a thread to die for any reason, you can call
+- If you have to wait for a thread to terminate for any reason, you can call
   __waitForThreadToDie(tidx), and the calling thread will block until
   the thread with index (tidx) terminates. Be careful whenever blocking
   is involved, like this.
@@ -114,13 +131,14 @@ Ignoring those as "problems that will fix themselves," however...
   place a call to __timesliceThread() in your loop. This call surrenders
   control of the processor so other threads and processes can use it.
   Eventually control will return to the caller. VERY handy when waiting
-  endlessly for user input.
+  endlessly for user input, or calculating a jazillion places of Pi.
 
 - For accounting purposes, you can call __getThreadCount(), which returns
   a count of all threads in this process...although this isn't as useful
   as __getHighestThreadIndex(), which returns the highest thread index in
   use. This is good for allocating arrays that keep one element for each
-  thread, since such arrays are inherently thread-safe.
+  thread, since such arrays are inherently thread-safe (as long as use use
+  ThreadLocks when reallocating the array.)
 
 - To be notified when a thread is created, add a function to your module
   called (for example) "void __initThreadMyModule(int tidx)", and add a
@@ -128,8 +146,8 @@ Ignoring those as "problems that will fix themselves," however...
   This new function will be called whenever a new thread is created, with
   tidx set to the thread index of the new thread. This will allow you to
   update thread-separated arrays and such. Be careful about reallocating
-  arrays, since this function can be called happen at any time, so any
-  access to those array elements will need to be protected by ThreadLocks.
+  arrays, since this function can be called at any time, so any access to
+  those array elements will need to be protected by ThreadLocks.
   The newly created thread will be the one to call __initThread().
 
 - The same rules apply for thread termination...add your notification
@@ -139,7 +157,7 @@ Ignoring those as "problems that will fix themselves," however...
 
 - Be careful about obtaining thread locks and error handling; If you own
   a thread lock, and there's a possibility of a runtime error being thrown,
-  register an OnError handler, that releases possession of the lock,
+  register an OnError handler that releases possession of the lock,
   deregisters itself, and rethrows the error. Other protections include
   making sure you don't call any routines that could possibly throw (standard
   C library routines never do so, only BASIClib functions do), or registering
@@ -149,16 +167,11 @@ Ignoring those as "problems that will fix themselves," however...
   thread has possession of.
 
 - The best idea is just to avoid global and static data wherever possible.
-  Remember  that every thread has it's own stack, and data stored on it will
+  Remember that every thread has it's own stack, and data stored on it will
   be separate from other functions...therefore local variables and arguments
   are thread-proofed already. This doesn't solve EVERY problem, but keep it
   in mind.
 
-- _stack_ptr_ and _base_ptr_ in OnEvents.c need to be protected. Use the
-  ThreadLock (registerLock), also declared in OnEvents.[c,h]...
-
-- basicErrno and __basicErrno (in ErrorFunctions.c) will need thread-proofing.
-
-/* end of thread_notes.txt ... */
+/* end of threads.txt ... */
 
 
