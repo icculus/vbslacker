@@ -10,6 +10,9 @@
 #include <string.h>
 #include "BasicError.h"
 
+    /*
+     * This is the BASIC equivalent of errno, with one element per thread...
+     */
 static __long *basicErrno = NULL;
 
     /*
@@ -356,7 +359,7 @@ void __prepareResume(__POnErrorHandler pHandler)
 } /* __prepareResume */
 
 
-static void __defaultRuntimeErrorHandler(void)
+static void __defaultRuntimeErrorHandler(__long bErr)
 /*
  * The default runtime error handler notifies the user of a fatal
  *  error, and terminates the program. The user is told the error
@@ -376,13 +379,12 @@ static void __defaultRuntimeErrorHandler(void)
  *    returns : officially void, but never actually returns. (exit() called).
  */
 {
-    int bErr = __getBasicErrno();
     char numeric[20];
-    char consDriverName[10];
+    char consDriverName[25];
     char *errStr = ( (bErr > MAX_ERRS) ?
                       STR_UNKNOWN_ERR : ((char *) errStrings[bErr]) );
 
-    sprintf(numeric, "(#%d)", bErr);
+    sprintf(numeric, "(#%ld)", bErr);
 
     if (errStr == NULL)
         errStr = STR_UNKNOWN_ERR;
@@ -414,6 +416,15 @@ static void __defaultRuntimeErrorHandler(void)
 } /* __defaultRuntimeErrorHandler */
 
 
+static void __preInitRuntimeError(__long errorNum)
+{
+    fprintf(stderr,
+            "\n\nInit error (#%ld) has been thrown. Aborting...\n\n",
+            errorNum);
+    exit(0);
+} /* __preInitRuntimeError */
+
+
 void __fatalRuntimeError(__long errorNum)
 /*
  * Call this instead of __runtimeError() if you want to throw an
@@ -423,8 +434,10 @@ void __fatalRuntimeError(__long errorNum)
  *   returns : never.
  */
 {
-    basicErrno[__getCurrentThreadIndex] = errorNum;
-    __defaultRuntimeErrorHandler();
+    if (basicErrno == NULL)
+        __preInitRuntimeError(errorNum);
+    else
+        __defaultRuntimeErrorHandler(errorNum);
 } /* __fatalRuntimeError */
 
 
@@ -438,17 +451,26 @@ void __runtimeError(__long errorNum)
  *  number is ERR_NO_ERROR, then processing continues, otherwise, a
  *  runtime error is thrown (refer to the OnError subsystem docs).
  *
+ * Note that if there is a runtime error during BASIClib initialization,
+ *  the error immediately becomes fatal (which goes without sayingm perhaps;
+ *  there wouldn't be a registered handler before initialization is finished.)
+ *
  *    params : errorNum == new error number.
  *   returns : void. May jump to arbitrary address if not ERR_NO_ERROR.
  */
 {
-    basicErrno[__getCurrentThreadIndex] = errorNum;
-
-    if (errorNum != ERR_NO_ERROR)
+    if (basicErrno == NULL)     /* not initialized? Upgrade to fatal. */
+        __fatalRuntimeError(errorNum);
+    else
     {
-        if (__triggerOnError() == false)
-            __defaultRuntimeErrorHandler();
-    } /* if */
+        basicErrno[__getCurrentThreadIndex] = errorNum;
+
+        if (errorNum != ERR_NO_ERROR)
+        {
+            if (__triggerOnError() == false)
+                __defaultRuntimeErrorHandler(errorNum);
+        } /* if */
+    } /* else */
 } /* __runtimeError */
 
 
