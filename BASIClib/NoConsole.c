@@ -83,9 +83,14 @@ static void __nocons_vbp_locate(void)
     __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbp_locate */
 
+static void __nocons_playSound(__integer frequency, __single duration)
+{
+    __runtimeError(ERR_CANNOT_CONTINUE);
+} /* __nocons_playSound */
+
 static void __nocons_vbp_beep(void)
 {
-    /* !!! do nothing? */
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbp_beep */
 
 static void __nocons_getConsoleDriverName(__byte *buffer, __integer size)
@@ -120,6 +125,7 @@ __boolean __initNoConsole(void)
         __deinitConsoleDriver = __nocons_deinitConsoleDriver;
         __printNewLine = __nocons_printNewLine;
         __printNChars = __nocons_printNChars;
+        __playSound = __nocons_playSound;
         _vbpii_viewPrint = __nocons_vbpii_viewPrint;
         _vbp_viewPrint = __nocons_vbp_viewPrint;
         _vbp_cls = __nocons_vbp_cls;
