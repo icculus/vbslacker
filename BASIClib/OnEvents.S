@@ -29,6 +29,7 @@
 #define __calcBasePtrStorage    ___calcBasePtrStorage
 #define __callOnEventHandler    ___callOnEventHandler
 #define __resumeNextHandler     ___resumeNextHandler
+#define printf                  _printf
 #endif
 
 
@@ -62,7 +63,7 @@
 #    returns : any return value from BASIC routine in EAX.
 
 __callOnEventHandler:
-        pushl   %ebp
+        pushl   %ebp                    # Save this for RESUME NEXT calls.
         movl    %esp,%ebp               # Move stack ptr to base ptr.
 
         call    __calcBasePtrStorage    # Return value is in eax.
@@ -161,7 +162,8 @@ __decrementBPIndexes:                   # proc
 
         movl    $4,%ebx                 # 32-bits; sizeof (void *) == 4.
         mull    %ebx                    # ebx*eax make it into offset in array.
-        movl    $basePtrIndexes,%esi    # Get array of bp indexes in stacks.
+
+        movl    basePtrIndexes,%esi     # Get array of bp indexes in stacks.
         addl    %eax,%esi               # esi now points to our element.
         movl    (%esi),%eax             # get value pointed to by esi.
         decl    %eax                    # decrement it.
@@ -200,7 +202,7 @@ __resumeNextHandler:                    # proc
         call    __calcBasePtrStorage    # get ptr to original ebp in eax.
         movl    (%eax),%esp             #  ...and restore it to esp.
         popl    %ebp                    # Reset ebp to sane state.
-        call    __decrementBPIndexes    # Cleanup other data.
+#        call    __decrementBPIndexes    # Cleanup other data.
         ret                             # Perform miracles.
 # __resumeNextHandler   endp
 
