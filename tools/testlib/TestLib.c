@@ -16,8 +16,9 @@ int main(void)
     __initBasicLib();
 
     testOnEvents();
+    testErrorFunctions();
     testThreads();
-    testConversions();
+    testConversionFunctions();
 
     printf("\n[TESTLIB FOR VBSLACKER SHUTTING DOWN...]\n");
     printf("Making call to __deinitBasicLib()...\n"); 

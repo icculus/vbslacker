@@ -225,7 +225,7 @@ void test_val(void)
 } /* test_val */
 
 
-void testConversions(void)
+void testConversionFunctions(void)
 /*
  * This code tests all the conversion functions in BASIClib.
  *
@@ -241,7 +241,7 @@ void testConversions(void)
 /*    test_val();  !!! */
     test_hex_DC_();
     test_oct_DC_();
-} /* testConversions */
+} /* testConversionFunctions */
 
 
 #ifdef STANDALONE
@@ -249,7 +249,7 @@ void testConversions(void)
 int main(void)
 {
     __initBasicLib();
-    testConversions();
+    testConversionFunctions();
     __deinitBasicLib();
 } /* main */
 
