@@ -17,8 +17,7 @@
  *                         inline assembly calls.
  *
  *    ARCHITECTURE     ... equals "i386" (...and perhaps more to come...),
- *                         depending on what the platform's processor type
- *                         is.
+ *                         depending on what the platform's processor type is.
  *
  *    STACK_DIRECTION  ... equals (-1) if the stack on a given platform grows
  *                         downward, or (1) if stack grows upward.
@@ -35,6 +34,7 @@
  *                         come...) depending on what characters signify
  *                         the current directory on a given platform.
  *
+ *    __byte           ... intrinsic type for BASIC's BYTE.    (8-bit uint)
  *    __integer        ... intrinsic type for BASIC's INTEGER. (16-bit int)
  *    __long           ... intrinsic type for BASIC's LONG.    (32-bit int)
  *    __single         ... intrinsic type for BASIC's SINGLE.  (16-bit float)
@@ -60,36 +60,51 @@
 /* Verify that a supported platform has been defined... */
 
     #if defined LINUXELF_I386
+        #ifndef LINUX
+            #define LINUX
+        #endif
+        #define I386
         #define ARCHITECTURE      "i386"
         #define FUNCNAME_PREPEND  ""
         #define STACK_DIRECTION   -1
         #define EOL_STRING        "\n"
         #define PATHCHAR          '/'
         #define CURRENTDIRSTR     "."
+        typedef unsigned char __byte;
         typedef short  __integer;
         typedef long   __long;
         typedef float  __single;
         typedef double __double;
 
     #elif defined LINUXAOUT_I386
+        #ifndef LINUX
+            #define LINUX
+        #endif
+        #define I386
         #define ARCHITECTURE      "i386"
         #define FUNCNAME_PREPEND  "_"
         #define STACK_DIRECTION   -1
         #define EOL_STRING        "\n"
         #define PATHCHAR          '/'
         #define CURRENTDIRSTR     "."
+        typedef unsigned char __byte;
         typedef short  __integer;
         typedef long   __long;
         typedef float  __single;
         typedef double __double;
 
     #elif defined WIN32_I386
+        #ifndef WIN32
+            #define WIN32
+        #endif
+        #define I386
         #define ARCHITECTURE      "i386"
         #define FUNCNAME_PREPEND  "_"
         #define STACK_DIRECTION   -1
         #define EOL_STRING        "\r\n"
         #define PATHCHAR          '\\'
         #define CURRENTDIRSTR     "."
+        typedef unsigned char __byte;
         typedef short  __integer;
         typedef long   __long;
         typedef float  __single;

@@ -101,9 +101,10 @@ void __assignString(STATEPARAMS,
  *   __assignString(&str1, str2);
  *
  *    params : ppBasicStr == String to do assigning to. Previous values are
- *                            __memRealloc()d, if they exist. Passing a NULL
- *                            here will result in the creation of a new, 
- *                            non-fixed length BASIC string.
+ *                            __memRealloc()d, if they exist. If this POINTS
+ *                            to a NULL (but is not NULL itself) will result
+ *                            in the creation of a new, non-fixed length
+ *                            BASIC string.
  *             pStrToAssign == String to assign to (ppBasicStr).
  *   returns : void. *ppBasicStr may hold new data. 
  */

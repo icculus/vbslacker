@@ -12,18 +12,15 @@
 #include "CursesConsole.h"
 #include "RedirectedConsole.h"
 
-/*static __boolean inGraphicsState = false;*/
-
 /* internal function declarations needed at start... */
-void __preinitPrintNewLine(STATEPARAMS);
-void __preinitPrintNChars(STATEPARAMS, char *str, int n);
+static void __preinitPrintNewLine(STATEPARAMS);
+static void __preinitPrintNChars(STATEPARAMS, char *str, int n);
 
 /* variable function pointers... */
 void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size) = NULL;
 void (*__deinitConsoleHandler)(STATEPARAMS) = NULL;
 void (*__printNewLine)(STATEPARAMS) = __preinitPrintNewLine;
 void (*__printNChars)(STATEPARAMS, char *str, int n) = __preinitPrintNChars;
-void (*vbpS_print)(STATEPARAMS, PBasicString x) = NULL;
 void (*vbpii_viewPrint)(STATEPARAMS, int top, int bottom) = NULL;
 void (*vbp_viewPrint)(STATEPARAMS) = NULL;
 void (*vbp_cls)(STATEPARAMS) = NULL;
@@ -61,7 +58,6 @@ void __deinitConsoleFunctions(STATEPARAMS)
     __deinitConsoleHandler = NULL;
     __printNewLine = __preinitPrintNewLine;
     __printNChars = __preinitPrintNChars;
-    vbpS_print = NULL;
     vbpii_viewPrint = NULL;
     vbp_viewPrint = NULL;
     vbp_cls = NULL;
@@ -111,7 +107,7 @@ void __printAsciz(STATEPARAMS, char *str)
  *     returns : void.
  */
 {
-    __printNChars(STATEARGS, strlen(str));
+    __printNChars(STATEARGS, str, strlen(str));
 } /* __printAsciz */
 
 
@@ -130,7 +126,7 @@ static void __preinitPrintNChars(STATEPARAMS, char *str, int n)
     int i;
 
     for (i = 0; i < n; i++)
-        fputc(stderr, str[i]);
+        fputc(str[i], stderr);
 } /* __preinitPrintNChars */
 
 

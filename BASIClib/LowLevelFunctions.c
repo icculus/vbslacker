@@ -4,6 +4,8 @@
  *  Copyright (c) Ryan C. Gordon and Gregory S. Read.
  */
 
+#include "LowLevelFunctions.h"
+
 #include <errno.h>
 
 #ifdef LINUX
@@ -17,10 +19,8 @@
 #define outb(x, y)
 #endif
 
-#include "LowLevelFunctions.h"
 
-
-static boolean portAccess = false;
+static __boolean portAccess = false;
 
 
 int vbil_peek(STATEPARAMS, long addr)
@@ -35,7 +35,7 @@ void vbpli_poke(STATEPARAMS, long addr, int newVal)
 } /* vbpli_poke */
 
 
-void __getPortAccess(STATEPARAMS)
+static void __getPortAccess(STATEPARAMS)
 {
     int rc;
 
@@ -51,7 +51,7 @@ void __getPortAccess(STATEPARAMS)
         else
             portAccess = true;
     } /* if */
-} /* getPortAccess */
+} /* __getPortAccess */
 
 
 int vbil_inp(STATEPARAMS, long ioport)

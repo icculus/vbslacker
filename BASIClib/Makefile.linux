@@ -11,7 +11,7 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
        FileSystemFunctions.o Variant.o BasicError.o NoConsole.o \
        DirectConsole.o RedirectedConsole.o CursesConsole.o \
-       EnvrFunctions.o Gosub.o
+       EnvrFunctions.o Gosub.o MiscFunctions.o ArrayFunctions.o
 
 CC = gcc
 LINKER = gcc
@@ -23,12 +23,12 @@ LANGUAGE=ENGLISH
 IOACCESS = -O3
 
 # Shipping command lines
-#COPTIONS = -DLINUX_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -O2 -fPIC -fasm -finline-functions -s -c -o
+#COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -O2 -fPIC -fasm -finline-functions -s -c -o
 #LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
 #ASMOPTIONS = -Wall -c -o
 
 # Debug command lines...
-COPTIONS = -DLINUX_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
+COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
 LOPTIONS = -Wall -shared -Wl,-soname,$(DYNLIBMAJOR) -o
 ASMOPTIONS = -D_REENTRANT -Wall -c -o
 
@@ -51,6 +51,9 @@ ConversionFunctions.o : ConversionFunctions.c ConversionFunctions.h
 
 Initialize.o : Initialize.c Initialize.h
 	$(CC) $(COPTIONS) Initialize.o Initialize.c
+
+MiscFunctions.o : MiscFunctions.c MiscFunctions.h
+	$(CC) $(COPTIONS) MiscFunctions.o MiscFunctions.c
 
 OnEvents.o : OnEvents.c OnEvents.h
 	$(CC) $(COPTIONS) OnEvents.o OnEvents.c
@@ -122,6 +125,9 @@ BasicError.o : BasicError.c BasicError.h
 
 EnvrFunctions.o : EnvrFunctions.c EnvrFunctions.h
 	$(CC) $(COPTIONS) EnvrFunctions.o EnvrFunctions.c
+
+ArrayFunctions.o : ArrayFunctions.c ArrayFunctions.h
+	$(CC) $(COPTIONS) ArrayFunctions.o ArrayFunctions.c
 
 # end of Makefile.linux ...
 

@@ -9,14 +9,15 @@
 
 #include "StdBasic.h"
 
-__boolean __fileExists(STATEPARAMS, char *fileName);
+__boolean __fileExists(STATEPARAMS, char *fullPathName);
 void vbpS_kill(STATEPARAMS, PBasicString fileName);
 void vbpS_mkdir(STATEPARAMS, PBasicString dirStr);
 void vbpS_rmdir(STATEPARAMS, PBasicString dirStr);
 void vbpSS_name(STATEPARAMS, PBasicString oldName, PBasicString newName);
 void vbp_files(STATEPARAMS);
+void vbpSS_filecopy(STATEPARAMS, PBasicString src, PBasicString dest);
 
-#endif
+#endif /* _INCLUDE_FILESYSTEMFUNCTIONS_H_ */
 
 /* end of FileSystemFunctions.h ... */
 

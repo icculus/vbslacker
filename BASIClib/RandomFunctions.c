@@ -4,7 +4,7 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
-#include "RandomFunctions.c"
+#include "RandomFunctions.h"
 
 /* !!! still need: */
 /* rnd */

@@ -65,7 +65,60 @@ __boolean __fileExists(STATEPARAMS, char *fullPathName)
 } /* __fileExists */
 
 
-int __fileSystemErrors(STATEPARAMS)
+static char *__convertPathWinToUnix(STATEPARAMS, char *pathName)
+/*
+ * Convert "C:\path\path\filename.txt" to "/path/path/filename.txt"
+ *
+ *  The drive is removed if it exists, regardless of the letter.
+ *  The return value is allocated from scratch and put in a boxcar.
+ *
+ *     params : pathName == path to convert.
+ *    returns : see above.
+ */
+{
+    int length = strlen(pathName);
+    char *retVal = __memAllocInBoxcar(STATEARGS, length + 1);
+    int i;
+
+    if ((length >= 2) && (pathName[1] == ':'))   /* drive letter? */
+        pathName += 2;                           /* bump pathName past it. */
+
+    for (i = 0; *pathName != '\0'; pathName++, i++)
+        retVal[i] = ((*pathName == '\\') ? '/' : *pathName);
+
+    retVal[i] = '\0';
+    return(retVal);
+} /* __convertPathWinToUnix */
+
+
+
+static char *__convertPathUnixToWin(STATEPARAMS, char *pathName)
+/*
+ * Convert "/path/path/filename.txt" to "C:\path\path\filename.txt"
+ *
+ *  A "C:" is appended. The return value is allocated from scratch
+ *   and put in a boxcar.
+ *
+ *     params : pathName == path to convert.
+ *    returns : see above.
+ */
+{
+    int length = strlen(pathName);
+    char *retVal = __memAllocInBoxcar(STATEARGS, length + 3);
+    int i;
+
+    strcpy(retVal, "C:");
+
+    for (i = 2; *pathName != '\0'; pathName++, i++)
+        retVal[i] = ((*pathName == '/') ? '\\' : *pathName);
+
+    retVal[i] = '\0';
+    return(retVal);
+} /* __convertPathUnixToWin */
+
+
+
+static int __fileSystemErrors(STATEPARAMS)
 /*
  * Convert C's (errno) into one of the common errors in the BASIClib
  *  file system API.
@@ -173,7 +226,6 @@ void vbp_files(STATEPARAMS)
 {
     DIR *dp;
     struct dirent *ep;
-    PBasicString pStr;
 
     dp = opendir ("./");
     if (dp == NULL)
@@ -183,20 +235,17 @@ void vbp_files(STATEPARAMS)
         /* !!! spacing won't be right. */
         while ((ep = readdir(dp)))
         {
-            pStr = __createString(STATEARGS, ep->d_name, true);
-
-/*
-!!! need console abstraction...just use vbpS_print?
-            vbpS_print(STATEARGS, pStr);
-            vbpS_print(STATEARGS, pSpaces);
-*/
-
-            __freeString(STATEARGS, pStr);
+            __printAsciz(STATEARGS, ep->d_name);
+            __printNewLine(STATEARGS);
         } /* while */
         closedir(dp);
     } /* else */
 } /* vbp_files */
 
+
+void vbpSS_filecopy(STATEPARAMS, PBasicString src, PBasicString dest)
+{
+} /* vbpSS_filecopy */
 
 /* end of FileSystemFunctions.c ... */
 

@@ -21,9 +21,10 @@
 #define INITFLAG_DISABLE_NUM_OVERFLOW  8
 #define INITFLAG_DISABLE_VARIANTS      16
 #define INITFLAG_DISABLE_CONSOLE       32
+#define INITFLAG_UNIX_FILE_SYSTEM      64
 
     /* function prototypes ... */
-void __initBasicLib(STATEPARAMS, long flags);
+void __initBasicLib(STATEPARAMS, long flags, int argc, char **argv);
 void __deinitBasicLib(void);
 long __getInitFlags(STATEPARAMS);
 void __shellOutNotification(STATEPARAMS);

@@ -21,8 +21,8 @@ typedef struct
 
 typedef GosubState *PGosubState;
 
-void __prepareGosub(STATEPARAMS, void *addr, void *ret, PGosubState state);
-void __prepareReturn(STATEPARAMS, void *addr, PGosubState state);
+void __prepareGosub(STATEPARAMS, void *ret, PGosubState state);
+void *__prepareReturn(STATEPARAMS, void *addr, PGosubState state);
 /* __jmp() is a macro defined in RegState.h ... */
 
 

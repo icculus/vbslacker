@@ -125,7 +125,7 @@ PBasicString vbSd_str_DC_(STATEPARAMS, double numeric)
 
 
 
-int __valEndOfNumberString(STATEPARAMS, PBasicString pBasicStr)
+static int __valEndOfNumberString(STATEPARAMS, PBasicString pBasicStr)
 /*
  * Used by val() to find index in string where number ends.
  *

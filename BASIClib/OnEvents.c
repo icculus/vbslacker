@@ -8,13 +8,8 @@
 #include "OnEvents.h"
 
 
-#ifdef WIN32
-    #define CLEANUPPROC "___cleanupOnEventHandler"
-    #define FREEPROC   "_free"
-#else
-    #define CLEANUPPROC "__cleanupOnEventHandler"
-    #define FREEPROC    "free"
-#endif
+#define CLEANUPPROC FUNCNAME_PREPEND "__cleanupOnEventHandler"
+#define FREEPROC    FUNCNAME_PREPEND "free"
 
 
     /*
@@ -63,6 +58,9 @@ static unsigned int allocatedThreads = 0;
      *  this dynamic array, and not the individual structures.
      */
 static POnEventsState *ppState = NULL;
+
+/* internal function prototype... */
+static void __deregisterAllOnEventHandlers(STATEPARAMS);
 
 
 void __initOnEvents(STATEPARAMS)
@@ -219,19 +217,19 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
  * Ideally, any module that contains a call to this function should
  *  do something like this:
  *
- *   __setResumeStack;
- *   __setResumeInstructs(&&l0, &&l1);
+ *   __setStateStack;
+ *   __setStateInstructs(&&l0, &&l1);
  *   l0:
  *   __registerOnEventHandler(STATEARGS, &&handlerLabel, ONERROR);
  *   l1:
  *
- * __setResumeStack is a macro that simply fills the current base and stack
+ * __setStateStack is a macro that simply fills the current base and stack
  *  pointers into STATEPARAMS. We need this to be inlined, and done before 
  *  the call to this function begins, so we have a stable stack pointer. The
  *  parser/compiler inserts this macro at the beginning of each function, so
  *  the state should be cool for this call at any time.
  *
- * __setResumeInstructs is a macro that sets the addresses that will be
+ * __setStateInstructs is a macro that sets the addresses that will be
  *  jumped to for RESUME 0 and RESUME NEXT commands.
  *
  * handlerAddr is the goto label we'll be blindly jumping to to handle the
@@ -298,7 +296,7 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
 } /* __registerOnEventHandler */
 
 
-void __deregisterAllOnEventHandlers(STATEPARAMS)
+static void __deregisterAllOnEventHandlers(STATEPARAMS)
 /*
  * This function does the same thing as __deregisterOnEventHandlers(), but
  *  considers all OnEvent handlers irrelevant, thus removing them all.
@@ -459,7 +457,8 @@ void *__cleanupOnEventHandler(STATEPARAMS)
 /*
  * To avoid using any more inline assembly than needed, this
  *  C routine is called from __triggerOnEvent()'s ASM code to
- *  cleanup after an OnEvent handler returns.
+ *  cleanup after an OnEvent handler returns. OnEvent handler
+ *  that returned is "deregistered," too.
  *
  *      params : void.
  *     returns : address that code would have returned to, had we
@@ -471,7 +470,6 @@ void *__cleanupOnEventHandler(STATEPARAMS)
     void *ebp;
 
     __getBasePointer(&ebp);
-    __memReleaseBoxcarsBelow(STATEARGS, (unsigned long) ebp);
     pState->ptrCount--;
     free(pState->ptrs[pState->ptrCount].protectedStack);
     return(pState->ptrs[pState->ptrCount].retAddr);

@@ -4,18 +4,18 @@
  *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include "ConsoleFunctions.h"
+
 #ifdef WIN32   /* cygwin doesn't come with ncurses; won't compile for me. */
 
 #warning WIN32 has no curses support, yet!
-#include "ConsoleFunctions.h"
-boolean __initCursesConsole(STATEPARAMS) { return(false); }
+__boolean __initCursesConsole(STATEPARAMS) { return(false); }
 
 #else
 
+#include "CursesConsole.h"
 #include <string.h>
 #include <curses.h>
-#include "ConsoleFunctions.h"
-#include "CursesConsole.h"
 
 static WINDOW *cons = NULL;     /* WINDOW structure for printable window. */
 static ThreadLock consoleLock;

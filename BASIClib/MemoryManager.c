@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include "MemoryManager.h"
 
+#warning COMMENT THE MEMORYMANAGER!!!
+
 
     /*
      * ABOVESTACK is a comparison operator based on which
@@ -35,6 +37,9 @@ typedef Boxcar *PBoxcar;
 static int collectionMax = 20;       /* override by env. var... */
 static PBoxcar *trains = NULL;
 static ThreadLock trainLock = NULL;
+
+
+static void __memReleaseAllBoxcars(STATEPARAMS);
 
 
 void __initMemoryManager(STATEPARAMS)
@@ -80,7 +85,7 @@ void __initThreadMemoryManager(STATEPARAMS, int tidx)
 } /* __initThreadMemoryManager */
 
 
-void __deinitThreadMemoryManager(STATEARGS, int tidx)
+void __deinitThreadMemoryManager(STATEPARAMS, int tidx)
 {
     __memReleaseAllBoxcars(STATEARGS);
 } /* __deinitThreadMemoryManager */
@@ -89,7 +94,7 @@ void __deinitThreadMemoryManager(STATEARGS, int tidx)
 static void __setStartOfTrain(STATEPARAMS, PBoxcar newStart)
 {
     __obtainThreadLock(STATEARGS, &trainLock);
-    trains[__getCurrentThreadIndex(STATEARGS)] = retVal;
+    trains[__getCurrentThreadIndex(STATEARGS)] = newStart;
     __releaseThreadLock(STATEARGS, &trainLock);
 } /* __setStartOfTrain */
 
@@ -128,7 +133,7 @@ void *__memAlloc(STATEPARAMS, size_t byteCount)
         retVal = malloc(byteCount);
         if (retVal == NULL)
         {
-            boxcarsRemain = __forcePartialMemCleanup(STATEARGS);
+            boxcarsRemain = __memForcePartialBoxcarRelease(STATEARGS);
             retVal = malloc(byteCount);
         } /* if */
     } while ((retVal == NULL) && (boxcarsRemain == true));
@@ -163,7 +168,7 @@ void *__memRealloc(STATEPARAMS, void *oldPtr, size_t byteCount)
         retVal = realloc(oldPtr, byteCount);
         if (retVal == NULL)
         {
-            boxcarsRemain = __forcePartialMemCleanup(STATEARGS);
+            boxcarsRemain = __memForcePartialBoxcarRelease(STATEARGS);
             retVal = realloc(oldPtr, byteCount);
         } /* if */
     } while ((retVal == NULL) && (boxcarsRemain == true));
@@ -240,7 +245,7 @@ static PBoxcar __retrieveBoxcar(STATEPARAMS)
     PBoxcar retVal;
 
     for (retVal = firstCar;
-         ((retVal != NULL) && (retVal->id != __stBP);
+         ((retVal != NULL) && (retVal->id != __stBP));
          retVal = retVal->next)
             /* do nothing. */ ;
 
@@ -389,7 +394,7 @@ void __memFreeInBoxcar(STATEPARAMS, void *ptr)
 } /* __memFreeInBoxcar */
 
 
-static int __releaseBoxcar(STATEPARAMS, PBoxcar pCar)
+static int __memReleaseBoxcar(STATEPARAMS, PBoxcar pCar)
 /*
  * Free a boxcar, and all contained pointers.
  *
@@ -397,11 +402,13 @@ static int __releaseBoxcar(STATEPARAMS, PBoxcar pCar)
  *  returns : number of ptrs contained in boxcar before release.
  */
 {
+    int retVal = pCar->totalPtrs;
     int i;
 
-    for (i = 0; i < pCar->totalPtrs; i++)
-        __memFree(pCar->ptrs[i]);
-    __memFree(pCar->ptrs);
+    for (i = 0; i < retVal; i++)
+        __memFree(STATEARGS, pCar->ptrs[i]);
+
+    __memFree(STATEARGS, pCar->ptrs);
 
     if (pCar->prev == NULL)
         __setStartOfTrain(STATEARGS, pCar->next);
@@ -411,7 +418,9 @@ static int __releaseBoxcar(STATEPARAMS, PBoxcar pCar)
     if (pCar->next != NULL)
         pCar->next->prev = pCar->prev;
 
-    __memFree(pCar);
+    __memFree(STATEARGS, pCar);
+
+    return(retVal);
 } /* __memReleaseBoxcar */
 
 

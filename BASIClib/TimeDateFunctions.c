@@ -30,7 +30,7 @@ static OnOffStopType timerSetting = OFF;
 static time_t todaySecs;
 
 
-struct tm *__getBrokenTime(STATEPARAMS)
+static struct tm *__getBrokenTime(STATEPARAMS)
 /*
  * Returns brokendown time for current time of day, a glibc-specific
  *  data structure that parses time into various fields, like day,
@@ -54,7 +54,7 @@ struct tm *__getBrokenTime(STATEPARAMS)
 } /* __getBrokenTime */
 
 
-time_t __getTodaySecs(STATEPARAMS)
+static time_t __getTodaySecs(STATEPARAMS)
 /*
  * Figure out how many seconds have elasped between Midnight Jan, 1970,
  *  GMT, and the beginning of today. Calculating this once will help the
@@ -113,7 +113,7 @@ void vbpO_timer(STATEPARAMS, OnOffStopType setting)
 } /* vbpO_timer */
 
 
-PBasicString __makeTimeDateString(STATEPARAMS, int size, char *fmt)
+static PBasicString __makeTimeDateString(STATEPARAMS, int size, char *fmt)
 /*
  * This called by the function versions of TIME$ and DATE$, since they
  *  require the exact same logic, with some different parameters.
@@ -174,7 +174,7 @@ PBasicString vbS_date_DC_(STATEPARAMS)
 } /* vbS_date_DC_ */
 
 
-__boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
+static __boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
 /*
  * Verify that specified numbers are valid for setting through BASIC's
  *  DATE$ function. The bounds appear to be:
@@ -212,7 +212,7 @@ __boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
 
 
 
-__boolean __prepareDateString(STATEPARAMS, char *str)
+static __boolean __prepareDateString(STATEPARAMS, char *str)
 /*
  * Check a date string for initial validity. This will check that characters
  *  are acceptable, but won't determine if numbers are in range.
@@ -251,7 +251,8 @@ __boolean __prepareDateString(STATEPARAMS, char *str)
 
 
 
-__boolean __setSystemDate(STATEPARAMS, int month, int day, int year, int *pErrVal)
+static __boolean __setSystemDate(STATEPARAMS, int month, int day,
+                                 int year, int *pErrVal)
 /*
  * Set system clock to new date.
  *

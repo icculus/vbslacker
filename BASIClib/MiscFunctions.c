@@ -21,7 +21,7 @@ void vbp_clear(STATEPARAMS)
 } /* vbp_clear */
 
 
-void vbpNNl_clear(STATEPARAMS, __long stackSize);
+void vbpNNl_clear(STATEPARAMS, __long stackSize)
 /*
  * Refer to vbp_clear()...
  *

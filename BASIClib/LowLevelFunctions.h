@@ -19,8 +19,7 @@ long vblA_varptr(STATEPARAMS, void *myVar);
 PBasicString vbSA_varptr_DC_(STATEPARAMS, void *myVar);
 long vblA_varseg(STATEPARAMS, void *myVar);
 
-#endif
+#endif /* _INCLUDE_LOWLEVELFUNCTIONS_H_ */
 
 /* end of LowLevelFunctions.h ... */
-
 

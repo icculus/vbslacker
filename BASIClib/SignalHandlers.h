@@ -15,8 +15,8 @@
 
 void __initSignalHandlers(STATEPARAMS);
 
-#endif
-#endif
+#endif /* _INCLUDE_SIGNALHANDLERS_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of SignalHandlers.h ... */
 

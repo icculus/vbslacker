@@ -18,10 +18,10 @@
 
 #include "Platform.h"
 #include "RegState.h"
+#include "Boolean.h"
 #include "Gosub.h"
 #include "MemoryManager.h"
 #include "Language.h"
-#include "Boolean.h"
 #include "BasicString.h"
 #include "Variant.h"
 #include "OnOffStopType.h"
@@ -32,6 +32,8 @@
 #include "BasicFileStream.h"
 #include "SignalHandlers.h"
 #include "OnEvents.h"
+
+#include "ConsoleFunctions.h"
 
 #endif /* _INCLUDE_STDBASIC_H_ */
 

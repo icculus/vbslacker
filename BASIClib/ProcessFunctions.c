@@ -90,6 +90,7 @@ void vbpl_sleep(STATEPARAMS, long napTime)
         {
             do      /* give up time slices until (napTime) seconds elaspe. */
             {
+                __memForcePartialBoxcarRelease(STATEARGS);
                 __threadTimeslice(STATEARGS);
                 time(&currentTime);
             } while (difftime(currentTime, startTime) < dNapTime);

@@ -13,8 +13,6 @@
 #ifndef _INCLUDE_BASICARRAY_H_
 #define _INCLUDE_BASICARRAY_H_
 
-#include "StdBasic.h"
-
 typedef struct
 {
     void *data;                 /* Points to C array of variant structs. */

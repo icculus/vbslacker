@@ -33,7 +33,7 @@ typedef OnEventTypeEnum *POnEventTypeEnum;
  */
 
 typedef struct
-{    
+{
     void *handlerAddr;
     void *basePtr;
     void *stackPtr;
@@ -53,7 +53,6 @@ void __deinitThreadOnEvents(STATEPARAMS, int tidx);
 void __resumeNext(STATEPARAMS);
 void __resumeZero(STATEPARAMS);
 void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType);
-void __deregisterAllOnEventHandlers(STATEPARAMS);
 void __deregisterOnEventHandlers(STATEPARAMS);
 void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
                               OnEventTypeEnum evType);

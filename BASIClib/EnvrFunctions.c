@@ -8,21 +8,66 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include "EnvrFunctions.h"
-
 
 extern char **environ;
 
-ThreadLock envrLock;
+static ThreadLock envrLock;
+static PBasicString commandLine;
+static __boolean unixFileSystem;
 
 
-void __initEnvrFunctions(STATEPARAMS)
+void __initEnvrFunctions(STATEPARAMS, int argc, char **argv)
+/*
+ * Initializations;
+ *   - Create a ThreadLock for thread-proofing getenv() calls...
+ *   - Check if the "unix file system compatible" init flag was set.
+ *   - get the command line, and convert it to a BASIC string for COMMAND$().
+ *
+ *      params : argc, argv == same as params to main()...
+ *     returns : void.
+ */
 {
+    int i;
+    int size = 0;
+    char *cmdLine;
+
     __createThreadLock(STATEARGS, &envrLock);
+
+    unixFileSystem = ((__getInitFlags(STATEARGS) & INITFLAG_UNIX_FILE_SYSTEM) ?
+                          true : false);
+
+
+    /* !!! This is basically inefficient... */
+
+    for (i = 1; i < argc; i++)        /* get size of command line string... */
+        size += strlen(argv[i]) + 1;
+
+    cmdLine = __memAlloc(STATEARGS, size);
+    memset(cmdLine, '\0', size);
+
+    for (i = 1; i < argc; i++)   /* Make argv[] one space-separated string. */
+    {
+        strcat(cmdLine, argv[i]);
+        if (i < argc - 1)
+            cmdLine[strlen(cmdLine)] = ' ';
+    } /* for */
+
+                                 /* Convert to a BASIC string. */
+    commandLine = __createString(STATEARGS, cmdLine, false);
+    __memFree(STATEARGS, cmdLine);
 } /* __initEnvrFunctions */
 
 
 void __deinitEnvrFunctions(STATEPARAMS)
+/*
+ * Deinitialization; Destroy the ThreadLock. The rest will take care of
+ *  itself.
+ *
+ *      params : void.
+ *     returns : void.
+ */
 {
     __destroyThreadLock(STATEARGS, &envrLock);
 } /* __initEnvrFunctions */
@@ -42,7 +87,6 @@ void vbpS_chdir(STATEPARAMS, PBasicString newDir)
 
     rc = chdir(str);
     __memFree(STATEARGS, str);
-
 
     if (rc == -1)
     {
@@ -73,6 +117,39 @@ void vbpS_chdir(STATEPARAMS, PBasicString newDir)
         __runtimeError(STATEARGS, rc);
     } /* if */
 } /* vbpS_chdir */
+
+
+PBasicString vbSS_curdir_DC_(STATEPARAMS, PBasicString drive)
+/*
+ * Return current working directory by drive letter. Under Unix-like
+ *  Operating systems, the only valid drive letter is "C"...You can set
+ *  the behavior of this by setting the "unix file system compatible"
+ *  option at compile time. Either way on unix, you get a runtime error
+ *  if you specify a drive other than C or blank, but you'll either get
+ *  "/home/gordonr" or "C:\home\gordonr", depending on how you set the
+ *  compatibility. 
+ *
+ *    params : drive == drive letter. Only first letter is read. ("") means
+ *                      current drive.
+ *   returns : see above.
+ */
+{
+
+} /* vbSS_curdir */
+
+
+PBasicString vbS_curdir_DC_(STATEPARAMS)
+/*
+ * Same as above vbSS_curdir_DC_(), but always gets current drives's
+ *  working directory. Equivalent to vbSS_curdir_DC_(STATEARGS, "");
+ *
+ *     params : void.
+ *    returns : see above.
+ */
+{
+    PBasicString blankString = __createString(STATEARGS, "", false);
+    return(vbSS_curdir_DC_(STATEARGS, blankString));
+} /* vbS_curdir_DC_ */
 
 
 PBasicString vbSS_environ_DC_(STATEPARAMS, PBasicString envVarName)
@@ -171,5 +248,18 @@ int vbiS_fre(STATEPARAMS, PBasicString strExp)
 } /* vbiS_fre */
 
 
-/* end of EnvrFunctions.c ... */
+PBasicString vbS_command_DC_(STATEPARAMS)
+/*
+ * Return the command line of this application.
+ *
+ *   params : void.
+ *  returns : BASIC string containing the command line.
+ */
+{
+    PBasicString retVal = NULL;
 
+    __assignString(STATEARGS, &retVal, commandLine);
+    return(retVal);
+} /* vbS_command_DC_ */
+
+/* end of EnvrFunctions.c ... */
