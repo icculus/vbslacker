@@ -8,14 +8,25 @@ Visual BASIC removed the ability to make console applications. While a
 C++ equivalent, you just can't beat the one-line program under Qbasic.
 
 If nothing else, writing quick, text-based apps to perform simple tasks was
-sorely missed in Visual BASIC.
+sorely missed in Visual BASIC. However, it was not an unheard of concept,
+since the short-lived Visual Basic for DOS had support for both event-driven
+"windowed" apps, and text-based console apps. To be fair, VBDOS's window
+system was all text-based, too, but the API is what's important. It merely
+let you program for either API, and threw runtime errors when you tried to
+mix API calls. There's no reason this concept couldn't be applied to more
+modern, graphical operating environments.
 
-vbSlacker fills this gap, by allowing programmers to write not only
+vbSlacker fills the gap, by allowing programmers to write not only
 GUI-windowing apps, like Visual BASIC, but also "console" apps, like
 QuickBASIC.
 
 Or both, at the same time, if you want to have a console window along with
 GUI widgets.
+
+Keep in mind that GUI controls, such as text boxes, and the PRINT method
+available for BASIC forms are under a completely different subsystem than
+everything you read here. You may still read input in your text box, and
+PRINT to a form with a disabled console.
 
 When building a vbSlacker project, one option presented to the developer is
 to "Disable console", which has two distinct effects. First, a text window
@@ -108,6 +119,57 @@ Console drivers are selected in this order:
 Note that the GraphicsConsole driver is never selected at BASIClib startup.
 That driver is only switched in dynamically during program execution by the
 SCREEN command.
+
+USING THE VBSLACKER CONSOLE:
+
+To output to the console, you need not concern yourself with which driver
+is in use. vbSlacker presents a flexible, and abstract API.
+
+First, from BASIC, the simplest way to do console output is the standard old
+PRINT command. vbSlacker supports it in all its wierd configurations,
+including the ";" operator to print several types from one command, and the
+slightly different ";" operator at the end of the command to signify that no
+newline is desired. See special_cases.txt for a discussion of how this is all
+handled. The only time that BASIC's PRINT command won't work is when the
+console is disabled, otherwise, your text will make it to its destination
+in some form or another.
+
+From C, the console is used through one of several API calls, depending on
+your needs. First, there is __printAsciz(), to print null-terminated C
+strings.
+
+#include "BasicLib.h"
+void hello(STATEPARAMS)
+{
+    __printAsciz(STATEARGS, "Hello");
+} /* hello */
+
+Next, for printing BASIC strings, you may use the BASIC API itself:
+
+#include "BasicLib.h"
+void helloName(STATEPARAMS, PBasicString name)
+{
+    __printAsciz(STATEARGS, "Hello there, ");
+    vbpS_print(STATEARGS, name);
+} /* helloThere */
+
+If you just want a piece of a string, or want to print data that isn't
+null-terminated (and isn't stored in a BASIC string structure), you may
+call what __printAsciz() and vbpS_print() call at their lowest level:
+__printNChars() ...
+
+char name[10];
+strcpy(name, "Ryan C. Gordon");
+__printNChars(STATEARGS, name, 4);
+
+...would print "Ryan" to the console.
+
+On a higher level, any known BASIC type may be printed by calling
+vbpV_print(), which takes a Variant argument, converts it to a string,
+calls vbpS_print(), which calls __printNChars()...whew!
+
+The console drivers only implements __printNChars() out of all this 
+rigamarole. The rest is implemented abstractly in ConsoleFunctions.c...
 
 /* end of console.txt ... */
 
