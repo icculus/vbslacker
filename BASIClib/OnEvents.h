@@ -35,7 +35,6 @@ typedef struct
 typedef OnEventHandler *POnEventHandler;
 
 
-extern void *_label_addr_;
 extern void *_stack_ptr_;
 extern void *_base_ptr_;
 
@@ -62,21 +61,11 @@ extern void *_base_ptr_;
  *
  * The i386 version guarantees that optimizations aren't saving any
  *  important data in the registers. By telling gcc we fucked with memory, it
- *  believes we're "clobbered" all the registers, and will reload anything
+ *  believes we've "clobbered" all the registers, and will reload anything
  *  stored in them.
- *
- * C won't let us use line labels for grabbing addresses. Inline assembly
- *  WILL, however, so pass the name of the label in double quotes (WITHOUT the
- *  trailing ':'...) to this macro. 
  */
-#define __markOnEventHandlerAddr(label) __asm__ __volatile__ (label ":\n\t" : \
-                                                              : : "memory" );
-
-/* !!! comment this. */
-
-#define __getOnEventHandlerAddr(label, retVal) __asm__ __volatile__ ( \
-                                                     "movl " label ", %0\n\t" \
-                                                      : "=q" (*retVal) );
+#define __markOnEventHandlerAddr __asm__ __volatile__ ("nop\n\t" : \
+                                                        : : "memory" );
 
 POnEventHandler __getOnEventHandler(OnEventTypeEnum evType);
 void __initOnEvents();
