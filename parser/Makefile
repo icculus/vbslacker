@@ -11,7 +11,7 @@ export BUILD_FOLDER = `pwd`
 
 export ANTLR_OBJS = $(ANTLR_CPP)/*.o
 
-export ANTLR = java antlr.Tool
+export ANTLR = java -green -Djava.compiler=NONE antlr.Tool
 
 # Directories to search for header files
 export SEARCHDIRS = -I- -I. -I$(ANTLR_CPP)
@@ -26,9 +26,9 @@ win32debug: Makefile.win32
 	@$(MAKE) -f Makefile.win32 debug
 
 clean:
-	rm *.o
-	rm BasicParser.cpp BasicParser.hpp
-	rm BasicLexer.cpp BasicLexer.hpp
-	rm BasicParserTokenTypes.hpp BasicParserTokenTypes.txt
-	rm BasicTokenTypes.hpp BasicTokenTypes.txt
-	rm parser
+	rm -f *.o
+	rm -f BasicParser.cpp BasicParser.hpp
+	rm -f BasicLexer.cpp BasicLexer.hpp
+	rm -f BasicParserTokenTypes.hpp BasicParserTokenTypes.txt
+	rm -f BasicTokenTypes.hpp BasicTokenTypes.txt
+	rm -f parser
