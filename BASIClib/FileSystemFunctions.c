@@ -129,7 +129,7 @@ void __initThreadFileSystemFunctions(__integer tidx)
  *     returns : void.
  */
 {
-    __long alloc = (__getHighestThreadIndex + 1) * sizeof (ThreadDirInfo *);
+    __long alloc = (__getHighestThreadIndex() + 1) * sizeof (ThreadDirInfo *);
 
     __obtainThreadLock(&fileSystemLock);
     threadDirInfo = __memRealloc(threadDirInfo, alloc);
@@ -373,7 +373,7 @@ PBasicString _vbS_dir(void)
      * !!! In fact, rewrite this to not be recursive. That's probably better.
      */
 
-    __integer tidx = __getCurrentThreadIndex;
+    __integer tidx = __getCurrentThreadIndex();
     ThreadDirInfo *tdi;
     struct dirent dirEntry;
     struct dirent *pDir;
@@ -434,7 +434,7 @@ PBasicString _vbSSi_dir(PBasicString pattern, __integer attributes)
 
 
     __obtainThreadLock(&fileSystemLock);
-    tdi = threadDirInfo[__getCurrentThreadIndex];
+    tdi = threadDirInfo[__getCurrentThreadIndex()];
     __releaseThreadLock(&fileSystemLock);
 
     cleanupDir(tdi);
