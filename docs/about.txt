@@ -4,11 +4,18 @@ VBslacker 0.0.1
 
 Designed with tender loving care by Ryan C. Gordon and Gregory S Read.
 
-This only (possibly) works on ELF-based i386 Linux at this point.
+This is currently being hacked at on Linux in this specification:
+  - kernel 2.0.36pre8.
+  - ELF-binaries.
+  - Red Hat 5.1
+  - glibc.
+
+Win32 support is in place in...uh...some places.
+
  If it breaks, you get to keep both SHINY pieces!
 
 
-(If you are seeing this when running GNU MAKE, you probably need to
+(If you are seeing this when running MAKE, you probably need to
  specify a target platform. Try: 'make linux' or 'make win32'...)
 
 
