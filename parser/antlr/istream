@@ -1,0 +1,8 @@
+// -*- C++ -*- forwarding header.
+// This file is part of the GNU ANSI C++ Library.
+
+#ifndef __ISTREAM__
+#define __ISTREAM__
+#include <istream.h>
+
+#endif
