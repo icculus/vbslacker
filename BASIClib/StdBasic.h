@@ -29,7 +29,7 @@
 #include "BasicArray.h"
 #include "SignalHandlers.h"
 #include "Gosub.h"
-#include "ConsoleFunctions.h"
+#include "BasicConsole.h"
 #include "BasicFileSystem.h"
 #include "DynamicLoader.h"
 
