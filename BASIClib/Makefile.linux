@@ -4,7 +4,7 @@ DYNLIBBASE = libBASIC.so
 DYNLIBWHOLE = $(DYNLIBBASE).$(WHOLEVERSION)
 DYNLIBMAJOR = $(DYNLIBBASE).$(MAJORVER)
 
-OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
+OBJS = BasicString.o ConversionFunctions.o Initialize.o \
        ErrorFunctions.o MathFunctions.o MemoryManager.o Threads.o \
        TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
        StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
@@ -54,9 +54,6 @@ Initialize.o : Initialize.c Initialize.h
 
 MiscFunctions.o : MiscFunctions.c MiscFunctions.h
 	$(CC) $(COPTIONS) MiscFunctions.o MiscFunctions.c
-
-OnEvents.o : OnEvents.c OnEvents.h
-	$(CC) $(COPTIONS) OnEvents.o OnEvents.c
 
 Gosub.o : Gosub.c Gosub.h
 	$(CC) $(COPTIONS) Gosub.o Gosub.c
@@ -117,7 +114,7 @@ ProcessFunctions.o : ProcessFunctions.c ProcessFunctions.h
 FileSystemFunctions.o : FileSystemFunctions.c FileSystemFunctions.h
 	$(CC) $(COPTIONS) FileSystemFunctions.o FileSystemFunctions.c
 
-Variant.o : Variant.c Variant.h Boolean.h
+Variant.o : Variant.c Variant.h
 	$(CC) $(COPTIONS) Variant.o Variant.c
 
 BasicError.o : BasicError.c BasicError.h
