@@ -4,14 +4,7 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
-#include "Initialize.h"
-#include "Threads.h"
-#include "OnEvents.h"
-#include "TimeDateFunctions.h"
-#include "BasicFileStream.h"
-#include "ErrorFunctions.h"
-#include "InternalMemManager.h"
-#include "Boolean.h"
+#include "BasicLib.h"
 
 static long initFlags = INITFLAG_NOT_INITIALIZED;
 static boolean initialized = false;
@@ -32,6 +25,7 @@ void __initBasicLib(STATEPARAMS, long flags)
         __initInternalMemManager(STATEARGS);
         __initErrorFunctions(STATEARGS);
         __initOnEvents(STATEARGS);
+        __initConsole(STATEARGS);
         __initTimeDateFunctions(STATEARGS);
         __initBasicFileStream(STATEARGS);
 
@@ -53,6 +47,7 @@ void __deinitBasicLib(STATEPARAMS)
     {
         initFlags = INITFLAG_NOT_INITIALIZED;
         __deinitThreads(STATEARGS);
+        __deinitConsole(STATEARGS);
         __deinitOnEvents(STATEARGS);
         __deinitInternalMemManager(STATEARGS);
         initialized = false;
