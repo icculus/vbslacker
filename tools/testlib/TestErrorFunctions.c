@@ -9,7 +9,7 @@
 #include "BasicLib.h"
 
 
-void test___runtimeError(STATEPARAMS)
+void test___runtimeError(void)
 /*
  * Test __runtimeError() functionality.
  *
@@ -17,18 +17,20 @@ void test___runtimeError(STATEPARAMS)
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     printf("Testing __runtimeError()...\n");
 
-    __setStateStack;
-    __registerOnEventHandler(STATEARGS, &&errError, ONERROR);
+    __ONERRORINIT;
+    __setOnErrorHandler(rtErrError);
 
     __basicErrno = ERR_NO_ERROR;
-    __runtimeError(STATEARGS, ERR_TOO_MANY_FILES);
+    __runtimeError(ERR_TOO_MANY_FILES);
     printf("  - Didn't call error handler.\n");
-    __deregisterOnEventHandlers(STATEARGS);
+
+    __exitCleanupOnError;
     return;
 
-errError:              /* error handler... */ 
+__insertLineLabel(rtErrError);              /* error handler... */
     if (__basicErrno != ERR_TOO_MANY_FILES)
     {
         printf("  - Threw error (%d), should have thrown (%d)!\n",
@@ -36,11 +38,12 @@ errError:              /* error handler... */
 
     } /* if */
 
-    __deregisterOnEventHandlers(STATEARGS);
+    __exitCleanupOnError;
+    return;
 } /* test___runtimeError */
 
 
-void test_err(STATEPARAMS)
+void test_err(void)
 /*
  * Test vbi_err() functionality.
  *
@@ -48,21 +51,23 @@ void test_err(STATEPARAMS)
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     int rc;
 
     printf("Testing ERR()...\n");
 
-    __setStateStack;
-    __registerOnEventHandler(STATEARGS, &&errError, ONERROR);
+    __ONERRORINIT;
+    __setOnErrorHandler(errError);
 
     __basicErrno = ERR_NO_ERROR;
-    __runtimeError(STATEARGS, ERR_TOO_MANY_FILES);
+    __runtimeError(ERR_TOO_MANY_FILES);
     printf("  - Didn't call error handler.\n");
-    __deregisterOnEventHandlers(STATEARGS);
+
+    __exitCleanupOnError;
     return;
 
-errError:              /* error handler... */ 
-    rc = vbi_err(STATEARGS);
+__insertLineLabel(errError);              /* error handler... */
+    rc = vbi_err();
 
     if (rc != ERR_TOO_MANY_FILES)
     {
@@ -70,12 +75,13 @@ errError:              /* error handler... */
                         rc, ERR_TOO_MANY_FILES);
     } /* if */
 
-    __deregisterOnEventHandlers(STATEARGS);
+    __exitCleanupOnError;
+    return;
 } /* test_func_err */
 
 
 
-void test_error(STATEPARAMS)
+void test_error(void)
 /*
  * Test ERROR statement functionality.
  *
@@ -83,18 +89,21 @@ void test_error(STATEPARAMS)
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     int rc;
 
     printf("Testing ERROR()...\n");
 
-    __setStateStack;
-    __registerOnEventHandler(STATEARGS, &&errErrorHandler, ONERROR);
+    __ONERRORINIT;
 
-    vbpi_error(STATEARGS, ERR_LABEL_NOT_DEFINED);
+    __setOnErrorHandler(errorErrorHandler);
+
+    vbpi_error(ERR_LABEL_NOT_DEFINED);
     printf("  - Didn't call error handler.\n");
+    __exitCleanupOnError;
     return;
 
-errErrorHandler:
+__insertLineLabel(errorErrorHandler);
 
     if (__basicErrno != ERR_LABEL_NOT_DEFINED)
     {
@@ -102,12 +111,13 @@ errErrorHandler:
                         rc, ERR_LABEL_NOT_DEFINED);
     } /* if */
 
-    __deregisterOnEventHandlers(STATEARGS);
+    __exitCleanupOnError;
+    return;
 } /* test_proc_err */
 
 
 
-void testErrorFunctions(STATEPARAMS)
+void testErrorFunctions(void)
 /*
  * This code tests all the error functions in BASIClib.
  *
@@ -117,18 +127,21 @@ void testErrorFunctions(STATEPARAMS)
 {
     printf("\n[TESTING ERROR FUNCTIONS...]\n");
 
-    test___runtimeError(STATEARGS);
-    test_err(STATEARGS);
-    test_error(STATEARGS);
+    test___runtimeError();
+    test_err();
+    test_error();
 } /* testErrorFunctions */
 
 
 #ifdef STANDALONE
 
-int main(void)
+int main(int argc, char **argv)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
-    testErrorFunctions(NULLSTATEARGS);
+    void *base;
+
+    __getBasePointer(base);
+    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
+    testErrorFunctions();
     __deinitBasicLib();
     return(0);
 } /* main */

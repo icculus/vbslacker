@@ -1,6 +1,6 @@
-# Makefile for building a dynamic (shared) BASIClib
+# Makefile for win32 testlib.
 
-OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o \
+OBJS = TestLib.o TestConversionFunctions.o TestOnError.o TestThreads.o \
        TestErrorFunctions.o TestStringFunctions.o TestFileIOFunctions.o \
        TestMathFunctions.o
 
@@ -25,40 +25,25 @@ testlib.exe : $(OBJS) $(wildcard $(BASICLIBDIR)/*.o)
 TestLib.o : TestLib.c TestLib.h
 	$(CC) $(COPTIONS) TestLib.o TestLib.c
 
-TestOnEvents.o : TestOnEvents.c $(BASICLIBDIR)/OnEvents.h \
-                 $(BASICLIBDIR)/Boolean.h $(BASICLIBDIR)/Threads.h \
-                 $(BASICLIBDIR)/ErrorFunctions.h
-	$(CC) $(COPTIONS) TestOnEvents.o TestOnEvents.c
+TestOnError.o : TestOnError.c
+	$(CC) $(COPTIONS) TestOnError.o TestOnError.c
 
-TestThreads.o : TestThreads.c \
-                $(BASICLIBDIR)/Boolean.h \
-                $(BASICLIBDIR)/Threads.h 
+TestThreads.o : TestThreads.c
 	$(CC) $(COPTIONS) TestThreads.o TestThreads.c
 
-TestConversionFunctions.o : TestConversionFunctions.c \
-                            $(BASICLIBDIR)/BasicString.h \
-                            $(BASICLIBDIR)/ConversionFunctions.h 
+TestConversionFunctions.o : TestConversionFunctions.c
 	$(CC) $(COPTIONS) TestConversionFunctions.o TestConversionFunctions.c
 
-TestErrorFunctions.o : TestErrorFunctions.c \
-                            $(BASICLIBDIR)/Initialize.h \
-                            $(BASICLIBDIR)/OnEvents.h \
-                            $(BASICLIBDIR)/ErrorFunctions.h 
+TestErrorFunctions.o : TestErrorFunctions.c
 	$(CC) $(COPTIONS) TestErrorFunctions.o TestErrorFunctions.c
 
-TestStringFunctions.o : TestStringFunctions.c $(BASICLIBDIR)/Initialize.h \
-                            $(BASICLIBDIR)/BasicString.h \
-                            $(BASICLIBDIR)/StringFunctions.h \
-                            $(BASICLIBDIR)/Boolean.h 
+TestStringFunctions.o : TestStringFunctions.c
 	$(CC) $(COPTIONS) TestStringFunctions.o TestStringFunctions.c
 
-TestFileIOFunctions.o : TestFileIOFunctions.c $(BASICLIBDIR)/Initialize.h \
-                            $(BASICLIBDIR)/BasicString.h \
-                            $(BASICLIBDIR)/FileIOFunctions.h \
-                            $(BASICLIBDIR)/Boolean.h 
+TestFileIOFunctions.o : TestFileIOFunctions.c
 	$(CC) $(COPTIONS) TestFileIOFunctions.o TestFileIOFunctions.c
 
-TestMathFunctions.o : TestMathFunctions.c $(BASICLIBDIR)/MathFunctions.h
+TestMathFunctions.o : TestMathFunctions.c
 	$(CC) $(COPTIONS) TestMathFunctions.o TestMathFunctions.c
 
 # end of Makefile.win32 ...

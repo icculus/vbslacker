@@ -10,15 +10,20 @@
 #include "TestLib.h"
 
 
-void initTestLib(STATEPARAMS, int argc, char **argv)
+void initTestLib(int argc, char **argv)
 {
+    void *base;
+    __getBasePointer(base);
+
     setbuf(stdout, NULL);
     printf("\n[TESTLIB FOR VBSLACKER STARTING UP...]\n");
     printf("Making call to __initBasicLib()...\n"); 
-    __initBasicLib(STATEARGS, INITFLAG_DISABLE_CONSOLE, argc, argv);
+
+    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
 } /* initTestLib */
 
-void deinitTestLib(STATEPARAMS)
+
+void deinitTestLib(void)
 {
     printf("\n[TESTLIB FOR VBSLACKER SHUTTING DOWN...]\n");
     printf("Making call to __deinitBasicLib()...\n"); 
@@ -29,23 +34,24 @@ void deinitTestLib(STATEPARAMS)
     printf("\n");
 } /* deinitTestLib */
 
-void testEverything(STATEPARAMS)
+
+void testEverything(void)
 {
-    testOnEvents(STATEARGS);
-    testErrorFunctions(STATEARGS);
-    testThreads(STATEARGS);
-    testStringFunctions(STATEARGS);
-    testConversionFunctions(STATEARGS);
-    testFileIOFunctions(STATEARGS);
-    testMathFunctions(STATEARGS);
+    testOnError();
+    testErrorFunctions();
+    testThreads();
+    testStringFunctions();
+    testConversionFunctions();
+    testFileIOFunctions();
+    testMathFunctions();
 } /* testEverything */
 
 
 int main(int argc, char **argv)
 {
-    initTestLib(NULLSTATEARGS, argc, argv);
-    testEverything(NULLSTATEARGS);
-    deinitTestLib(NULLSTATEARGS);
+    initTestLib(argc, argv);
+    testEverything();
+    deinitTestLib();
     return(0);
 } /* main */
 

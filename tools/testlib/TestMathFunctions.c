@@ -8,7 +8,7 @@
 #include <math.h>
 #include "BasicLib.h"
 
-void test_vbdd_abs(STATEPARAMS)
+void test_vbdd_abs(void)
 /*
  * Test abs() functionality.
  *
@@ -25,18 +25,18 @@ void test_vbdd_abs(STATEPARAMS)
 
     for (i = 0; i < sizeof (posVals) / sizeof (double); i++)
     {
-        rc = vbdd_abs(STATEARGS, posVals[i]);
+        rc = vbdd_abs(posVals[i]);
         if (rc != posVals[i])
             printf("  - abs(%f) returned (%f) incorrectly!\n", posVals[i], rc);
 
-        rc = vbdd_abs(STATEARGS, negVals[i]);
+        rc = vbdd_abs(negVals[i]);
         if (rc != posVals[i])
             printf("  - abs(%f) returned (%f) incorrectly!\n", posVals[i], rc);
     } /* for */
 } /* test_vbdd_abs */
 
 
-void test_vbdd_sqr(STATEPARAMS)
+void test_vbdd_sqr(void)
 /*
  * Test sqr() functionality.
  *
@@ -44,39 +44,40 @@ void test_vbdd_sqr(STATEPARAMS)
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     double i;
     double rc;
     double correct;
 
     printf("Testing SQR()...\n");
 
-    __setStateStack;
-    __setStateInstructs(&&trySqr, &&trySqrNext);
+    __ONERRORINIT;
+    __setInstructs(trySqr, trySqrNext);
 
-    __registerOnEventHandler(STATEARGS, &&sqrHandler, ONERROR);
+    __setOnErrorHandler(sqrHandler);
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
         __basicErrno = ERR_NO_ERROR;
         correct = sqrt(i);
-trySqr:
-        rc = vbdd_sqr(STATEARGS, i);
-trySqrNext:
+__insertLineLabel(trySqr);
+        rc = vbdd_sqr(i);
+__insertLineLabel(trySqrNext);
         if ((__basicErrno == ERR_NO_ERROR) && (rc != correct))
             printf("  - sqr(%f) returned (%f) incorrectly!\n", i, rc);
     } /* for */
-    __deregisterOnEventHandlers(STATEARGS);
+    __exitCleanupOnError;
     return;
 
-sqrHandler:
+__insertLineLabel(sqrHandler);
     if (i >= 0)
         printf("  - sqr(%f) incorrectly threw an error!\n", i);
-    __resumeNext(STATEARGS);
+    __resumeNext;
 } /* test_vbdd_sqr */
 
 
 
-void test_vbdd_atn(STATEPARAMS)
+void test_vbdd_atn(void)
 /*
  * Test atn() functionality.
  *
@@ -92,7 +93,7 @@ void test_vbdd_atn(STATEPARAMS)
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
-        rc = vbdd_atn(STATEARGS, i);
+        rc = vbdd_atn(i);
         correct = atan(i);
         if (rc != correct)
             printf("  - atn(%f) returned (%f) incorrectly!\n", i, rc);
@@ -100,7 +101,7 @@ void test_vbdd_atn(STATEPARAMS)
 } /* test_vbdd_atn */
 
 
-void test_vbdd_sin(STATEPARAMS)
+void test_vbdd_sin(void)
 /*
  * Test sin() functionality.
  *
@@ -116,7 +117,7 @@ void test_vbdd_sin(STATEPARAMS)
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
-        rc = vbdd_sin(STATEARGS, i);
+        rc = vbdd_sin(i);
         correct = sin(i);
         if (rc != correct)
             printf("  - sin(%f) returned (%f) incorrectly!\n", i, rc);
@@ -124,7 +125,7 @@ void test_vbdd_sin(STATEPARAMS)
 } /* test_vbdd_sin */
 
 
-void test_vbdd_cos(STATEPARAMS)
+void test_vbdd_cos(void)
 /*
  * Test cos() functionality.
  *
@@ -140,7 +141,7 @@ void test_vbdd_cos(STATEPARAMS)
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
-        rc = vbdd_cos(STATEARGS, i);
+        rc = vbdd_cos(i);
         correct = cos(i);
         if (rc != correct)
             printf("  - cos(%f) returned (%f) incorrectly!\n", i, rc);
@@ -148,7 +149,7 @@ void test_vbdd_cos(STATEPARAMS)
 } /* test_vbdd_cos */
 
 
-void test_vbdd_tan(STATEPARAMS)
+void test_vbdd_tan(void)
 /*
  * Test tan() functionality.
  *
@@ -164,7 +165,7 @@ void test_vbdd_tan(STATEPARAMS)
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
-        rc = vbdd_tan(STATEARGS, i);
+        rc = vbdd_tan(i);
         correct = tan(i);
         if (rc != correct)
             printf("  - tan(%f) returned (%f) incorrectly!\n", i, rc);
@@ -175,7 +176,7 @@ void test_vbdd_tan(STATEPARAMS)
 #warning Figure out how the BASIC exp() works...
 
 #if 0
-void test_vbdd_exp(STATEPARAMS)
+void test_vbdd_exp(void)
 /*
  * Test exp() functionality.
  *
@@ -197,7 +198,7 @@ void test_vbdd_exp(STATEPARAMS)
 
     for (i = 0; i < (sizeof (solutions) / sizeof (double)); i++)
     {
-        rc = vbdd_exp(STATEARGS, i);
+        rc = vbdd_exp(i);
         if (rc != solutions[i])
             printf("  - exp(%d) returned (%f) incorrectly!\n", i, rc);
     } /* for */
@@ -205,7 +206,7 @@ void test_vbdd_exp(STATEPARAMS)
 #endif
 
 
-void test_vbdd_log(STATEPARAMS)
+void test_vbdd_log(void)
 /*
  * Test log() functionality.
  *
@@ -213,38 +214,39 @@ void test_vbdd_log(STATEPARAMS)
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     double i;
     double rc;
     double correct;
 
     printf("Testing LOG()...\n");
 
-    __setStateStack;
-    __setStateInstructs(&&tryLog, &&tryLogNext);
+    __ONERRORINIT;
 
-    __registerOnEventHandler(STATEARGS, &&logHandler, ONERROR);
+    __setInstructs(tryLog, tryLogNext);
+    __setOnErrorHandler(logHandler);
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
         __basicErrno = ERR_NO_ERROR;
         correct = log(i);
-tryLog:
-        rc = vbdd_log(STATEARGS, i);
-tryLogNext:
+__insertLineLabel(tryLog);
+        rc = vbdd_log(i);
+__insertLineLabel(tryLogNext);
         if ((__basicErrno == ERR_NO_ERROR) && (rc != correct))
             printf("  - log(%f) returned (%f) incorrectly!\n", i, rc);
     } /* for */
-    __deregisterOnEventHandlers(STATEARGS);
+    __exitCleanupOnError;
     return;
 
-logHandler:
+__insertLineLabel(logHandler);
     if (i >= 0)
         printf("  - log(%f) incorrectly threw an error!\n", i);
-    __resumeNext(STATEARGS);
+    __resumeNext;
 } /* test_vbdd_log */
 
 
-void test_vbld_fix(STATEPARAMS)
+void test_vbld_fix(void)
 /*
  * Test fix() functionality.
  *
@@ -261,14 +263,14 @@ void test_vbld_fix(STATEPARAMS)
 
     for (i = 0; i < (sizeof (solutions) / sizeof (double)); i++)
     {
-        rc = vbld_fix(STATEARGS, problems[i]);
+        rc = vbld_fix(problems[i]);
         if (rc != solutions[i])
             printf("  - fix(%d) returned (%f) incorrectly!\n", i, rc);
     } /* for */
 } /* test_vbld_fix */
 
 
-void test_vbld_int(STATEPARAMS)
+void test_vbld_int(void)
 /*
  * Test int() functionality.
  *
@@ -285,14 +287,14 @@ void test_vbld_int(STATEPARAMS)
 
     for (i = 0; i < (sizeof (solutions) / sizeof (double)); i++)
     {
-        rc = vbld_int(STATEARGS, problems[i]);
+        rc = vbld_int(problems[i]);
         if (rc != solutions[i])
             printf("  - int(%d) returned (%f) incorrectly!\n", i, rc);
     } /* for */
 } /* test_vbld_int */
 
 
-void test_vbid_sgn(STATEPARAMS)
+void test_vbid_sgn(void)
 /*
  * Test sgn() functionality.
  *
@@ -309,14 +311,14 @@ void test_vbid_sgn(STATEPARAMS)
 
     for (i = 0; i < (sizeof (solutions) / sizeof (double)); i++)
     {
-        rc = vbid_sgn(STATEARGS, problems[i]);
+        rc = vbid_sgn(problems[i]);
         if (rc != solutions[i])
             printf("  - sgn(%d) returned (%f) incorrectly!\n", i, rc);
     } /* for */
 } /* test_vbid_sgn */
 
 
-void testMathFunctions(STATEPARAMS)
+void testMathFunctions(void)
 /*
  * This code tests all the conversion functions in BASIClib.
  *
@@ -326,17 +328,17 @@ void testMathFunctions(STATEPARAMS)
 {
     printf("\n[TESTING MATH FUNCTIONS...]\n");
 
-    test_vbdd_abs(STATEARGS);
-    test_vbdd_sqr(STATEARGS);
-    test_vbdd_atn(STATEARGS);
-    test_vbdd_sin(STATEARGS);
-    test_vbdd_cos(STATEARGS);
-    test_vbdd_tan(STATEARGS);
-/*    test_vbdd_exp(STATEARGS); */
-    test_vbdd_log(STATEARGS);
-    test_vbld_fix(STATEARGS);
-    test_vbld_int(STATEARGS);
-    test_vbid_sgn(STATEARGS);
+    test_vbdd_abs();
+    test_vbdd_sqr();
+    test_vbdd_atn();
+    test_vbdd_sin();
+    test_vbdd_cos();
+    test_vbdd_tan();
+/*    test_vbdd_exp(); */
+    test_vbdd_log();
+    test_vbld_fix();
+    test_vbld_int();
+    test_vbid_sgn();
 } /* testMathFunctions */
 
 
@@ -344,8 +346,11 @@ void testMathFunctions(STATEPARAMS)
 
 int main(int argc, char **argv)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE, argc, argv);
-    testMathFunctions(NULLSTATEARGS);
+    void *base;
+
+    __getBasePointer(base);
+    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
+    testMathFunctions();
     __deinitBasicLib();
     return(0);
 } /* main */

@@ -9,13 +9,13 @@
 
 #include "StdBasic.h"
 
-void testOnEvents(STATEPARAMS);
-void testErrorFunctions(STATEPARAMS);
-void testThreads(STATEPARAMS);
-void testStringFunctions(STATEPARAMS);
-void testConversionFunctions(STATEPARAMS);
-void testFileIOFunctions(STATEPARAMS);
-void testMathFunctions(STATEPARAMS);
+void testOnError(void);
+void testErrorFunctions(void);
+void testThreads(void);
+void testStringFunctions(void);
+void testConversionFunctions(void);
+void testFileIOFunctions(void);
+void testMathFunctions(void);
 
 #endif
 
