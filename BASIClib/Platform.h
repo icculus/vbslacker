@@ -34,6 +34,7 @@
  *                         come...) depending on what characters signify
  *                         the current directory on a given platform.
  *
+ *    __boolean        ..  intrinsic type for BASIC's BOOLEAN. (8-bit bool)
  *    __byte           ... intrinsic type for BASIC's BYTE.    (8-bit uint)
  *    __integer        ... intrinsic type for BASIC's INTEGER. (16-bit int)
  *    __long           ... intrinsic type for BASIC's LONG.    (32-bit int)
@@ -56,6 +57,10 @@
 
 /* !!! Check for more than one defined platform... */
 
+/* !!! Move elsewhere? */
+#define true  -1
+#define false 0
+
 
 /* Verify that a supported platform has been defined... */
 
@@ -70,6 +75,7 @@
         #define EOL_STRING        "\n"
         #define PATHCHAR          '/'
         #define CURRENTDIRSTR     "."
+        typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
         typedef long   __long;
@@ -87,6 +93,7 @@
         #define EOL_STRING        "\n"
         #define PATHCHAR          '/'
         #define CURRENTDIRSTR     "."
+        typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
         typedef long   __long;
@@ -104,6 +111,7 @@
         #define EOL_STRING        "\r\n"
         #define PATHCHAR          '\\'
         #define CURRENTDIRSTR     "."
+        typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
         typedef long   __long;

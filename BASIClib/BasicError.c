@@ -93,6 +93,7 @@ void __initErrorFunctions(STATEPARAMS)
 static void __defaultRuntimeErrorHandler(STATEPARAMS)
 {
     char *errStr;
+    char msg[strlen(errStr) + 300];   /* !!! generalize? */
 
     errStr = ((basicErrno > MAX_ERRS) ?
                 STR_UNKNOWN_ERR : errStrings[basicErrno]);
@@ -100,17 +101,16 @@ static void __defaultRuntimeErrorHandler(STATEPARAMS)
     if (errStr == NULL)
         errStr = STR_UNKNOWN_ERR;
 
-    /* !!! this output needs to get abstracted! */
+    sprintf(msg, "\n\n***Unhandled runtime error***\n"
+                 "  \"%s\" (#%d)\n"
+                 "    - __stIP     == (%p)\n"
+                 "    - __stNextIP == (%p)\n"
+                 "    - __stBP     == (%p)\n"
+                 "    - __stSP     == (%p)\n"
+                 "\n\n",
+                 errStr, basicErrno, __stIP, __stNextIP, __stBP, __stSP);
 
-    printf("\n\n***Unhandled runtime error***\n"
-           "  \"%s\" (#%d)\n"
-           "    - __stIP     == (%p)\n"
-           "    - __stNextIP == (%p)\n"
-           "    - __stBP     == (%p)\n"
-           "    - __stSP     == (%p)\n"
-           "\n\n",
-            errStr, basicErrno, __stIP, __stNextIP, __stBP, __stSP);
-
+    __printAsciz(STATEARGS, msg);
     exit(basicErrno);
 } /* __defaultRuntimeErrorHandler */
 
@@ -138,11 +138,8 @@ void __runtimeError(STATEPARAMS, int errorNum)
 
     if (errorNum != ERR_NO_ERROR)
     {
-        pHandler = __getOnEventHandler(STATEARGS, ONERROR);
-        if ((pHandler == NULL) || (pHandler->handlerAddr == NULL))
+        if (__triggerOnEvent(STATEARGS, ONEVTYPE_ONERROR) == false)
             __defaultRuntimeErrorHandler(STATEARGS);
-        else
-            __triggerOnEvent(STATEARGS, pHandler, ONERROR);
     } /* if */
 } /* __runtimeError */
 

@@ -5,59 +5,51 @@
  */
 
 #include <stdlib.h>
+#include <malloc.h>
 #include "OnEvents.h"
 
 
-#define CLEANUPPROC FUNCNAME_PREPEND "__cleanupOnEventHandler"
-#define FREEPROC    FUNCNAME_PREPEND "free"
-
-
     /*
-     * Internal structures for keeping track of registered event handlers
-     *  and other state information. There is one OnEventsState structure 
-     *  for each thread.
+     * There is one OnEventsHandler object for each registered handler.
+     *  These objects store data about each handler's behavior.
      */
-
 typedef struct
 {
-    OnEventTypeEnum evType;
-    void *basePtr;
-    void *stackPtr;
-    void *protectedStack;
-    unsigned long protStackSize;
-    void *retAddr;
-} OnEventHandlerPtrs;
+    __integer evType;             /* Type of event this handler handles.  */
+    void *handlerAddr;            /* Code address of handler.             */
+    void *basePtr;                /* Base pointer in handler's function.  */
+    void *stackPtr;               /* Stack pointer in handler's function. */
+    __boolean isActive;           /* Is handler active?                   */
+} OnEventHandler;
 
-typedef OnEventHandlerPtrs *POnEventHandlerPtrs;
-
-typedef struct
-{
-    POnEventHandler *handlers;
-    unsigned long handlerCount;
-    POnEventHandlerPtrs ptrs;
-    unsigned long ptrCount;
-} OnEventsState;
-
-typedef OnEventsState *POnEventsState;
+typedef OnEventHandler *POnEventHandler;
 
 
     /*
-     * module scope thread lock.
+     * There is one OnEventThreadState object for each thread. They
+     *  keep track of their respective thread's OnEvent handlers.
+     */
+typedef struct
+{
+    POnEventHandler handlers;     /* List of registered handlers.         */
+    unsigned long handlerCount;   /* Number of registered handlers.       */
+} OnEventThreadState;
+
+typedef OnEventThreadState *POnEventsThreadState;
+
+
+    /*
+     * module-scope ThreadLock, for protecting (ppState) from race conditions.
      */
 static ThreadLock onEventsLock;
 
     /*
-     * This is used in __initThreadOnEvents(), to determine whether we need
-     *  more memory allocated to handle new threads.
+     * ppState stores the OnEventThreadState structures used by each thread.
+     *  This is an array of pointers, so we only have to use ThreadLocks when
+     *  accessing this dynamic array, and not the individual structures.
      */
-static unsigned int allocatedThreads = 0;
+static POnEventThreadState *ppState = NULL;
 
-    /*
-     * ppState stores the OnEventsState structures used by each thread. This is
-     *  an array of pointers, so we only have to use thread locks when accessing
-     *  this dynamic array, and not the individual structures.
-     */
-static POnEventsState *ppState = NULL;
 
 /* internal function prototype... */
 static void __deregisterAllOnEventHandlers(STATEPARAMS);
@@ -89,36 +81,6 @@ void __deinitOnEvents(STATEPARAMS)
 } /* __deinitOnEvents */
 
 
-POnEventsState __getOnEventsState(STATEPARAMS)    
-/*
- * Get a pointer to current thread's OnEventsState structure. This
- *  takes care of all the thread-proofing details.
- *
- *     params : void.
- *    returns : Pointer to current OnEventsState.
- */
-{
-    POnEventsState retVal;
-
-    __obtainThreadLock(STATEARGS, &onEventsLock);
-    retVal = ppState[__getCurrentThreadIndex(STATEARGS)];
-    __releaseThreadLock(STATEARGS, &onEventsLock);
-
-    return(retVal);
-} /* __getOnEventsState */
-
-
-unsigned long __getOnEventsRecursionCount(STATEPARAMS)
-/*
- * This is mostly for testlib to determine if OnEvents is buggy.
- *  This returns a number signifying how many OnEvent handlers are
- *  still executing for the current thread.
- */
-{
-    return(__getOnEventsState(STATEARGS)->ptrCount);
-} /* __getOnEventsRecursionCount */
-
-
 void __initThreadOnEvents(STATEPARAMS, int tidx)
 /*
  * This makes sure space exists in the thread-protected arrays for the
@@ -128,32 +90,20 @@ void __initThreadOnEvents(STATEPARAMS, int tidx)
  *     returns : void, but all the tables could get __memRealloc()ed.
  */
 {
-    int currentThreadCount;
-    POnEventsState pState;
+    POnEventThreadState pState;
 
-    pState = malloc(sizeof (OnEventsState));
+    pState = calloc(1, sizeof (OnEventThreadState));
     if (pState == NULL)
         __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
 
-    pState->handlers = NULL;
-    pState->handlerCount = 0;
-    pState->ptrs = NULL;
-    pState->ptrCount = 0;
-
-    currentThreadCount = __getHighestThreadIndex(STATEARGS) + 1;
-
     __obtainThreadLock(STATEARGS, &onEventsLock);
+    ppState = realloc(ppState, (__getHighestThreadIndex(STATEARGS) + 1) *
+                                     sizeof (POnEventThreadState));
 
-    if (allocatedThreads < currentThreadCount)
-    {
-        allocatedThreads = currentThreadCount;
-        ppState = realloc(ppState, currentThreadCount * sizeof (POnEventsState));
-        if (ppState == NULL)
-            __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
-    } /* if */
+    if (ppState == NULL)
+        __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
 
     ppState[tidx] = pState;
-
     __releaseThreadLock(STATEARGS, &onEventsLock);
 } /* __initThreadOnEvents */
 
@@ -166,7 +116,7 @@ void __deinitThreadOnEvents(STATEPARAMS, int tidx)
  *   returns : void.
  */
 {
-    POnEventsState pState;
+    POnEventThreadState pState;
     unsigned int i;
 
     __deregisterAllOnEventHandlers(STATEARGS);
@@ -176,41 +126,67 @@ void __deinitThreadOnEvents(STATEPARAMS, int tidx)
     ppState[tidx] = NULL;
     __releaseThreadLock(STATEARGS, &onEventsLock);
 
-    for (i = 0; i < pState->ptrCount; i++)
-        free(pState->ptrs[i].protectedStack);
-
-    free(pState->ptrs);
+    free(pState->handlers);
     free(pState);
 } /* __deinitThreadOnEvents */
 
 
-POnEventHandler __getOnEventHandler(STATEPARAMS, OnEventTypeEnum evType)
+POnEventThreadState __getOnEventThreadState(STATEPARAMS)
+/*
+ * Get a pointer to current thread's OnEventThreadState structure. This
+ *  takes care of all the thread-proofing details.
+ *
+ *     params : void.
+ *    returns : Pointer to current OnEventThreadState.
+ */
+{
+    POnEventThreadState retVal;
+
+    __obtainThreadLock(STATEARGS, &onEventsLock);
+    retVal = ppState[__getCurrentThreadIndex(STATEARGS)];
+    __releaseThreadLock(STATEARGS, &onEventsLock);
+
+    return(retVal);
+} /* __getOnEventThreadState */
+
+
+POnEventHandler __getOnEventHandler(STATEPARAMS, __integer evType)
 /*
  * Returns the current ON EVENT GOTO handler for event type evType.
+ *  Ignores handlers that are currently active.
+ *
+ * If we hit an event handler ADDRESS for the specified type that is NULL,
+ *  then we stop looking, since this signifies an ON EVENT GOTO 0 command,
+ *  which disables handling for that OnEvent.
  *
  *    params : evType == type of event we want handler for.
- *   returns : most significant handler for given event type. NULL if
- *              there isn't one.
+ *   returns : Most significant handler for given event type. NULL if there
+ *              isn't one, or handling has been disabled for this event.
  */
 {
     POnEventHandler retVal = NULL;
     POnEventHandler *vect;
-    POnEventsState pState = __getOnEventsState(STATEARGS);
+    POnEventThreadState pState = __getOnEventThreadState(STATEARGS);
     unsigned int i;
 
     for (i = pState->handlerCount - 1, vect = pState->handlers;
         (i >= 0) && (retVal == NULL); i--)
     {
-        if (vect[i]->evType == evType)
+        if ((vect[i]->evType == evType) && (vect[i]->isActive == false))
             retVal = vect[i];
     } /* for */
 
-    return(retVal);
+        /*
+         * "On Event Goto 0" handlers are never "active", so code will fall
+         *  here if we stumble across one...but we need to check for it...
+         *  these are signified by a NULL in the handlerAddr field.
+         */
+    return((retVal->handlerAddr == NULL) ? NULL : retVal);
 } /* __getOnEventHandler */
 
 
-void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
-                              OnEventTypeEnum evType)
+void __registerOnEventHandler(STATEPARAMS, void *handlerAddr, void *base,
+                              void *stack, int evType)
 /*
  * This is somewhere between "low level but general" and "80x386 specific."
  *
@@ -238,7 +214,7 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
  * evType just guarantees that we don't call a timer handler for a runtime
  *  error, etc...
  *
- *    (*whew!*)
+ *    (*whew!*)   !!! rewrite all of this!
  *
  * All that said, call this function to register an event handler with
  *  BASIClib that will be called when appropriate. Ideally, the parser/compiler
@@ -254,15 +230,23 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
  */
 {
     POnEventHandler pHandler = NULL;
-    POnEventsState pState = __getOnEventsState(STATEARGS);
+    POnEventThreadState pState = __getOnEventThreadState(STATEARGS);
     int i;
     __boolean getOut = false;
 
-        /* !!! make this __fatalRuntimeError()? */
+        /*
+         * Sanity check; make sure the base and stack pointers are valid...
+         */
     if ((__stBP == NULL) || (__stSP == NULL))
-        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
+        __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
 
-        /* determine if we should replace a currently registered handler. */
+        /*
+         * Determine if we should replace a currently registered handler.
+         *  This is determined by whether any handlers exist for the
+         *  specified base pointer, and if so, if there are any of the
+         *  desired type. If neither condition is true, then we aren't
+         *  replacing a previous handler.
+         */
     for (i = pState->handlerCount - 1; (i >= 0) && (getOut == false); i--)
     {
         if (pState->handlers[i]->basePtr != __stBP)
@@ -274,25 +258,31 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
         } /* else if */
     } /* for */
 
-    if (pHandler == NULL)   /* no previously registered handler? */
+        /*
+         * If there's no previously registered handler,
+         *  allocate space for a new one...
+         */
+    if (pHandler == NULL)
     {
-        pHandler = malloc(sizeof (OnEventHandler));
-
             /* allocate space in array for new handler. */
         pState->handlerCount++;
         pState->handlers = realloc(pState->handlers, pState->handlerCount *
-                                                     sizeof (POnEventHandler));
+                                                     sizeof (OnEventHandler));
 
-        if ((pState->handlers == NULL) || (pHandler == NULL))
+        if (pState->handlers == NULL)
             __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
-        else
-            pState->handlers[pState->handlerCount - 1] = pHandler;
+
+        pHandler = &(pState->handlers[pState->handlerCount - 1]);
     } /* if */
 
-    pHandler->handlerAddr = handlerAddr;
-    pHandler->stackPtr = __stSP;
-    pHandler->basePtr = __stBP;
+        /*
+         * Set up fields in handler structure...
+         */
     pHandler->evType = evType;
+    pHandler->handlerAddr = handlerAddr;
+    pHandler->basePtr = __stBP;
+    pHandler->stackPtr = __stSP;
+    pHandler->isActive = false;
 } /* __registerOnEventHandler */
 
 
@@ -307,10 +297,7 @@ static void __deregisterAllOnEventHandlers(STATEPARAMS)
  */
 {
     int i;
-    POnEventsState pState = __getOnEventsState(STATEARGS);
-
-    for (i = pState->handlerCount; i > 0; i--) 
-        free(pState->handlers[i]);
+    POnEventThreadState pState = __getOnEventThreadState(STATEARGS);
 
     free(pState->handlers);
     pState->handlers = NULL;
@@ -320,21 +307,18 @@ static void __deregisterAllOnEventHandlers(STATEPARAMS)
 
 void __deregisterOnEventHandlers(STATEPARAMS)
 /*
- * Call this to deregister irrelevant event handlers. Calls to this will
- *  be automatically generated by the parser/compiler when needed, for
- *  commands such as EXIT SUB. All handlers past the end of the current
- *  stack are assumed to be useless, and are deregistered.
+ * Call this to deregister irrelevant event handlers. All handlers
+ *  past the end of the current stack are assumed to be useless, and
+ *  are deregistered.
  *
  *      params : void.
  *     returns : void.
  */
 {
-    POnEventsState pState = __getOnEventsState(STATEARGS);
-    POnEventHandler *ppHandler;
-    void *ebp;
-    int i;
+#warning rewrite parts of __deregisterOnEventHandlers()!
 
-    __getBasePointer(&ebp);
+    POnEventThreadState pState = __getOnEventThreadState(STATEARGS);
+    int i;
 
     for (i = pState->handlerCount - 1;
             (i >= 0) && (pState->handlers[i]->basePtr <= ebp);
@@ -345,135 +329,33 @@ void __deregisterOnEventHandlers(STATEPARAMS)
     } /* for */
 
     ppHandler = realloc(pState->handlers,
-                             pState->handlerCount * (sizeof (POnEventHandler)));
+                        pState->handlerCount * sizeof (OnEventHandler));
 
     if (ppHandler != NULL)
         pState->handlers = ppHandler;
 } /* __deregisterOnEventHandlers */
 
 
-void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType)
+__boolean __triggerOnEvent(STATEPARAMS, __integer evType)
 /*
- * This function calls an OnEvent handler, by figuring out the last
- *  handler registered for (evType) type events.
+ * This function activates the correct OnEvent handler, based on event type.
+ *  Will only call a handler if it a) exists, and b) is not currently active.
  *
  *    params : evType == Event type to handle.
- *   returns : either won't return directly, due to stack voodoo, or in the
- *              case of a RESUME NEXT, void.
+ *   returns : either won't return directly, due to stack voodoo, or if no
+ *              event handler of specified type is available, returns (false).
  */
 {
-    __triggerOnEvent(STATEARGS, __getOnEventHandler(STATEARGS, evType), evType);
-} /* __triggerOnEventByType */
+    POnEventHandler pHandler = __getOnEventHandler(STATEARGS, evType);
 
+    if (pHandler == NULL)       /* No handler available?  Bail out. */
+        return(false);
 
-void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
-                      OnEventTypeEnum evType)
-/*
- * Call this to make the code flow jump into an OnEvent handler.
- *
- *    params : pHandler == OnEvent handler to call.
- *   returns : probably won't return directly.
- */
-{
-    unsigned long size;
-    void *rc;
-    POnEventHandlerPtrs ptrs;
-    POnEventsState pState = __getOnEventsState(STATEARGS);
-
-    if (pHandler->handlerAddr == NULL)  /* On event goto 0? */
-        return;
-
-        /* record keeping: allocate space for another set of pointers... */
-    pState->ptrCount++;
-    pState->ptrs = realloc(pState->ptrs,
-                             pState->ptrCount * sizeof (OnEventHandlerPtrs));
-    if (pState->ptrs == NULL)
-        __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
-    else
-    {
-            /* fill in pointers... */
-        ptrs = &pState->ptrs[pState->ptrCount - 1];
-        ptrs->evType = evType;
-        __getBasePointer(&ptrs->basePtr);
-        __getStackPointer(&ptrs->stackPtr);
-
-        ptrs->protStackSize = size = 
-                    (((unsigned long) pHandler->basePtr) - 
-                    ((unsigned long) ptrs->stackPtr)) + 1;
-        ptrs->protectedStack = rc = malloc(size);
-        if (rc == NULL)
-            __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
-        else
-        {
-                /* Copy part of stack that is vulnerable. */
-            memcpy(rc, ptrs->stackPtr, size);
-
-                /* 
-                 * Patch stack to return into here...save original
-                 *  return address to ptrs->retAddr for later use.
-                 */
-            __asm__ __volatile__ ("movl $__onEventRetAddr, %0\n\t" : "=q" (rc));
-            ptrs->retAddr = ((void **) pHandler->basePtr)[1];
-            ((void **) pHandler->basePtr)[1] = rc;
-
-                /* Jump into OnEvent handler...yikes. */
-            __asm__ __volatile__ ("movl 4(%%eax), %%ebp\n\t"     /* spoof ebp */
-                                  "movl 8(%%eax), %%esp\n\t"     /* spoof esp */
-                                  "jmpl *(%%eax)\n\t"            /* spoof eip */
-
-                   /* --- CODE LANDS HERE IF ONEVENT HANDLER RETURNS. --- */
-                                  "__onEventRetAddr:\n\t"
-
-                                  "pushl %%eax\n\t"        /* save registers. */
-                                  "pushl %%ebx\n\t"
-                                  "pushl %%edx\n\t"
-                                  "pushl %%esi\n\t"
-                                  "pushl %%edi\n\t"
-                                  "pushl %%ebp\n\t"
-                                  
-                                  PUSHNULLSTATEARGS
-                                  "call " CLEANUPPROC "\n\t"
-                                  "addl $" STATEARGSSIZESTR ", %%esp\n\t"
-                                  "movl  %%eax, %%ecx\n\t"
-
-                                  "popl %%ebp\n\t"      /* restore registers. */
-                                  "popl %%edi\n\t"
-                                  "popl %%esi\n\t"
-                                  "popl %%edx\n\t"
-                                  "popl %%ebx\n\t"
-                                  "popl %%eax\n\t"
-                                                  
-                                  "jmpl *%%ecx\n\t" /* return to normal code. */
-
-                                    : /* no output */
-                                    : "a" (pHandler)
-                                 );
-        } /* else */
-    } /* else */
+    pHandler->isActive = true;
+    __setStackAndJump(pHandler->basePtr,
+                      pHandler->stackPtr,
+                      pHandler->handlerAddr);
 } /* __triggerOnEvent */
-
-
-void *__cleanupOnEventHandler(STATEPARAMS)
-/*
- * To avoid using any more inline assembly than needed, this
- *  C routine is called from __triggerOnEvent()'s ASM code to
- *  cleanup after an OnEvent handler returns. OnEvent handler
- *  that returned is "deregistered," too.
- *
- *      params : void.
- *     returns : address that code would have returned to, had we
- *                not patched it in __triggerOnEvents(). 32-bit return
- *                values are stored in register %eax.
- */
-{
-    POnEventsState pState = __getOnEventsState(STATEARGS);
-    void *ebp;
-
-    __getBasePointer(&ebp);
-    pState->ptrCount--;
-    free(pState->ptrs[pState->ptrCount].protectedStack);
-    return(pState->ptrs[pState->ptrCount].retAddr);
-} /* __cleanupOnEventHandler */
 
 
 void __doResume(STATEPARAMS, unsigned int retAddrIndex)
@@ -487,7 +369,7 @@ void __doResume(STATEPARAMS, unsigned int retAddrIndex)
  *    returns : Should never return, as code jumps elsewhere.
  */
 {
-    POnEventsState pState = __getOnEventsState(STATEARGS);
+    POnEventThreadState pState = __getOnEventThreadState(STATEARGS);
     POnEventHandlerPtrs ptrs = &pState->ptrs[pState->ptrCount - 1];
     POnEventHandler pHandler = pState->handlers[pState->handlerCount - 1];
     void **offset;
@@ -553,31 +435,6 @@ void __doResume(STATEPARAMS, unsigned int retAddrIndex)
                              );
     } /* else */
 } /* __doResume */
-
-
-void __resumeNext(STATEPARAMS)
-/*
- * Jump code to line AFTER the one that cause event to be triggered.
- *
- *    params : void.
- *   returns : Should never return, as code jumps elsewhere.
- */
-{
-    __doResume(STATEARGS, 1);
-} /* __resumeNext */
-
-
-void __resumeZero(STATEPARAMS)
-/*
- * Jump code to line that cause event to be triggered.
- *
- *    params : void.
- *   returns : Should never return, as code jumps elsewhere.
- */
-{
-    __doResume(STATEARGS, 0);
-} /* __resumeNext */
-
 
 /* end of OnEvents.c ... */
 

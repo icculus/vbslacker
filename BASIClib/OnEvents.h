@@ -15,49 +15,41 @@
 
 #include "StdBasic.h"
 
-typedef enum
-{
-    ONERROR,
-    ONTIMER,
-    ONCOM,
-    TOTAL
-} OnEventTypeEnum;
-
-typedef OnEventTypeEnum *POnEventTypeEnum;
-
-/*
- * DO NOT REORDER THE FOLLOWING STRUCTURES! Assembly code expects this format.
- *
- *  Adding fields to the bottom should be okay, since the ASM code
- *   references fields by their offsets to the structure's base pointer.
- */
+#define ONEVTYPE_ONERROR    1
 
 typedef struct
 {
-    void *handlerAddr;
-    void *basePtr;
-    void *stackPtr;
-    OnEventTypeEnum evType;
-} OnEventHandler;
+    void *thisInstruction;
+    void *nextInstruction;
+} __OnEventsState;
 
-typedef OnEventHandler *POnEventHandler;
+typedef __OnEventsState *__POnEventsState;
+
 
 /* function prototypes... */
 
-POnEventHandler __getOnEventHandler(STATEPARAMS, OnEventTypeEnum evType);
-unsigned long __getOnEventsRecursionCount(STATEPARAMS);
 void __initOnEvents(STATEPARAMS);
 void __deinitOnEvents(STATEPARAMS);
 void __initThreadOnEvents(STATEPARAMS, int tidx);
 void __deinitThreadOnEvents(STATEPARAMS, int tidx);
-void __resumeNext(STATEPARAMS);
-void __resumeZero(STATEPARAMS);
-void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType);
+
+void __doResume(STATEPARAMS);
+void __triggerOnEvent(STATEPARAMS, __integer evType);
 void __deregisterOnEventHandlers(STATEPARAMS);
-void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
-                              OnEventTypeEnum evType);
-void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
-                      OnEventTypeEnum evType);
+void __registerOnEventHandler(STATEPARAMS, void *base, void *stack,
+                              void *handlerAddr, __integer evType);
+
+
+#define __ONEVENTSSUPPORT   __OnEventsState __onEvents = {NULL, NULL}
+
+#define __resumeNext        __doResume(STATEARGS); \
+                            __jump(__onEvents.nextInstruction)
+
+#define __resumeZero        __doResume(STATEARGS); \
+                            __jump(__onEvents.thisInstruction)
+
+#define __resumeLabel(addr) __doResume(STATEARGS); \
+                            __jump(addr)
 
 #endif /* _INCLUDE_ONEVENTS_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

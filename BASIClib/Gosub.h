@@ -17,21 +17,21 @@ typedef struct
 {
     void **addrs;
     int count;
-} GosubState;
+} __GosubState;
 
-typedef GosubState *PGosubState;
+typedef __GosubState *__PGosubState;
 
 void __prepareGosub(STATEPARAMS, void *ret, PGosubState state);
 void *__prepareReturn(STATEPARAMS, void *addr, PGosubState state);
-/* __jmp() is a macro defined in RegState.h ... */
+/* __jump() is a macro defined in RegState.h ... */
 
 
-#define __GOSUBSUPPORT GosubState __gosub = {NULL, 0}
+#define __GOSUBSUPPORT __GosubState __gosub = {NULL, 0}
 
 #define __doGosub(addr, ret) __prepareGosub(STATEARGS, ret, &__gosub); \
-                             __jmp(addr)
+                             __jump(addr)
 
-#define __doReturn(addr) __jmp(__prepareReturn(STATEARGS, addr, &__gosub))
+#define __doReturn(addr) __jump(__prepareReturn(STATEARGS, addr, &__gosub))
 
 #endif /* defined _INCLUDE_GOSUB_H_ */
 #endif /* defined _INCLUDE_STDBASIC_H_ */
