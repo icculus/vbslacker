@@ -75,9 +75,9 @@ void VB_EOF(short fileNumber);
 void VB_LOF(short fileNumber);
 short VBFreeFile_Range(short rangeNumber);
 short VBFreeFile_NoRange(void);
-VBloc(short fileNumber);
-VBfunc_seek(short fileNumber);
-VBproc_seek(short fileNumber, long position);
+void VBloc(short fileNumber);
+void VBfunc_seek(short fileNumber);
+void VBproc_seek(short fileNumber, long position);
 
 #endif
 /* end of FileIOFunctions.h ... */

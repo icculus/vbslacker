@@ -12,7 +12,6 @@
 /*** Private variables ***/
 #define MAX_FILE_HANDLES    512
 static __PBasicFileStream __fileNumbers[MAX_FILE_HANDLES];
-static boolean __bStreamArrayInitialized = false;
 
 /*** File stream functions ***/
 boolean __invalidFileNumber(short fileNumber)
@@ -64,9 +63,11 @@ boolean __deleteFileStream(short fileNumber)
     __freeString(pFileStream->pathName);
                                     /* Free structure memory */
     free(pFileStream);
-                                    /* Set pointer to NULL indicating it
+                                    /* Set pointer to NULL indicating it */
                                     /*  is free */
-    __fileNumbers[fileNumber] = NULL; 
+    __fileNumbers[fileNumber] = NULL;
+
+    return true;
 }
 
 __PBasicFileStream __createFileStream(short fileNumber)
