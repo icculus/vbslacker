@@ -1,16 +1,13 @@
 TODO list:
 
+- vbs output specs.
+- remove onoffstoptype stuff.
+- revise name mangling; variable arguments?
+- write garbage collector.
 - change intrinsics types (int to __integer) in all API functions.
-- Move signal handlers to Initialize module...
 - Write signal handlers...
-- Update MemoryManager boxcar object routines...
-- does __deregisterOnEventHandlers() deregister current handler?
-- update STANDALONE sections in testlib...
-- update name scheme in test_* functions in testlib...
-- Check (and update) copyright headers in each file...
 - Complete console drivers.
 - Catch up testlib, in general.
-- Make current BASIClib code use the boxcar system, where applicable.
 - RESUME NEXT recursive testing.
 - Streamline makefiles. Most of it is just duplication.
 - Examine/eliminate the "!!!" comments in the source.
