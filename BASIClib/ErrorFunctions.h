@@ -81,6 +81,9 @@ extern int __basicErrno;
 void __initErrorFunctions(void);
 void __runtimeError(int errorNum);    /* set and handle errors. */
 
+double func_err(void);
+void proc_err(double newErr);
+
 /* !!! update from ErrorFunctions.h !!! */
 
 #endif
