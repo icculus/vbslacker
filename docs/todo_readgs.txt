@@ -1,3 +1,10 @@
+MY FIRST GOAL IS TO NOT KEEP THIS PROJECT ON A VFAT PARTITION.
+MY SECOND GOAL IS ALSO TO NOT KEEP THIS PROJECT ON A VFAT PARTITION.
+
+How we love ext2. 
+We love not having source code files with the executable bit set.
+We love case-sensitive filenames.
+
 parser
    -"unreferenced main" error when bulding right now.
    -error/exception handling (better than default)
