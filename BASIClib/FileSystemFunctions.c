@@ -18,6 +18,21 @@
 #include <fnmatch.h>
 #include "FileSystemFunctions.h"
 
+#if ((defined LINUX) || (defined UNIX))
+#   define __convertPathWinToLocal(pathname)  __convertPathWinToUnix(pathname)
+#   define __convertPathLocalToWin(pathname)  __convertPathUnixToWin(pathname)
+#elif (defined WIN32)
+#   define __convertPathWinToLocal(pathname) pathname
+#   define __convertPathLocalToWin(pathname) pathname
+#else
+#   error No file system compatibility routines for this system!
+#endif
+
+
+#define vbNormal    0
+#define vbReadOnly  8
+#define vbDirectory 32
+
 
 typedef struct _DIRLIST
 {
@@ -25,29 +40,40 @@ typedef struct _DIRLIST
     struct _DIRLIST *next;
 } DirList;
 
+typedef struct _THREADDIRINFO
+{
+    __integer attributes;
+    DirList *dirList;
+} ThreadDirInfo;
 
-ThreadLock fileSystemLock;
-DirList **threadDirs = NULL;
+
+static ThreadLock fileSystemLock;
+static ThreadDirInfo *threadDirInfo = NULL;
 
 
 void __initFileSystemFunctions(void)
+#warning comment me!
 {
     __createThreadLock(&fileSystemLock);
 } /* __initFileSystemFunctions */
 
 
 void __deinitFileSystemFunctions(void)
+#warning comment me!
 {
     __destroyThreadLock(&fileSystemLock);
 } /* __deinitFileSystemFunctions */
 
 
 void __initThreadFileSystemFunctions(__integer tidx)
+#warning comment me!
 {
     __obtainThreadLock(&fileSystemLock);
-    threadDirs = __memRealloc(threadDirs,
-                              __getHighestThreadIndex() * sizeof (DirList *));
-    threadDirs[tidx] = NULL;
+    threadDirs = __memRealloc(threadDirInfo,
+                          __getHighestThreadIndex * sizeof (ThreadDirInfo *));
+    threadDirInfo[tidx] = __memAlloc(sizeof (ThreadDirInfo));
+    threadDirInfo[tidx]->attributes = vbNormal;
+    threadDirInfo[tidx]->dirList = NULL;
     __releaseThreadLock(&fileSystemLock);
 } /* __initThreadFileSystemFunctions */
 
@@ -94,7 +120,7 @@ static int fileSysErrors(void)
 
         case EIO:
         case EFBIG:
-            return(DEVICE_IO_ERROR);
+            return(ERR_DEVICE_IO_ERROR);
     } /* switch */
 
     return(ERR_INTERNAL_ERROR);    /* uh? */
@@ -155,11 +181,12 @@ static __byte *__convertPathUnixToWin(__byte *pathName)
 
 
 static void parseDir(__byte *dirToParse, DIR **dirInfo,
-                     __byte **fileName, __byte **path);
+                     __byte **fileName, __byte **path)
+#warning comment me!
 {
-    __byte *ascizFileName = __convertPathWinToUnix(dirToParse);
+    __byte *ascizFileName = __convertPathWinToLocal(dirToParse);
 
-    *fileName = strrchr(ascizFileName, "/");
+    *fileName = strrchr(ascizFileName, __PATHCHAR);
     if (*fileName == NULL)
     {
         *fileName = ascizFileName;
@@ -178,9 +205,9 @@ static void parseDir(__byte *dirToParse, DIR **dirInfo,
          *  make sure any leading directories in the filename
          *  are valid. (So, "/home/????????/files*.txt" would fail.
          *  This is normal for Visual BASIC; wildcards must be in
-         *  one directory.)
+         *  one directory.)   !!! I think?
          */
-    dirInfo = opendir(*path);
+    *dirInfo = opendir(*path);
 } /* parseDir */
 
 
@@ -198,7 +225,7 @@ static __long killWildcards(DIR *dirInfo, __byte *path, __byte *fileName)
 {
     __long retVal = ERR_NO_ERROR;
     struct dirent dirEntry;
-    struct dirent *pDirEntry;
+    struct dirent *pDir;
     int rc;
     int flags = 0;
     char fullName[strlen(path) + MAX_FILENAME + 2];
@@ -208,15 +235,15 @@ static __long killWildcards(DIR *dirInfo, __byte *path, __byte *fileName)
 
     do
     {
-        pDirEntry = &dirEntry;
-        rc = readdir_r(dirInfo, pDirEntry, &pDirEntry);
+        pDir = &dirEntry;
+        rc = readdir_r(dirInfo, pDir, &pDir);
         if (rc == 0)
         {
-            if (pDirEntry->d_type != DT_DIR)
+            if (pDir->d_type != DT_DIR)
             {
-                if (fnmatch(fileName, pDirEntry->d_name, flags) == 0)
+                if (fnmatch(fileName, pDir->d_name, flags) == 0)
                 {
-                    sprintf(fullName, "%s/%s", path, pDirEntry->d_name);
+                    sprintf(fullName, "%s%c%s", path, __PATHCHAR, pDir->d_name);
                     if (unlink(fullName) == -1)
                         retVal = fileSysErrors();
                 } /* if */
@@ -242,7 +269,7 @@ static inline __long killSingle(__byte *path, __byte *fileName)
     struct stat statInfo;
     __long retVal = ERR_NO_ERROR;
 
-    sprintf(fullName, "%s/%s", path, fileName);
+    sprintf(fullName, "%s%c%s", path, __PATHCHAR, fileName);
 
     if (stat(fullName, &statInfo) == -1)
         retVal = fileSysErrors();
@@ -261,7 +288,7 @@ static inline __long killSingle(__byte *path, __byte *fileName)
 } /* killSingle */
 
 
-void _vbpS_kill(PBasicString fileName)
+void _vbpS_kill(PBasicString fileSpec)
 /*
  * Remove a file or files from the file system. Wildcards may be
  *  specified to remove multiple files. Use with care; there is no
@@ -271,19 +298,18 @@ void _vbpS_kill(PBasicString fileName)
  *   returns : void.
  */
 {
-    __byte *ascizFileName = __basicStringToAsciz(fileName);
     __byte *path = NULL;
     __byte *fileName;
     __long errorCode;
     DIR *dirInfo;
 
-    parseDirectory(ascizFileName, &dirInfo, &path, &fileName);
+    parseDir(__basicStringToAsciz(fileSpec), &dirInfo, &path, &fileName);
     if (dirInfo != NULL)
         errorCode = ((errno == ENOENT) ? ERR_PATH_NOT_FOUND : fileSysErrors());
     else
     {
         if ((strchr(fileName, '*') != NULL) || (strchr(fileName, '?') != NULL))
-            errorCode = killWildcards(dirInfo, fileName);
+            errorCode = killWildcards(dirInfo, path, fileName);
         else
             errorCode = killSingle(path, fileName);
     } /* else */
@@ -312,7 +338,7 @@ PBasicString _vbS_dir(void)
  *  end of the list, or find a stat()able filename.
  *
  * Dir$() functions do not throw errors. They just return ("") if they can't
- *  help you.
+ *  help you. !!! is this right?
  *
  *       params : void. Must call another DIR() function prior to this
  *                 one for it to be useful, though.
@@ -321,42 +347,115 @@ PBasicString _vbS_dir(void)
  *                 if the pattern was bogus, or whatnot.
  */
 {
-    DirList *nextFile;
-    __integer tidx = __getCurrentThreadIndex();
-    struct stat statInfo;
+    __integer tidx = __getCurrentThreadIndex;
+    ThreadDirInfo *dirInfo;
     PBasicString retVal = NULL;
 
     __obtainThreadLock(&fileSystemLock);
-    nextFile = threadDirs[tidx];
-    if (nextFile != NULL)
-        threadDirs[tidx] = nextFile->next;
+    dirInfo = threadDirInfo[tidx];
     __releaseThreadLock(&fileSystemLock);
+
+    nextFile = dirInfo->list;
+
+    if (nextFile != NULL)
+        dirInfo->list = nextFile->next;
 
     if (nextFile == NULL)
         retVal = __createString("", false);
     else
     {
-        if (stat(nextFile->fileName, &statInfo) == -1)
-            retVal = _vbS_dir();   /* try next file... */
-        else
+        if (checkDirAttrs(nextFile->fileName, dirInfo->attributes) == true)
             retVal = __createString(nextFile->fileName, false);
+        else
+            retVal = _vbS_dir();   /* No? Then try next file... */
     } /* else */
 
     return(retVal);
 } /* _vbS_dir */
 
 
-PBasicString _vbSS_dir(PBasicString pathname)
+static inline DirList *dirFillList(DIR *dirInfo, __byte *path, __byte *fname)
+#warning comment me!
 {
-} /* _vbSS_dir */
+    struct dirent dirEntry;
+    struct dirent *pDir;
+    int rc;
+    int flags = 0;
+    DirList *list = NULL;
+    DirList *current = NULL;
+
+    if (*fname == '\0')      /* !!! check this! */
+        fname = "*";
+
+    if (__getInitFlags() & INITFLAG_FILENAMES_IGNORECASE)
+        flags |= FNM_CASEFOLD;
+
+    do
+    {
+        pDir = &dirEntry;
+        rc = readdir_r(dirInfo, pDir, &pDir);
+        if (rc == 0)
+        {
+            if (fnmatch(fname, pDir->d_name, flags) == 0)
+            {
+                if (current == NULL)
+                    current = __memAlloc(sizeof (DirList));
+                else
+                {
+                    current->next = __memAlloc(sizeof (DirList));
+                    current = current->next;
+                } /* else */
+
+                current->next = NULL;
+                current->fileName = __memAllocNoPtrs(strlen(pDir->d_name) +
+                                                     strlen(path) + 2);
+                sprintf(current->fileName, "%s%c%s", path,
+                        __PATHCHAR, pDir->d_name);
+                if (list == NULL)
+                    list = current;
+            } /* if */
+        } /* if */
+    } while (rc == 0);
+
+    return(list);
+} /* dirFillList */
+
 
 
 PBasicString _vbSSi_dir(PBasicString pathname, __integer attributes)
+#warning comment me!
 {
+    DIR *dirInfo;
+    ThreadDirInfo *tdi;
+    __byte *path;
+    __byte *filename;
+    DirList *list = NULL;
+
+    parseDir(__basicStringToAsciz(pathname), &dirInfo, &path, &fileName);
+    if (dirInfo != NULL)
+        dirFillList(dirInfo, path, fileName, attributes);
+        /* !!! throw an error instead? */
+
+    __obtainThreadLock(&fileSystemLock);
+    tdi = threadDirInfo[__getCurrentThreadIndex];
+    __releaseThreadLock(&fileSystemLock);
+
+    tdi->attributes = attributes;
+    tdi->list = list;
+
+    return(_vbS_dir());
 } /* _vbSSi_dir */
 
 
+PBasicString _vbSS_dir(PBasicString pathname)
+#warning comment me!
+{
+    return(_vbSSi_dir(pathname, vbNormal));
+} /* _vbSS_dir */
+
+
 void _vbpS_mkdir(PBasicString dirStr)
+#warning comment me!
 {
     __byte *ascizDirName = __basicStringToAsciz(dirStr);
     __long errorCode = ERR_NO_ERROR;
@@ -428,7 +527,7 @@ void _vbpSS_name(PBasicString oldName, PBasicString newName)
                         if (S_ISDIR(statInfo.st_mode))
                             errorCode = ERR_RENAME_ACROSS_DISKS;
                         else
-                            _vbpSS_filecopy(ascizOldName, ascizNewName);
+                            _vbpSS_filecopy(oldName, newName);
                     } /* else */
                 } /* if */
             } /* else */
