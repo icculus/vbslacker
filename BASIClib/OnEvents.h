@@ -17,6 +17,7 @@ typedef enum
 
 typedef OnEventTypeEnum *POnEventTypeEnum;
 
+
 /*
  * DO NOT REORDER THE FOLLOWING STRUCTURE! Assembly code expects this format.
  *
@@ -38,8 +39,6 @@ typedef OnEventHandler *POnEventHandler;
 extern void *_stack_ptr_;
 extern void *_base_ptr_;
 
-
-/* !!! ...hope I'm doing this right... */
 
 /* God, inline assembly is SCARY lookin' in gcc, isn't it? */
 
