@@ -16,18 +16,37 @@
  *  NO_ERROR, call something, and test for error, all without altering
  *  the errno that is accessable by outside programs.
  */
-int basicErrno = (RuntimeErrEnum) NO_ERROR;
-int __basicErrno = (RuntimeErrEnum) NO_ERROR;
+int basicErrno = ERR_NO_ERROR;
+int __basicErrno = ERR_NO_ERROR;
+
+static char errStrings[MAX_ERRS];
+
+void __initErrorFunctions(void)
+/*
+ * Initialize the table of errorStrings.
+ *
+ *  !!! write this later. Internationalization should be considered, eh?
+ */
+{
+    memset(errStrings, '\0', sizeof (errStrings));
+} /* __initErrorFunctions */
 
 
 void __defaultRuntimeErrorHandler(void)
 {
-    printf("\n\nUnhandled runtime error: %d\n\n", (int) basicErrno);
+    char *errStr;
+
+    errStr = ((basicErrno > MAX_ERRS) ? UNKNOWN_ERR : errStrings[basicErrno]);
+    if (errStr == NULL)
+        errStr = UNKNOWN_ERR;
+
+    printf("\n\n***Unhandled runtime error***\n");
+    printf("  \"%s\" (#%d)\n\n", errStr, basicErrno);
     exit(basicErrno);
 } /* __defaultRuntimeErrorHandler */
 
 
-void __runtimeError(RuntimeErrEnum errorNum)
+void __runtimeError(int errorNum)
 {
     POnEventHandler pHandler;
 
@@ -51,7 +70,7 @@ void proc_err(double newErr)
 {
     /* !!! check this later. Fuck. Double vs. int vs. enum. */
 
-    basicErrno = (RuntimeErrEnum) newErr;
+    basicErrno = (int) newErr;
 } /* proc_err */
 
 
