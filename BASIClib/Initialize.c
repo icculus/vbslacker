@@ -29,6 +29,9 @@ static void __calculateUserAppDir(void)
     char *rc;
     char *retVal = NULL;
 
+#warning switch this around, the real code is far from the conditional...
+#warning Needs to check if path char is already on envr. var...
+
     if (vbHomeDir != NULL)     /* safety check. */
         return;
 
@@ -104,6 +107,7 @@ __boolean __initializationComplete(void)
 } /* __initializationComplete */
 
 
+
 void __initBasicLib(__long flags, int argc, char **argv, char **envp)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
@@ -119,6 +123,7 @@ void __initBasicLib(__long flags, int argc, char **argv, char **envp)
         initFlags = flags;
 
         __calculateUserAppDir();
+        __initLanguage(vbHomeDir);
 
         __initMemoryManager();
         __initSignalHandlers();
@@ -154,6 +159,7 @@ void __deinitBasicLib(void)
         __deinitGUIFrontEnd();
         __deinitConsoleFunctions();
         __deinitBasicError();
+        __deinitLanguage();
     } /* if */
 } /* __deinitBasicLib */
 
