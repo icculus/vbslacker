@@ -174,12 +174,12 @@ static void __cons_printNChars(STATEPARAMS, char *str, int n)
     lseek(cons, __xyToConsoleMatrix(x, y), SEEK_SET);
     matrixChar[0] = curColor;   /* attribute byte. */
 
-    for (i = 0; i < length; i++)
+    for (i = 0; i < n; i++)
     {
         switch (str[i])    
         {
             case ASCII_CR:
-                if ((i + 1 < length) && (str[i] == ASCII_NL))
+                if ((i + 1 < n) && (str[i] == ASCII_NL))
                     i++;
                 __printNewLine(STATEARGS);
                 break;
@@ -221,7 +221,7 @@ static void __cons_printNChars(STATEPARAMS, char *str, int n)
         } /* if */
     } /* for */
 
-    __setCursorXY(x, y);
+    __setCursorXY(STATEARGS, x, y);
     __releaseThreadLock(STATEARGS, &consoleLock);
 } /* cons_printNChars */
 
