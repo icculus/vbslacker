@@ -11,6 +11,8 @@
 #define __min(x, y) ((x) < (y) ? (x) : (y))
 #define __max(x, y) ((x) > (y) ? (x) : (y))
 
+
+int __round(double x);
 double func_abs(double x);
 double func_sqr(double x);
 

@@ -8,6 +8,18 @@
 #include "MathFunctions.h"
 
 
+int round(double x)
+/*
+ * Round (x) to the nearest whole number.
+ *
+ *    params : x == floating point number to round.
+ *   returns : x rounded to nearest int.
+ */
+{
+    return((int) (x + 0.5));
+} /* __round */
+
+
 double func_abs(double x)
 /*
  * Returns the absolute value of a numeric.
