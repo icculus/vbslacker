@@ -16,15 +16,11 @@
 
 #warning Need structure for driver entry points!
 
-/* internal function declarations needed at start... */
-static void __preinitPrintNewLine(void);
-static void __preinitPrintNChars(__byte *str, __long n);
-
 /* variable function pointers... */
 void (*__getConsoleDriverName)(__byte *buf, __integer size) = NULL;
 void (*__deinitConsoleDriver)(void) = NULL;
-void (*__printNewLine)(void) = __preinitPrintNewLine;
-void (*__printNChars)(__byte *str, __long n) = __preinitPrintNChars;
+void (*__printNewLine)(void) = NULL;
+void (*__printNChars)(__byte *str, __long n) = NULL;
 void (*_vbpii_viewPrint)( __integer top, __integer bottom) = NULL;
 void (*_vbp_viewPrint)(void) = NULL;
 void (*_vbp_cls)(void) = NULL;
@@ -65,8 +61,8 @@ void __deinitConsoleFunctions(void)
 
     __getConsoleDriverName = NULL;  /* blank all the func pointers out... */
     __deinitConsoleDriver = NULL;
-    __printNewLine = __preinitPrintNewLine;
-    __printNChars = __preinitPrintNChars;
+    __printNewLine = NULL;
+    __printNChars = NULL;
     _vbpii_viewPrint = NULL;
     _vbp_viewPrint = NULL;
     _vbp_cls = NULL;
@@ -125,37 +121,6 @@ void __printAsciz(__byte *str)
 {
     __printNChars(str, (__long) strlen(str));
 } /* __printAsciz */
-
-
-static void __preinitPrintNChars(__byte *str, __long n)
-/*
- * This function exists to allow initialization functions to
- *  write to stderr (under the guise of a full console driver)
- *  before a console driver has been selected and initialized.
- *  This is mostly for when there are runtime errors at startup.
- *
- *    params : str == pointer to chars to print.
- *             n == number of chars at (str) to print.
- *   returns : void.
- */
-{
-    __long i;
-
-    for (i = 0; i < n; i++)
-        fputc(str[i], stderr);
-} /* __preinitPrintNChars */
-
-
-static void __preinitPrintNewLine(void)
-/*
- * See __preinitPrintNChars(), above.
- *
- *     params : void.
- *    returns : void.
- */
-{
-    fprintf(stderr, __EOL_STRING);
-} /* __preinitPrintNewLine */
 
 
 /* qbcolor */
