@@ -1,0 +1,6 @@
+-What do we do when we generate a runtime error?  In the case of FreeFile()
+ we need to return out of the function...but NOT assign a return value.
+ Can this be done?
+-VB does overrange checking on arguments...for example, if a function requires
+ a 'short' and the value passed was 40000, then the function would generate a
+ runtime error.  However, in C the value would simply get wrapped.
