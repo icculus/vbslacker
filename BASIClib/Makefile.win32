@@ -11,16 +11,14 @@ CC = gcc
 LINKER = gcc
 ASM = gcc
 
-LANGUAGE = ENGLISH
-
 # Shipping command lines
-#DEFINES = -D_REENTRANT -DLANG_$(LANGUAGE) -DWIN32_I386
+#DEFINES = -D_REENTRANT -DWIN32_I386
 #COPTIONS = $(DEFINES) -Wall -fasm -finline-functions -s -O2 -c -o
 #LOPTIONS = $(DEFINES) -Wall -O2 -o
 #ASMOPTIONS = $(DEFINES) -Wall -c -o
 
 # Debug command lines...
-DEFINES = -D_REENTRANT -DLANG_$(LANGUAGE) -DWIN32_I386 -DDEBUG
+DEFINES = -D_REENTRANT -DWIN32_I386 -DDEBUG
 COPTIONS = -I../libgc $(DEFINES) -Wall -fasm -finline-functions -g -c -o
 LOPTIONS = $(DEFINES) -static -Wall -g -o
 ASMOPTIONS = $(DEFINES) -Wall -c -o
