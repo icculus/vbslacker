@@ -11,7 +11,7 @@ DYNLIBMAJOR = $(DYNLIBBASE).$(MAJORVER)
 
 OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ErrorFunctions.o MathFunctions.o InternalMemManager.o Threads.o \
-       TimeDateFunctions.o OnEventsAsm.o
+       TimeDateFunctions.o OnEventsAsm.o FileIOFunctions.o BasicFileStream.o
 
 CC = gcc
 LINKER = gcc
@@ -59,7 +59,7 @@ ConversionFunctions.o : ConversionFunctions.c ConversionFunctions.h Boolean.h \
 	$(CC) $(COPTIONS) ConversionFunctions.o ConversionFunctions.c
 
 Initialize.o : Initialize.c Initialize.h Threads.h OnEvents.h \
-               TimeDateFunctions.h
+               TimeDateFunctions.h BasicFileStream.h
 	$(CC) $(COPTIONS) Initialize.o Initialize.c
 
 OnEvents.o : OnEvents.c OnEvents.h InternalMemManager.h Threads.h
@@ -81,6 +81,12 @@ Threads.o : Threads.c Threads.h
 TimeDateFunctions.o : TimeDateFunctions.c TimeDateFunctions.h BasicString.h \
                       ErrorFunctions.h Boolean.h
 	$(CC) $(COPTIONS) TimeDateFunctions.o TimeDateFunctions.c
+
+BasicFileStream.o : BasicFileStream.c BasicFileStream.h 
+	$(CC) $(COPTIONS) BasicFileStream.o BasicFileStream.c
+
+FileIOFunctions.o : FileIOFunctions.c FileIOFunctions.h BasicString.h Variant.h
+	$(CC) $(COPTIONS) FileIOFunctions.o FileIOFunctions.c
 
 OnEventsAsm.o : OnEvents.asm
 	$(ASM) $(ASMOPTIONS) OnEventsAsm.o OnEvents.asm
