@@ -442,7 +442,7 @@ ON ERROR and RESUME statements:
 
     ...and the first statement following the variable section should be:
 
-    __ONERRORINIT;
+    __ONERRORINIT();       /* this is a macro, by the way. */
 
     ...before every line of BASIC code is an __insertLineLabel(lineX) macro
     that allows us to keep track of where each physical line of BASIC code
@@ -464,7 +464,7 @@ ON ERROR and RESUME statements:
     AT EVERY POSSIBLE EXIT POINT FROM THE FUNCTION, including returns and
      dropout at the end, you MUST put:
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 
     (It's a macro.)  Functions returning prematurely due to the throwing of
      a runtime error automagically clean up their OnError state. But deliberate
@@ -477,10 +477,10 @@ ON ERROR RESUME NEXT:
     void myFunc(void)
     {
         __ONERRORVARS;
-        __ONERRORINIT;
+        __ONERRORINIT();
         __setOnErrorHandler(resumeNextLabel);
         /* ...your code... */
-        __exitCleanupOnError;
+        __exitCleanupOnError();
         return;
         __insertResumeNextHandler(resumeNextLabel);
     }
@@ -516,7 +516,7 @@ ON ERROR RESUME NEXT:
 ON ERROR GOTO 0:
     Same as On Error Goto label, but the macro is
 
-    __setOnErrorHandlerOff;
+    __setOnErrorHandlerOff();
 
     You don't need to label every line and use __setInstructs(), unless
     there are other RESUME or ON ERROR statements in the functions.
@@ -575,7 +575,6 @@ vbSlacker extension; BASIC thread API.
 Command lines:
     (!!!This section is not yet complete)
     gcc -fno-omit-frame-pointer -fasm -finline-functions -Wall
-        -DLANG_ENGLISH
         -DLINUXELF_I386 or -DLINUXAOUT_I386 or -DWIN32_I386
         -D_REENTRANT  (or nothing for single-threaded apps)
 
