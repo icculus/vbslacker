@@ -76,13 +76,14 @@
 /* !!! move this to a more appropriate spot, later. */
 #define UNKNOWN_ERR                        "???"
 
+extern int __basicErrno;
+
 void __initErrorFunctions(void);
 void __runtimeError(int errorNum);    /* set and handle errors. */
 
 /* !!! update from ErrorFunctions.h !!! */
 
 #endif
-
 
 /* end of ErrorFunctions.h ... */
 
