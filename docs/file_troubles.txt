@@ -1,0 +1,3 @@
+-GNU only supports SHARED or EXCLUSIVE locks.  This does not satisfy VB's
+ requirements for READ/WRITE/READWRITE locks.  Both GNU locks still allow
+ other processes to READ the file.  SUCKS!!!!
