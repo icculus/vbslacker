@@ -2,6 +2,7 @@
  * Routines for internal BASIClib runtime error handling.
  *
  *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *   This file written by Ryan C. Gordon.
  */
 
 #include <stdio.h>
@@ -313,7 +314,7 @@ static __boolean __triggerOnError(void)
  * This function activates the correct OnError handler.
  *  Will only call a handler if it a) exists, and b) is not currently active.
  *
- * __setStackAndJump is a macro defined in Assembler.h ...
+ * __setStackAndJump is a macro defined through Assembler.h ...
  *
  *    params : void.
  *   returns : either won't return directly, due to stack voodoo, or if no
@@ -390,7 +391,7 @@ static void __defaultRuntimeErrorHandler(__long bErr)
         errStr = STR_UNKNOWN_ERR;
 
     if (__getInitFlags() & INITFLAG_ENABLE_GUIFRONTEND)
-        /* !!! put up a msgbox... */ ;
+        /* !!! put up a msgbox...when GUI support is in place... */ ;
     else
     {
         __getConsoleDriverName(consDriverName, sizeof (consDriverName));
@@ -417,6 +418,16 @@ static void __defaultRuntimeErrorHandler(__long bErr)
 
 
 static void __preInitRuntimeError(__long errorNum)
+/*
+ * This function is called if a runtime error is thrown before
+ *  BASIClib has completed initialization. Since reporting of
+ *  errors would need either an initialized console driver or
+ *  an initialized GUI subsystem, we just need to bite the
+ *  bullet and dump the error message to stderr, and exit.
+ *
+ *     params : errorNum == error that has been thrown.
+ *    returns : void.
+ */
 {
     fprintf(stderr,
             "\n\nInit error (#%ld) has been thrown. Aborting...\n\n",
@@ -434,7 +445,7 @@ void __fatalRuntimeError(__long errorNum)
  *   returns : never.
  */
 {
-    if (basicErrno == NULL)
+    if (__initializationComplete() == false)
         __preInitRuntimeError(errorNum);
     else
         __defaultRuntimeErrorHandler(errorNum);
@@ -459,8 +470,12 @@ void __runtimeError(__long errorNum)
  *   returns : void. May jump to arbitrary address if not ERR_NO_ERROR.
  */
 {
-    if (basicErrno == NULL)     /* not initialized? Upgrade to fatal. */
-        __fatalRuntimeError(errorNum);
+    if (__initializationComplete() == false)     /* not initialized? */
+    {
+        if (errorNum != ERR_NO_ERROR)
+            __preInitRuntimeError(errorNum);
+    } /* if */
+
     else
     {
         basicErrno[__getCurrentThreadIndex] = errorNum;
