@@ -12,10 +12,20 @@
 #include "Language.h"
 
 
-char *__BASIClibStrings[(__BASIClibStringIndex) _TOTAL_STRING_COUNT_];
+static char *__BASIClibStrings[(__BASIClibStringIndex) _TOTAL_STRING_COUNT_];
 static __boolean initializedStrings = false;
 
-static inline char *getDefaultLangFileName(__boolean withDir)
+static inline const char *getDefaultLangFileName(__boolean withDir)
+/*
+ * Return the standard name of the language file. This should return
+ *  a pointer to STATIC MEMORY, so you can return a literal string, if you
+ *  want. The reciever of the return value from this function should consider
+ *  that memory to be READ ONLY.
+ *
+ *     params : withDir == Should the returned string have the standard
+ *                         directory and the filename, or just the filename?
+ *    returns : see above.
+ */
 {
 #   ifdef UNIX
         if (withDir == true)
@@ -139,6 +149,17 @@ static char *readAndParseLanguageString(FILE *langFileStream)
 } /* readAndParseLanguageString */
 
 
+const char *__getLanguageString(__BASIClibStringIndex idx)
+{
+    char *retVal = NULL;
+
+    if (initializedStrings == true)
+        retVal = __BASIClibStrings[idx];
+
+    return(retVal);
+} /* __getLanguageString */
+
+
 void __initLanguage(char *vbHomeDir)
 /*
  * Read internal BASIClib strings from a language-independent text file.
@@ -153,13 +174,12 @@ void __initLanguage(char *vbHomeDir)
  *  one of few places in BASIClib where you are encouraged to use C runtime
  *  library functions in favor of BASIClib equivalents.
  *
- *     params : vbHomeDir == vb UserAppDir. THIS IS THE ORIGINAL. DO NOT
- *                           MODIFY OR FREE THIS POINTER! READ ONLY!
+ *     params : vbHomeDir == vb UserAppDir.
  *    returns : void
  */
 {
     FILE *langFileStream;
-    int i;
+    unsigned int i;
 
     if (initializedStrings == false)
     {
@@ -173,6 +193,7 @@ void __initLanguage(char *vbHomeDir)
             if (feof(langFileStream))
             {
                 if (i != (__BASIClibStringIndex) _TOTAL_STRING_COUNT_ - 1)
+
                     __runtimeError(ERR_CANNOT_CONTINUE);
             } /* if */
         } /* for */
@@ -191,7 +212,7 @@ void __deinitLanguage(void)
  *    returns : void.
  */
 {
-    int i;
+    unsigned int i;
 
     if (initializedStrings == true)
     {

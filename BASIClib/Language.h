@@ -59,10 +59,9 @@ typedef enum
     _TOTAL_STRING_COUNT_  /* !!! namespace pollution. */
 } __BASIClibStringIndex;
 
-extern char *__BASIClibStrings[];
-
 void __initLanguage(char *vbHomeDir);
 void __deinitLanguage(void);
+const char *__getLanguageString(__BASIClibStringIndex idx);
 
 #ifdef __cplusplus
 }
