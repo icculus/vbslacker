@@ -106,6 +106,8 @@ void __runtimeError_recurse(int newErrNo)
         __runtimeError(newErrNo);
     else
         __runtimeError_recurse(newErrNo);
+
+    printf("  - Error handler returns incorrectly.\n");
 } /* __runtimeError_recurse */
 
 
