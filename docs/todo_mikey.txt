@@ -1,5 +1,6 @@
 (mikey's) TODO list:
 
+- Update DirectConsole based on "Linux Application Development" info...
 - errors should be their own type? Short?
 - autoconf.
 - __crashHandler();
