@@ -6,6 +6,7 @@ TODO list:
 - For ryan: finish conversion, math, and time/date functions.
 - For ryan: finish On event handling. Ugh.
 - For ryan: write internal string functions.
+- For ryan: write thread protection.
 - For the daring: See how gcc for win32 like this code.  :)
 - debug the ASM code. Yikes. Maybe move it into an inline
    function in OnEvents.c ...
@@ -14,7 +15,9 @@ TODO list:
    errors in expected BASIClib functionality. We'll really need this
    if we start porting to other platforms, but this is important for
    initial debugging, too.
-- Design full, detailed  timetable.
+- Design full, detailed timetable.
+- Figure out a good name mangling scheme.
+- Consider marketing strategy.
 - Write the !@#$ing thing.
 - ...and much, much more.
 
