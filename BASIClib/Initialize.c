@@ -28,7 +28,7 @@ void __initBasicLib(STATEPARAMS, long flags)
         __initInternalMemManager(STATEARGS);
         __initErrorFunctions(STATEARGS);
         __initOnEvents(STATEARGS);
-        __initConsole(STATEARGS);
+        __initConsoleFunctions(STATEARGS);
         __initTimeDateFunctions(STATEARGS);
         __initBasicFileStream(STATEARGS);
 
@@ -50,7 +50,7 @@ void __deinitBasicLib(void)
     {
         initFlags = INITFLAG_NOT_INITIALIZED;
         __deinitThreads(NULLSTATEARGS);
-        __deinitConsole(NULLSTATEARGS);
+        __deinitConsoleFunctions(NULLSTATEARGS);
         __deinitOnEvents(NULLSTATEARGS);
         __deinitInternalMemManager(NULLSTATEARGS);
         initialized = false;
