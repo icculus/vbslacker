@@ -9,6 +9,7 @@
 static long initFlags = INITFLAG_NOT_INITIALIZED;
 static boolean initialized = false;
 
+
 void __initBasicLib(STATEPARAMS, long flags)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
@@ -22,6 +23,8 @@ void __initBasicLib(STATEPARAMS, long flags)
     if (initialized == false)
     {
         initFlags = flags;
+
+        __initSignalHandlers(STATEARGS);
         __initInternalMemManager(STATEARGS);
         __initErrorFunctions(STATEARGS);
         __initOnEvents(STATEARGS);
@@ -31,14 +34,14 @@ void __initBasicLib(STATEPARAMS, long flags)
 
         __initThreads(STATEARGS);    /* Make sure this is last init call. */
 
-        /* !!! register __deinitBasicLib() with atexit()... */
+        atexit(__deinitBasicLib);
 
         initialized = true;
     } /* if */
 } /* __initBasicLib */
 
 
-void __deinitBasicLib(STATEPARAMS)
+void __deinitBasicLib(void)
 /*
  * Call this before exiting a program using BASIClib.
  */
@@ -46,10 +49,10 @@ void __deinitBasicLib(STATEPARAMS)
     if (initialized == true)
     {
         initFlags = INITFLAG_NOT_INITIALIZED;
-        __deinitThreads(STATEARGS);
-        __deinitConsole(STATEARGS);
-        __deinitOnEvents(STATEARGS);
-        __deinitInternalMemManager(STATEARGS);
+        __deinitThreads(NULLSTATEARGS);
+        __deinitConsole(NULLSTATEARGS);
+        __deinitOnEvents(NULLSTATEARGS);
+        __deinitInternalMemManager(NULLSTATEARGS);
         initialized = false;
     } /* if */
 } /* __deinitBasicLib */

@@ -19,7 +19,7 @@
 
     /* function prototypes ... */
 void __initBasicLib(STATEPARAMS, long flags);
-void __deinitBasicLib(STATEPARAMS);
+void __deinitBasicLib(void);
 long __getInitFlags(STATEPARAMS);
 
 #endif
