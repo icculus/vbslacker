@@ -1,6 +1,13 @@
 /*
  * Some lowlevel stuff that all vbSlacker code should include.
  *
+ * This file, which should be #included AFTER Platform.h, figures
+ *  out what compiler and platform we are using, and includes the
+ *  correct header file for that. We need to get the header file
+ *  with inline assembly macros that will work on the
+ *  compiler/platform combination in use. If such a file has not
+ *  yet been written, an error is thrown by the preprocessor.
+ *
  *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
