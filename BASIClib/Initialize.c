@@ -9,6 +9,7 @@
 #include "OnEvents.h"
 #include "TimeDateFunctions.h"
 #include "BasicFileStream.h"
+#include "ErrorFunctions.h"
 
 void __initBasicLib(void)
 /*
@@ -20,9 +21,12 @@ void __initBasicLib(void)
  *    returns : void.
  */
 {
-    __initThreads();
+    __initErrorFunctions();
     __initTimeDateFunctions();
     __initBasicFileStream();
+    __initThreads();
+
+    /* !!! register __deinitBasicLib() with atexit()... */
 } /* __initBasicLib */
 
 
