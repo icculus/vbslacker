@@ -80,9 +80,6 @@
 #define ERR_PATH_NOT_FOUND                 76
 #define MAX_ERRS                           76
 
-/* !!! move this to a more appropriate spot, later. */
-#define UNKNOWN_ERR                        "???"
-
 extern int __basicErrno;
 
 void __initErrorFunctions(STATEPARAMS);

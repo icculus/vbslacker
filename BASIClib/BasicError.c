@@ -19,7 +19,7 @@
 int basicErrno = ERR_NO_ERROR;
 int __basicErrno = ERR_NO_ERROR;
 
-static char *errStrings[MAX_ERRS];
+static char **errStrings[MAX_ERRS];
 
 void __initErrorFunctions(STATEPARAMS)
 /*
@@ -92,11 +92,13 @@ void __defaultRuntimeErrorHandler(STATEPARAMS)
 {
     char *errStr;
 
-    errStr = ((basicErrno > MAX_ERRS) ? UNKNOWN_ERR : errStrings[basicErrno]);
-    if (errStr == NULL)
-        errStr = UNKNOWN_ERR;
+    errStr = ((basicErrno > MAX_ERRS) ?
+                STR_UNKNOWN_ERR : errStrings[basicErrno]);
 
-    /* !!! this needs to get abstracted! */
+    if (errStr == NULL)
+        errStr = STR_UNKNOWN_ERR;
+
+    /* !!! this output needs to get abstracted! */
 
     printf("\n\n***Unhandled runtime error***\n"
            "  \"%s\" (#%d)\n"
