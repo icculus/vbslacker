@@ -1,0 +1,105 @@
+Some notes on platform-independence and Windows:
+
+  First, Windows has some definite incompatibilities (partially through
+   different design concepts, and partially through design flaws) with
+   Unix.
+
+  Secondly, Unix is very different from, say, a Macintosh.
+
+  Visual BASIC is written specifically for Windows; you can see this in
+   its API.
+
+  While the progession of VB to a Win32 system has cleared up a LOT of
+   these problems, since memory management is significantly more transparent
+   now, it doesn't take care of everything.
+
+  Making VB friendly to Windows NT has helped a lot, since NT tends to be
+   more abstract; after all, it runs on at least two vastly different
+   architectures. This is to our benefit, although even WinNT does some
+   stuff a little less intensely than Unix (for example, NTFS is not
+   case sensitive, uses drive letters, etc...)
+
+  There are a few notable areas where we'll have to fight to keep things
+   compatible. They are:
+
+     - File system compatibility and file/device i/o.
+     - GUI interface.
+     - ActiveX.
+
+  Just about everything else can be transparently emulated, if nothing else.
+
+
+FILE SYSTEM AND FILE I/O:
+
+  The most notable variation between Microsoft OSes and Unix is how they
+   handle the file system. A Mac handles its file system is a third
+   incompatible way. What it comes down to is a need for abstraction in
+   the API.
+
+  Of course, that sounds good on paper.
+
+  Java has it easy, since they could warn their programmers not to embed
+   filenames right from the start; they supply an interface to abstract
+   filename entry and output, so it works the same on any interface.
+
+  Visual Basic has no such interface. Therefore there is a ton of legacy
+   code that not only hardcodes filenames, and path characters, but also
+   expects to be able to find those path characters and filenames in
+   return values.
+
+  If nothing else, they ARE going to expect a drive letter...
+
+  So here's what I think: First, the programmer should be encouraged,
+   whether using vbSlacker or regular ol' VB or VisualAge for BASIC, or
+   anything else, to always write code in a platform independent fashion.
+   Never hardcode filenames, paths, or even make assumptions that drive
+   letters are available. File selection should be abstracted into file
+   dialogs, or be user-specified at all times through input or config
+   files or whatnot. Things like curdir$() and curdrive$() should be
+   avoided like the plague, as you should never concern yourself with
+   what the current working directory is.
+
+  Failing that...
+
+  APIs that accept filenames (KILL, OPEN, NAME, etc...) will always accept
+   both Windows-like filenames and unix-like filenames. On Unix-like systems,
+   the drive letter (if specified) will be ignored. The "\" character is
+   converted to "/".
+
+  If the "ignore filename case" runtime option is NOT set, case will still
+   be significant. If set, anything that must access files will access the
+   file with the exact specified case, and failing that, will access the first
+   to match an case-insensitive search. This option is not recommended unless
+   your code is REALLY legacy, but it can be helpful for programs that make
+   poor use of the DIR$() command. This option will not be available to a
+   Win32 or OS/2 system, since they are already case-insensitive.
+
+  Things that expect various file attributes are treated differently:
+
+    vbNormal    : same as always.
+    vbReadOnly  : The file is checked to see if the process has rights to
+                   read it.
+    vbHidden    : ignored. There is no such thing as a "hidden" file.
+    vbSystem    : ignored. There is no such thing as a "system" file.
+    vbVolume    : ignored. There is no such thing as a "volume" file.
+    vbDirectory : same as always.
+
+  Besides that, the only thing we need worry about is return values. For
+   example, a BASIC program that parses a directory is going to expect DIR$()
+   to return a value like "D:\DIR1\DIR2\FEH.TXT", which is no good at all on
+   Unix.
+
+  So, we set up another runtime option: Windows file compatibility.
+   This allows for either a "native feel", where a programmer may choose
+   to hardcode platform-specific details, or legacy code may be up and running
+   that much quicker. In Windows mode, CURDRIVE$() always returns "C:".
+   File dialog boxes are roughly Windows-like, but specify only a "C:" to
+   click through.
+
+
+
+
+!!! MORE TO COME!
+
+/* end of windows_compatibility.txt ... */
+
