@@ -9,7 +9,7 @@ export REVISIONVER = 1
 export WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
 export OBJS = BasicString.o ConversionFunctions.o Initialize.o \
               ErrorFunctions.o MathFunctions.o MemoryManager.o Threads.o \
-              TimeDateFunctions.o \
+              TimeDateFunctions.o BasicFileSystem.o \
               StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
               ConsoleFunctions.o ProcessFunctions.o FileSystemFunctions.o \
               Variant.o BasicError.o NoConsole.o DirectConsole.o \
