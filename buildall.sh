@@ -1,10 +1,12 @@
 #!/bin/sh
 
-cd BASIClib
+set -e
+
+cd ../libgc
 make clean
 make linux
 
-cd ../libgc
+cd BASIClib
 make clean
 make linux
 
