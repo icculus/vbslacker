@@ -25,6 +25,23 @@ To start:
     by the BASIC compiler. Either is acceptable. (Let's avoid the C "inline"
     keyword, however, since it isn't forceful enough for our uses.)
 
+Lines:
+    Each line of BASIC code should be represented in the C output with the
+    #line preprocessor directive.
+
+
+    ' in test.bas ...          'line 1
+    PRINT "this is a line."    'line 2
+    x = 5                      'line 3
+
+    // converted C code: this is just a paired-down example conversion...
+
+    #line 2 "test.bas"
+    vbp_print("this is a line");
+    #line 3 "test.bas"
+    x = 5;
+
+
 
 Comments:
     Comments should be stripped from the BASIC source file, and should not
@@ -126,7 +143,9 @@ GOTOs and Line labels:
         - Between every line of BASIC code (NOT EVERY FUNCTION, JUST EVERY
           LINE...lines continued with the '_' character still count as one
           line) in functions that contain any mention of ON ERROR or RESUME.
-        - The line after every GOSUB statement.
+        - The line after a GOSUB statement.
+
+    Note that #line directives should go after the __insertLineLabel command.
 
     The C-output should NEVER contain C-style line labels or gotos, since they
     aren't portable between platforms (at least, not for our needs).
