@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include "ConversionFunctions.h"
 #include "InternalMemManager.h"
+#include "MathFunctions.h"
 #include "BasicString.h"
 #include "ErrorFunctions.h"
 #include "Variant.h"
@@ -238,11 +239,7 @@ PBasicString hex_DC_(double x)
 
     char buffer[20];
 
-    /* !!! This doesn't round, just truncates. */
-    rounded = (int) x;
-
-    /* !!! This next line would work, if it compiled. */
-    /*rounded = ( ((x % 1.0) >= 0.5) ? (int) x + 1 : (int) x );*/
+    rounded = __round(x);
     sprintf(buffer, "%X", rounded);
 
     return(__createString(buffer, false));
@@ -265,13 +262,7 @@ PBasicString oct_DC_(double x)
 
     char buffer[20];
 
-
-    /* !!! This doesn't round, just truncates. */
-    rounded = (int) x;
-
-    /* !!! This next line would work, if it compiled. */
-    /*rounded = ( ((x % 1.0) >= 0.5) ? (int) x + 1 : (int) x );*/
-
+    rounded = __round(x);
     sprintf(buffer, "%o", rounded);
 
     return(__createString(buffer, false));
