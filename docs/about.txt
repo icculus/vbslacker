@@ -3,20 +3,15 @@ VBslacker 0.0.1
 Designed with tender loving care by Ryan C. Gordon and Gregory S Read.
 
 vbSlacker is currently being hacked at on Linux in this specification:
-  - Red Hat 6.1
-  - glibc2.1
-  - kernel 2.2.13
+  - Red Hat 6.2
+  - glibc2.1.2
+  - kernel 2.4.0-testsomething.
   - ELF-binaries.
 
 (Also being hacked on WinNT 4.0 by Greg, and Win98 and Slackware 7 on Ryan's
  VAIO N505VE...whoa.)
 
-Win32 support is in place in...uh...most places, thanks to cygwin B20.1.
+Win32 support is in place in...uh...some places, thanks to CygWin.
 
 Warranty: If vbSlacker breaks, you get to keep both SHINY pieces!
-
-
-(If you are seeing this when running MAKE, you probably need to
- specify a target platform. Try: 'make linux' or 'make win32'...)
-
 

@@ -1,7 +1,11 @@
 (mikey's) TODO list:
 
+- Make vbslacker.cons parser handle multiple spaces.
+- Check entire codebase for "//" comments.
+- Put const qualifier wherever you can.
 - Split console drivers into individual shared libraries that are
   loaded/unloaded dynamically, in a config-file-specified hierarchy.
+- Check all code for possible replacements with _vbReleaseThreadThrowError().
 - errors should be their own type? Short?
 - autoconf.
 - __crashHandler();
@@ -11,7 +15,7 @@
 - Variant needs to become __vbVariant ...
 - PVariant needs to become __vbVariant * ...
 - Other constants need modifying...
-- What to do about: ActiveX
+- What to do about: ActiveX  (_vbComponent?)
 - What to do about all the damned constants?
 - What to do about variants?
 - FileSystemFunctions: FileDateTime(), FileLen(), GetAttr(),
@@ -33,7 +37,7 @@
 - Design full, detailed timetable.
 - Consider marketing strategy.
 - Write the !@#$ing thing.
-- Slow down a bit so Greg can catch up.
+- Slow down a bit so Greg can catch up. :)
 - ...and much, much more.
 
 

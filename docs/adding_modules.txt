@@ -54,11 +54,8 @@ extern "C" {
   internal-only modules, consider adding your header to StdBasic.h instead.
   Don't add it to both.
 
-- Compile with -D_REENTRANT and -DLINUX_THREADS (or -DSINGLE_THREADED),
-  -DLANG_ENGLISH (or whatever) and -DLINUX_I386 (or whatever) on the command
-  line, or better yet, read below for how to add your module to the makefiles...
-
-- Makefiles: Do this to "Makefile" in the BASIClib dir.
+- Makefiles: Do this to "Makefile.linux", "Makefile.win32", etc in the
+  BASIClib dir. (!!! we really need to unify the makefiles...)
 
   - On the "OBJS =" line, add your compiled module's filename: MyFunctions.o.
     If you have to add a new line to fit into 80 columns, add a backslash

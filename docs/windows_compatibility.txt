@@ -4,7 +4,7 @@ Some notes on platform-independence and Windows:
    different design concepts, and partially through design flaws) with
    Unix.
 
-  Secondly, Unix is very different from, say, a Macintosh.
+  Secondly, Unix is very different from, say, MacOS.
 
   Visual BASIC is written specifically for Windows; you can see this in
    its API.
