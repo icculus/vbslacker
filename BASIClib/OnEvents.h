@@ -7,6 +7,8 @@
 #ifndef _INCLUDE_ONEVENTS_H_
 #define _INCLUDE_ONEVENTS_H_
 
+#include "Threads.h"
+
 typedef enum
 {
     ONERROR,
@@ -35,6 +37,7 @@ typedef struct
 typedef OnEventHandler *POnEventHandler;
 
 
+extern ThreadLock registerLock;
 extern void *_stack_ptr_;
 extern void *_base_ptr_;
 

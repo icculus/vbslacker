@@ -36,7 +36,7 @@ void __resumeNextHandler(void);
     /*
      * module scope thread lock.
      */
-static ThreadLock lock;
+ThreadLock onEventsLock;
 
 
     /*
@@ -115,7 +115,7 @@ void __initOnEvents(void)
  */
 {
     __createThreadLock(&registerLock);
-    __createThreadLock(&lock);
+    __createThreadLock(&onEventsLock);
 } /* __initOnEvents */
 
 
@@ -129,7 +129,7 @@ void __deinitOnEvents(void)
  */
 {
     __destroyThreadLock(&registerLock);
-    __destroyThreadLock(&lock);
+    __destroyThreadLock(&onEventsLock);
 } /* __deinitOnEvents */
 
 
@@ -146,7 +146,7 @@ void __initThreadOnEvents(int tidx)
     int currentThreadCount;
     unsigned int i;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(&onEventsLock);
 
     currentThreadCount = __getHighestThreadIndex() + 1;
     if (threadCount != currentThreadCount)
@@ -162,7 +162,7 @@ void __initThreadOnEvents(int tidx)
                                      threadCount * sizeof (POnEventTypeEnum));
     } /* if */
 
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(&onEventsLock);
 
     table = __memAlloc(sizeof (HandlerVector) * (OnEventTypeEnum) TOTAL);
     pTables[tidx] = table;
@@ -185,7 +185,7 @@ void __deinitThreadOnEvents(int tidx)
  *   returns : void.
  */
 {
-    PHandlerVector table;    
+    PHandlerVector table = pTables[tidx];
     unsigned int i;
 
     for (i = 0; i < (OnEventTypeEnum) TOTAL; i++)
@@ -209,9 +209,9 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
     PHandlerVector evVect;
     int tidx = __getCurrentThreadIndex();
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(&onEventsLock);
     evVect = &pTables[tidx][evType];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(&onEventsLock);
 
     if (evVect->count > 0)
         retVal = evVect->handlers[evVect->count - 1];
@@ -277,9 +277,9 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
     PHandlerVector evVect;
     int tidx = __getCurrentThreadIndex();
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(&onEventsLock);
     evVect = &pTables[tidx][evType];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(&onEventsLock);
 
     if ((evVect->count <= 0) ||    /* setup new handler? */
         (evVect->handlers[evVect->count - 1]->stackStart != stackStart))
@@ -325,9 +325,9 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
     int tidx = __getCurrentThreadIndex();    
     PHandlerVector evVect;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(&onEventsLock);
     evVect = &pTables[tidx][evType];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(&onEventsLock);
 
     if (evVect->count > 0)
     {
@@ -357,11 +357,11 @@ void **__calcBasePtrStorage(void)
     void **theStack;
     void **retVal;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(&onEventsLock);
     theStack = basePtrStacks[tidx];
     bpIndex = basePtrIndexes[tidx];
     retVal = &theStack[bpIndex];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(&onEventsLock);
 
     return(retVal);
 } /* __calcBasePtrStorage */
@@ -381,13 +381,13 @@ void __triggerOnEvent(OnEventTypeEnum evType)
     POnEventHandler pHandler = __getOnEventHandler(evType);
     int tidx = __getCurrentThreadIndex();
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(&onEventsLock);
     basePtrIndexes[tidx]++;
     basePtrStacks[tidx] = __memRealloc(basePtrStacks[tidx],
                                       (basePtrIndexes[tidx] + 1) *
                                          sizeof (void *));
     lastTriggeredOnEventType[tidx] = evType;
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(&onEventsLock);
 
     __callOnEventHandler(pHandler);     /* initialize miracle mode... */
 } /* __triggerOnEvent */
@@ -399,9 +399,9 @@ void __resumeNext(void)
     int tidx = __getCurrentThreadIndex();
     OnEventTypeEnum evType;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(&onEventsLock);
     evType = lastTriggeredOnEventType[tidx];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(&onEventsLock);
 
     pHandler = __getOnEventHandler(evType);
 

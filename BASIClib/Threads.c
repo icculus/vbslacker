@@ -25,8 +25,8 @@ typedef ThreadEntryArgs *PThreadEntryArgs;
 
 
 
-static volatile ThreadLock lock;        /* module-scope thread lock. */
-static volatile pthread_t *indexes;
+static ThreadLock lock;        /* module-scope thread lock. */
+static pthread_t *indexes;
 static volatile int threadCount = 0;
 static volatile int maxIndex = 0;
 
@@ -59,7 +59,7 @@ void __deinitThreads(void)
 void __prepareThreadToTerminate(int tidx)
 {
     int i;
-    int lastNULL = -1;
+    int firstNULL = -1;
 
     __deinitThread(tidx);   /* notify other modules that thread is dying. */
 
@@ -67,10 +67,10 @@ void __prepareThreadToTerminate(int tidx)
 
     threadCount--;
 
-    indexes[tidx] = NULL;
+    indexes[tidx] = (pthread_t) NULL;
     for (i = 0; i <= maxIndex; i++)
     {
-        if (indexes[i] != NULL)
+        if (indexes[i] != (pthread_t) NULL)
             firstNULL = -1;
         else if (firstNULL == -1)
             firstNULL = i;
@@ -120,11 +120,11 @@ void __waitForThreadToDie(int tidx)
 
 void __threadEntry(void *_args)
 {
-    void *threadArgs = ((PThreadEntryArgs) args)->args;
+    PThreadEntryArgs args = (PThreadEntryArgs) _args;
 
+    __initThread(args->tidx);
+    args->fn(args->args);
     __memFree(args);
-    __initThread(((PThreadEntryArgs) args)->tidx);
-    args->fn(threadArgs);
     __terminateCurrentThread();
 } /* __threadStart */
 
@@ -143,7 +143,7 @@ int __spinThread(void *(*_fn)(void *), void *_args)
 
     for (args->tidx = 0; args->tidx <= maxIndex; args->tidx++)
     {
-        if (indexes[args->tidx] == NULL)
+        if (indexes[args->tidx] == (pthread_t) NULL)
             saveLoc = &indexes[args->tidx];
     } /* for */
 
@@ -156,7 +156,7 @@ int __spinThread(void *(*_fn)(void *), void *_args)
     } /* if */
 
     retVal = args->tidx;
-    rc = pthread_create(saveLoc, NULL, __threadEntry, args);
+    rc = pthread_create(saveLoc, NULL, (void *) __threadEntry, args);
 
     __releaseThreadLock(&lock);
 
@@ -186,6 +186,7 @@ int __getHighestThreadIndex(void)
 int __getCurrentThreadIndex(void)
 {
     pthread_t tid = pthread_self();
+    int i;
     int retVal = -1;
 
     __obtainThreadLock(&lock);
