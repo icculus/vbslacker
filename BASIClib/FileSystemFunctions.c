@@ -279,8 +279,7 @@ void _vbpS_kill(PBasicString fileSpec)
 
 static inline __boolean checkReadOnly(struct dirent *pDir)
 {
-#warning write checkReadOnly()!  (How?)
-    return(false);
+    return( (access(pDir->d_name, W_OK) == -1) ? true : false );
 } /* checkReadOnly */
 
 
