@@ -1,5 +1,6 @@
 (mikey's) TODO list:
 
+- errors should be their own type? Short?
 - autoconf.
 - __crashHandler();
 - re-mangle all BASIClib symbols. AGAIN. Ugh.
