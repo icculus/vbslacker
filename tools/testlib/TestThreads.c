@@ -38,7 +38,10 @@ void test__spinThread(void)
 
     tidx = __spinThread((void *) threadFunc, NULL);
     if (tidx == -1)
-        printf("  - Couldn't spin thread. retVal == -1.\n");
+    {
+        printf("  - Couldn't spin thread. retVal == -1.\n"
+               "  -  (If this is a single-threaded app, this is normal.)\n");
+    } /* if */
     else
     {
         for (i = 0; i < 10000; i++)
