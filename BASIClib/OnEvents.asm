@@ -149,11 +149,10 @@ __callOnEventHandler:                   ; proc
             ;  stored, and alter the value...
 
         call    __getCurrentThreadIndex ; Get current thread index.
-        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
-
         call    __enterCriticalThreadSection
         mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
-        mul     eax,ebx                 ; make it into offset in array.
+        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
+        mul     ebx                     ; ebx*eax make it into offset in array.
         add     esi,eax                 ; esi now points to our element.
         call    __exitCriticalThreadSection
 
