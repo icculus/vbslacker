@@ -23,9 +23,9 @@ PBasicString __allocString(int length, boolean fixedLength)
     PBasicString retVal;
 
     retVal = __memAlloc(sizeof (BasicString));
-    retVal.data = __memAlloc(length);
-    retVal.length = length;
-    retVal.fixedLength = fixedLength;
+    retVal->data = __memAlloc(length);
+    retVal->length = length;
+    retVal->fixedLength = fixedLength;
 
     return(retVal);
 } /* __allocString */
@@ -78,7 +78,7 @@ PBasicString __createString(char *asciz, boolean fixedLength)
  *   returns : Newly allocated BASIC string.
  */
 {
-    int length = strlen(asciz)
+    int length = strlen(asciz);
     PBasicString retVal = __allocString(length, fixedLength);
 
     memcpy(retVal->data, asciz, length);

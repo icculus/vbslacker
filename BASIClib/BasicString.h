@@ -18,9 +18,9 @@ typedef struct
 
 typedef BasicString *PBasicString;
 
-void __allocString(int length, boolean fixedLength);
-void __createString(char *asciz, boolean fixedLength);
-void __cloneString(PBasicString pBasicStr);
+PBasicString __allocString(int length, boolean fixedLength);
+PBasicString __createString(char *asciz, boolean fixedLength);
+PBasicString __cloneString(PBasicString pBasicStr);
 void __freeString(PBasicString pBasicStr);
 
 #endif
