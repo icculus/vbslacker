@@ -14,10 +14,15 @@
 
 /*static boolean inGraphicsState = false;*/
 
+/* internal function declarations needed at start... */
+void __preinitPrintNewLine(STATEPARAMS);
+void __preinitPrintNChars(STATEPARAMS, char *str, int n);
+
 /* variable function pointers... */
-void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size);
-void (*__deinitConsoleHandler)(STATEPARAMS);
-void (*__printNewLine)(STATEPARAMS);
+void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size) = NULL;
+void (*__deinitConsoleHandler)(STATEPARAMS) = NULL;
+void (*__printNewLine)(STATEPARAMS) = __preinitPrintNewLine;
+void (*__printNChars)(STATEPARAMS, char *str, int n) = __preinitPrintNChars;
 void (*vbpS_print)(STATEPARAMS, PBasicString x) = NULL;
 void (*vbpii_viewPrint)(STATEPARAMS, int top, int bottom) = NULL;
 void (*vbp_viewPrint)(STATEPARAMS) = NULL;
@@ -54,7 +59,8 @@ void __deinitConsoleFunctions(STATEPARAMS)
 
     __getConsoleHandlerName = NULL;  /* blank all the func pointers out... */
     __deinitConsoleHandler = NULL;
-    __printNewLine = NULL;
+    __printNewLine = __preinitPrintNewLine;
+    __printNChars = __preinitPrintNChars;
     vbpS_print = NULL;
     vbpii_viewPrint = NULL;
     vbp_viewPrint = NULL;
@@ -81,8 +87,66 @@ void vbpV_print(STATEPARAMS, PVariant pVar)
 } /* vbpV_print */
 
 
+void vbpS_print(STATEPARAMS, PBasicString str)
+/*
+ * Print a BASIC string to the console. NULL characters do not
+ *  terminate the string, and are acceptable for printing.
+ *
+ *     params : str == BASIC string to print.
+ *    returns : void.
+ */
+{
+    __printNChars(STATEARGS, str->data, str->length);
+} /* vbpS_print */
 
 
+void __printAsciz(STATEPARAMS, char *str)
+/*
+ * Print a null-terminated C string (ASCIZ string) to the console.
+ *  If there is a null character in the string, it is considered the
+ *  end, even if you have more data, so be careful with this. Use
+ *  either __printNChars() or vbpS_print() in such a case.
+ *
+ *      params : str == ASCIZ string to print.
+ *     returns : void.
+ */
+{
+    __printNChars(STATEARGS, strlen(str));
+} /* __printAsciz */
+
+
+static void __preinitPrintNChars(STATEPARAMS, char *str, int n);
+/*
+ * This function exists to allow initialization functions to
+ *  write to stderr (under the guise of a full console driver)
+ *  before a console driver has been selected and initialized.
+ *  This is mostly for when there are runtime errors at startup.
+ *
+ *    params : str == pointer to chars to print.
+ *             n == number of chars at (str) to print.
+ *   returns : void.
+ */
+{
+    int i;
+
+    for (i = 0; i < n; i++)
+        fputc(stderr, str[i]);
+} /* __preinitPrintNChars */
+
+
+static void __preinitPrintNewLine(STATEPARAMS)
+/*
+ * See __preinitPrintNChars(), above.
+ *
+ *     params : void.
+ *    returns : void.
+ */
+{
+    fprintf(stderr, EOL_STRING);
+} /* __preinitPrintNewLine */
+
+
+/* qbcolor */
 /* color */
 /* locate */
 /* write */
