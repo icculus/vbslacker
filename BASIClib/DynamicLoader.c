@@ -11,6 +11,8 @@
 
 #ifdef LINUX
 #   include <dlfcn.h>
+#else
+#   warning This probably does not work on any non-Unix platform.
 #endif
 
 __DynamicBinaryHandle __dynLoadBinary(char *binaryName)
@@ -22,19 +24,26 @@ __DynamicBinaryHandle __dynLoadBinary(char *binaryName)
  * Calling this with the name of an already-loaded binary will increase the
  *  reference count for that binary, and return the same handle.
  *  __dynFreeBinary() will not actually free that binary until the reference
- *  count drops back to zero. Reloaded a freed binary may or may not return
+ *  count drops back to zero. Reloading a freed binary may or may not return
  *  the same handle.
  *
- * Each call to __dynLoadBinary() with the same name increases that binary's
- *  reference count. The initial loading of the binary creates a reference
- *  count of one.
+ * (binaryName) may be NULL, in which case an attempt is made to treat the
+ *  main executable binary as a dynamic library, so program's internal symbols
+ *  may be referenced through this interface. Some systems may not support
+ *  this trick, so there is always a possibility that such an attempt will
+ *  fail. Do not use this method without a backup plan.
+ *
+ * The initial loading of the binary creates a reference count of one. The
+ *  main executable has a reference count of 1 at program start, so the first
+ *  successful call to this function with (binaryName) == NULL would increment
+ *  that counter to two.
  *
  *    params : binaryName == System-dependent binary name ("libm.so", etc.)
  *   returns : handle of opened binary on success, __dyn_NULL_HANDLE on error.
  */
 {
     __DynamicBinaryHandle retVal = __dyn_NULL_HANDLE;
-    void *rc = dlopen(binaryName, RTLD_LAZY);
+    void *rc = dlopen(binaryName, RTLD_GLOBAL | RTLD_LAZY);
 
     if (rc != NULL)
         retVal = (__DynamicBinaryHandle) rc;
@@ -68,6 +77,9 @@ void __dynFreeBinary(__DynamicBinaryHandle handle)
  *  after being freed, but makes no promises that the previous pointers will,
  *  at that point, be accurate again.
  *
+ * Decrementing the reference count of the main executable handle (returned
+ *  from __dynLoadBinary(NULL)) to or below zero has an undefined behaviour.
+ *
  *    params : handle == handle returned from __dynLoadBinary().
  *             symbolName == name of symbol to locate in binary.
  *   returns : NULL if symbol not found, address of symbol otherwise.
@@ -87,10 +99,11 @@ char *__dynPlatformBinaryName(char *baseName)
  *  __memAlloc() is -NOT- used for this, so be sure to free() the retVal as
  *  soon as you are done with it!
  *
- * This function doesn't guarantee the suggested name exists, or is correct.
+ * This function doesn't guarantee the suggested name exists, that you
+ *  have the permissions to use it, or even that it is the correct binary.
  *
  *     params : baseName == basename for dynamic binary.
- *    returns : suggested platform-dependent name. NULL on malloc() failure.
+ *    returns : suggested platform-dependent name. NULL on failure.
  */
 {
     char *retVal = NULL;
@@ -101,9 +114,8 @@ char *__dynPlatformBinaryName(char *baseName)
 #   if (defined LINUX)
         retVal = malloc(strlen(baseName) + 7);
         if (retVal != NULL)
-        {
             sprintf(retVal, "lib%s.so", baseName);
-        } /* if */
+
 #   elif ((defined WIN32) || (defined OS2))
         retVal = malloc(strlen(baseName) + 4);
         if (retVal != NULL)
