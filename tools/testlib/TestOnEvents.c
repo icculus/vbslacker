@@ -31,30 +31,38 @@ void test_getBasePointer(void)
     char *loc2;
 
 #ifdef DEBUG
+    FILE *debugStream;
     char *i;
 #endif
 
     printf("Testing __getBasePointer()...");
 
     __getBasePointer(&_base_ptr_);
-    loc1 = (char *) (((int) _base_ptr_) + 8);
-    loc2 = (char *) (((int) _base_ptr_) + strlen(STR2) + 8);
-
-#ifdef DEBUG
-    printf("var1 == [%s]...should be [%s]\n", loc1, var1);
-    printf("var2 == [%s]...should be [%s]\n", loc2, var2);
-
-    printf("\n");
-
-    for (i = loc1 - 20; i < loc1 + 20; i++)
-        printf("%2X ", (int) (*i));
-
-    printf("\n");
-
-#endif
+    loc1 = (char *) (((int) _base_ptr_) + 8 + strlen(STR1));
+    loc2 = (char *) (((int) loc1) + strlen(STR2));
 
     if ( (strcmp(loc1, STR1) != 0) || (strcmp(loc2, STR2) != 0) )
+    {
         printf("failed.");
+
+#ifdef DEBUG
+        printf("var1 == [%s]...should be [%s]\n", loc1, var1);
+        printf("var2 == [%s]...should be [%s]\n", loc2, var2);
+
+        debugStream = fopen("./debugBP.bin", "wb");
+        if (debugStream == NULL)
+            printf("Couldn't open ./debugBP.bin for output!\n");
+        else
+        {
+            printf("Check ./debugBP.bin for stack dump...\n");
+            printf("It contains bytes from bp-20 to bp+20...\n");
+            for (i = _base_ptr_ - 20; i <= _base_ptr_ + 20; i++)
+                fputc(debugStream, *i);
+            fclose(debugStream);
+        } /* else */
+#endif
+
+    } /* if */
     else
         printf("successful.");
 } /* test_getBasePointer */
