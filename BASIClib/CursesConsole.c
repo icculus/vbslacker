@@ -6,9 +6,7 @@
 
 #include "ConsoleFunctions.h"
 
-#ifdef WIN32   /* cygwin doesn't come with ncurses; won't compile for me. */
-
-#warning WIN32 has no curses support, yet!
+#ifdef NOCURSES
 __boolean __initCursesConsole(void) { return(false); }
 
 #else
@@ -17,8 +15,8 @@ __boolean __initCursesConsole(void) { return(false); }
 #include <string.h>
 #include <curses.h>
 
-static WINDOW *cons = NULL;     /* WINDOW structure for printable window. */
-static ThreadLock consoleLock;
+WINDOW *cons = NULL;     /* WINDOW structure for printable window. */
+ThreadLock consoleLock;
 
 static int __curs_openConsole(void)
 /*

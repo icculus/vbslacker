@@ -8,6 +8,8 @@
 #include <math.h>
 #include "BasicLib.h"
 
+int __basicErrno;
+
 void test_vbdd_abs(void)
 /*
  * Test abs() functionality.

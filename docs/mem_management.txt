@@ -31,6 +31,18 @@ don't call realloc() on things you've __memAlloc()ed, etc...
 anyhow, but it's nice to know they're there. Some of the lower-level sections
 of BASIClib use malloc() and free()...
 
+The main reason to avoid these are as follows:
+- They return NULL on error, and you need to check for this manually.
+- They cause memory leaks when you forget to call free().
+- They cause memory leaks if an OnEvent is triggered before you call free().
+
+To prevent problems when using these functions, you need to do the following:
+- Always check to make sure NULL is not returned, and handle it gracefully
+  if it is. No unnecessary termination, and DEFINITELY no segmentation faults!
+- Always double (and triple) check your logic for leaks.
+- Always avoid functions that'll trigger OnEvents (all BASIClib functions are
+  capable of doing so), and if you STILL must use malloc(), set up an ONERROR
+  handler that free()s your memory, and rethrows the error. It's a bitch.
 
 STANDARD BASICLIB MEMORY MANAGEMENT LEVEL:
 
@@ -39,32 +51,27 @@ expect STATEARGS to be passed to them, like all BASIClib functions, but
 other than that, the syntax is the same. Therefore, the BASIClib equivalents
 of the C library are:
 
-/* C versions: */
-
-void *malloc(size_t memLength);
-void *realloc(void *ptr, size_t memLength);
-void free(void *ptr);
-
-/* BASIClib versions: */
-
 void *__memAlloc(STATEPARAMS, size_t memLength);
 void *__memRealloc(STATEPARAMS, void *ptr, size_t memLength);
 void __memFree(STATEPARAMS, void *ptr);
 
 (The implementation of calloc() is left as an exercise to the reader. If you
-can't do this, then you probably can't hack it as a programmer.)
+can't do this, then you probably can't hack it as a programmer anyhow.)
 
 The difference? First, if the requested memory object cannot be allocated,
 BASIClib tries to free unneeded memory, and allocate again. When this option
 is completely exhausted, BASIC runtime error #7 (ERR_OUT_OF_MEMORY) is thrown.
-After all, what do you plan to do when you run out of memory? __memFree()
-should be used just like free(), but only on values returned by __memAlloc()
-and __memRealloc(). There is no guarantee that __memAlloc() is just another
-layer over malloc(), either, so don't expect that free() will necessarily be
-an acceptable replacement for __memFree(). Maybe we used sbrk() or mmap()
-instead of malloc(). And maybe we'll write a real garbage collector someday,
-in which case __memFree() will do a lot more. At any rate, just don't mix
-APIs. I can't stress this enough.
+After all, what do you plan to do when you run out of memory? These functions
+never return NULL. __memFree() should be used just like free(), but only on
+values returned by __memAlloc() and __memRealloc(). There is no guarantee
+that __memAlloc() is just another layer over malloc(), either, so don't
+expect that free() will necessarily be an acceptable replacement for
+__memFree(). Maybe we used sbrk() or mmap() instead of malloc(). And maybe
+we'll write a real garbage collector someday, in which case __memFree() will
+do a lot more. At any rate, just don't mix APIs. I can't stress this enough.
+
+However, all the memory leak rules that apply to malloc(), realloc(), and
+free() still apply to these functions.
 
 
 BASICLIB BOXCAR MEMORY MANAGEMENT LEVEL:
@@ -109,51 +116,72 @@ benefits:
 
 - It handles most "garbage collection" automatically.
 - It prevents leakage that would be caused by the throwing of runtime errors.
-- It is faster and more efficiently than a garbage collector, since there's no
-   guesswork involved, or scanning of memory for pointers.
-- With the exception of two macros, it is completely portable.
+- It is faster and more efficient than the average conservative garbage
+   collector, since there's much less guesswork involved, and tons less
+   scanning of memory for pointers.
+- With the exception of two tiny macros, it is completely portable.
 - It works with C and C++, not against them.
 
-The boxcar system still needs some attention from the programmer, unlike a
-garbage collector. With a garbage collector, you just "allocate and forget,"
-whereas with the boxcar system, you need to specify which pointers will be
-expendable, and which should not be automatically cleaned up, and when their
-status has changed. It takes a little more work than garbage collection, but
-somewhat less work than manual memory management. In the long run, you
-can STILL have memory leaks, but there is significantly less chance of it.
+Problems:
+1) No allocated objects can even be considered for freeing until the function
+that allocated them returns. So if you are allocating in an infinite loop,
+whether you are overwriting previous references or not, you are going to
+run out of memory. In a real garbage collector, as long as you overwrite old
+references with each allocation, you'll be able to collect the old memory
+objects as needed. We're working on this, but hope it'll be a relatively
+isolated problem in the meantime. In a world of "1/10 of 1 second" rule
+coding, we're hedging bets that any given function in a GUI environment will
+return to the event-tosser quickly, where its garbage may be collected.
 
-...it doesn't handle the "new" and "delete" instructions in C++. At least, not
+So, the memory manager actually has a simple conservative garbage collector
+in it, which is triggered to scan just the most recent parts of the stack
+whenever a single boxcar hits a "flood level"--every thirty pointers
+allocated (although the constant may change)--and collects unreferenced
+pointers. Problem solved.
+
+2) This wouldn't work in other systems than vbSlacker, unless the system
+implements the vbSlacker calling conventions (STATEPARAMS), which tends to
+load the stack up quite a bit more. In short, our system is fine for our
+product, but it ain't portable to anything but our product. This isn't a
+problem, really, but don't expect to stick this thing into Mozilla's source
+code to solve all possible memory leaks. In fact, it really only works with
+code designed to cooperate with it.
+
+3) It doesn't handle the "new" and "delete" instructions in C++. At least, not
 right now. The boxcar system may still be used from C++ to allocate/free
-memory objects, though; just not classes.
+memory objects, though: just not classes. This may change soon.
 
-Here's how to use it.
+Anyhow, Here's how to use it.
 
 In any function, before the first call to a boxcar API, be sure your STATEARGS
 reflect the current function:
 
-
-__setResumeStack;    /* put this at the top of the function. */
+__setStateStack;    /* put this at the top of the function. */
 
 To allocate memory, call __memAllocInBoxcar(STATEARGS, objSize);
-                     or  __memReallocInBoxcar(STATEARGS, oldPtr, objSize);
-
-To manually free memory, call __memFreeInBoxcar(STATEARGS, ptr);
-
-You shouldn't need to manually free pointers in boxcars, but you can with
-the above function.
+                      or __memReallocInBoxcar(STATEARGS, oldPtr, objSize);
 
 When you allocate this way, BASIClib keeps track of what part of the stack
 a given memory object is associated with. This is determined by examining
-the STATEARGS variables. All the memory objects associated with a given
-part of the stack make up a "boxcar" on the memory "train".
+the STATEPARAMS variables. All the memory objects associated with a given
+part of the stack make up a "boxcar" on the memory "train". The boxcar
+associated with the part of the stack that STATEPARAMS points to is the
+"current" boxcar.
+
+To manually free an object in a boxcar, use __memFreeInBoxcar(STATEARGS, ptr);
+You shouldn't need to manually free pointers in boxcars, but you can with
+the above function. Be sure that the pointer is in the current boxcar,
+however, or you just add overhead to your program for nothing, as no objects
+get freed, despite the time to find a non-existant pointer.
 
 The theory is, for the most part, when we shrink the stack, all the objects
 allocated in functions that have returned are garbage. Therefore, to get
 rid of allocated garbage, we need to just release all the boxcars that are
-past the end of the stack. There are two ways to do this:
+associated with memory areas past the end of the stack. There are two ways
+to do this:
 
 void __memForceFullBoxcarRelease(STATEPARAMS);
-boolean __memForcePartialBoxcarRelease(STATEPARAMS);
+__boolean __memForcePartialBoxcarRelease(STATEPARAMS);
 
 The former API will free all the objects associated with returned-from
 functions. Depending on how much was allocated, this might take awhile, and
@@ -163,17 +191,18 @@ and returns. X is a constant compiled into BASIClib (usually about 20), and
 may be overridden, if an environment variable named VBSLACKCOLLECT is set to
 a different numeric. The partial version is good for idle loops, and returns
 boolean (true) if there are more boxcars to free, (false) otherwise.
-__mem(re)Alloc() calls __memForcePartialBoxcarRelease() in a loop until it
-either manages to allocate memory, or we run out of boxcars to release.
+__mem[re]Alloc[InBoxcar]() calls __memForcePartialBoxcarRelease() in a loop
+until it either manages to allocate memory, or we run out of boxcars to
+release.
 
-Here's where it becomes "assisted:" Let's say you allocate a String for a
-return value. It needs to be in a boxcar in case there's a runtime error
-thrown, to avoid leakage. The Runtime Error OnEvent handler releases
-boxcars, too. However, if you return this String, when the garbage collector
-releases that boxcar, regardless of how that String is being used, the data
-pointed to by the return value has been freed. So, you need to assist the
-garbage collection by informing BASIClib that a pointer needs to be removed
-from its boxcar. The API:
+Here's where "ASSISTED garbage collection" gets its name: Let's say you
+allocate a String for a return value. It needs to be in a boxcar in case
+there's a runtime error thrown, to avoid leakage. The Runtime Error OnEvent
+handler releases boxcars, too. However, if you return this String, when the
+garbage collector releases that boxcar, regardless of how that String is
+being used, the data pointed to by the return value has been freed. So, you
+need to assist the garbage collection by informing BASIClib that a pointer
+needs to be removed from its boxcar. The API:
 
 void __memRemovePtrFromBoxcar(STATEPARAMS, void *ptr);
 
@@ -214,13 +243,26 @@ void __myFunc1(STATEPARAMS)
     __memAddPtrToBoxcar(STATEARGS, rc);
 }
 
-If you don't call __setResumeStack, BASIClib uses the boxcar from the latest
-function on the stack that called __setResumeStack...
+If you don't call __setStateStack, BASIClib uses the boxcar from the latest
+function on the stack that called __setStateStack...This eliminates the need
+to remove and add pointers between boxcars, but means more objects are
+clumped together; they will be freed in a block, which means the collection
+function blocks longer, and there is less memory available before that
+freeing...for simple functions, this is acceptable (in fact, a lot of BASIClib
+does this.)
 
-__memAlloc(), __memRealloc(), and __memFree() cannot be used with the Boxcar
-API, since it'll confuse the collector. There are equivalents, though.
+...and as usual, don't mix APIs. __memAlloc(), __memRealloc(), and __memFree()
+are as incompatible with __memAllocInBoxcar(), __memReallocInBoxcar(), and
+__memFreeInBoxcar() as they are with malloc(), realloc(), and free().
 
-/* end of memory_management.txt ... */
+Of course, there are always exceptions; __memFree() and __memRealloc() can be
+used on objects once they are removed from a boxcar, but only while they are
+independent of a boxcar. __memAlloc() and __memRealloc()ed pointers may be
+added to boxcars, and then manipulated with the Boxcar API.
+
+Confused yet?  :)
+
+/* end of mem_management.txt ... */
 
 
 

@@ -15,7 +15,7 @@ PBasicString __allocString(int length, __boolean isFixed)
  *
  *   params : length  == size of new string.
  *            isFixed == allow dynamic string resizing?
- *  returns : newly boxcar-allocated string.
+ *  returns : newly allocated string.
  */
 {
     PBasicString retVal;
@@ -57,7 +57,7 @@ PBasicString __constString(char *asciz)
  * Constant BASIC strings are inherently fixed-length.
  *
  *      params : asciz == ASCII null-terminated "C" string to put in BASIC str.
- *     returns : newly created BASIC string. NOT IN A BOXCAR!
+ *     returns : newly created BASIC string.
  */
 {
     PBasicString retVal = __memAlloc(sizeof (BasicString));
@@ -70,8 +70,6 @@ PBasicString __constString(char *asciz)
 } /* __constString */
 
 
-#if 0
-/* !!! This is not needed, thanks to the boxcar system. I think. */
 void __freeString(PBasicString pBasicStr)
 /*
  * Free a previously allocated BASIC String.
@@ -88,7 +86,6 @@ void __freeString(PBasicString pBasicStr)
         __memFree(pBasicStr);
     } /* if */
 } /* __freeString */
-#endif
 
 
 PBasicString __assignString(PBasicString to, PBasicString from)
@@ -104,12 +101,12 @@ PBasicString __assignString(PBasicString to, PBasicString from)
  *   str1 = __assignString(str1, str2);
  *
  *    params : to   == Previous value should be forgotten, if it
- *                      exists, and boxcar collection will reclaim it
+ *                      exists, and garbage collection will reclaim it
  *                      later. Fixed length flag is copied from this
  *                      string, if it is not NULL. If NULL, it is
  *                      nonfixed length.
  *             from == String to "assign".
- *   returns : copy of (pStrToAssign) newly allocated in a boxcar.
+ *   returns : copy of (pStrToAssign), newly allocated.
  */
 {
     int copyCount;
@@ -151,7 +148,7 @@ PBasicString __catString(PBasicString str1, PBasicString str2)
  *
  *    params : str1 == BASIC string to concatenate to.
  *             str2 == BASIC string to add to (str1).
- *   returns : newly allocated String with concatenation in boxcar.
+ *   returns : newly allocated String with concatenation.
  *             (str1) and (str2) are NOT altered.
  */
 {
@@ -179,7 +176,7 @@ char *__basicStringToAsciz(PBasicString pStr)
  *  terminated) string. 
  *
  *     params : pStr == BasicString to convert.
- *    returns : newly allocated C string in boxcar.
+ *    returns : newly allocated C string. Garbage collectable.
  */
 {
     char *retVal = __memAlloc(pStr->length + 1);
@@ -187,14 +184,6 @@ char *__basicStringToAsciz(PBasicString pStr)
     retVal[pStr->length] = '\0';
     return(retVal);
 } /* __basicStringToAsciz */
-
-
-#warning keep __freeString()?
-void __freeString(PBasicString pStr)
-{
-    __memFree(pStr->data);
-    __memFree(pStr);
-}
 
 /* end of BasicString.c ... */
 

@@ -24,10 +24,10 @@
 #define SECONDS_IN_A_DAY 86400
 
     /* to save every byte of storage, these are stored as chars. */
-static char daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-static char daysInLeapYearMonth[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
-static OnOffStopType timerSetting = OFF;
-static time_t todaySecs;
+char daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+char daysInLeapYearMonth[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
+OnOffStopType timerSetting = OFF;
+time_t todaySecs;
 
 
 static struct tm *__getBrokenTime(void)

@@ -6,49 +6,74 @@
 
 #ifndef _INCLUDE_STDBASIC_H_
 
-#include "StdBasic.h"
+#   include "StdBasic.h"
 
 #else
 
-#ifndef _INCLUDE_THREADS_H_
-#define _INCLUDE_THREADS_H_
+#   ifndef _INCLUDE_THREADS_H_
+#       define _INCLUDE_THREADS_H_
 
-#ifndef _REENTRANT
-#error _REENTRANT not defined!
-#error Please put -D_REENTRANT on the command line.
-#error  otherwise, the C library is NOT thread-safe!
-#endif
+#       ifdef SINGLE_THREADED
 
+            typedef unsigned long ThreadLock;
+            typedef ThreadLock *PThreadLock;
 
-#ifndef WIN32
+#           define __terminateCurrentThread    vbp_end()
+#           define __terminateThread(tidx)
+#           define __waitForThreadToDie(tidx)
+#           define __spinThread(fn, args)      -1
+#           define __getThreadCount             1
+#           define __getHighestThreadIndex      0
+#           define __getCurrentThreadIndex      0
+#           define __threadTimeslice
+#           define __createThreadLock(pLock)    pLock = NULL
+#           define __destroyThreadLock(pLock)
+#           define __obtainThreadLock(pLock)
+#           define __releaseThreadLock(pLock)
+#       else   /* multithreaded support... */
+#           ifndef _REENTRANT
+#               error _REENTRANT not defined for multithread compile!
+#               error Please put -D_REENTRANT on the command line.
+#               error  otherwise, the C library is NOT thread-safe!
+#           endif /* _REENTRANT */
 
-#include <pthread.h>
+#           include <pthread.h>
 
-#else
-    typedef unsigned long pthread_t;
-    typedef unsigned long pthread_mutex_t;
-#endif
+            typedef pthread_mutex_t ThreadLock;
+            typedef pthread_mutex_t *PThreadLock;
 
+            void __terminateCurrentThread_f(void);
+            void __terminateThread_f(int tidx);
+            void __waitForThreadToDie_f(int tidx);
+            int __spinThread_f(void (*_fn)(void *x), void *_args);
+            int  __getThreadCount_f(void);
+            int  __getHighestThreadIndex_f(void);
+            int  __getCurrentThreadIndex_f(void);
+            void __threadTimeslice_f(void);
+            void __createThreadLock_f(PThreadLock pThreadLock);
+            void __destroyThreadLock_f(PThreadLock pThreadLock);
+            void __obtainThreadLock_f(PThreadLock pThreadLock);
+            void __releaseThreadLock_f(PThreadLock pThreadLock);
 
-#define ThreadLock pthread_mutex_t
-#define PThreadLock pthread_mutex_t *
+#           define __terminateCurrentThread    __terminateCurrentThread_f()
+#           define __terminateThread(tidx)     __terminateThread_f(tidx)
+#           define __waitForThreadToDie(tidx)  __waitForThreadToDie_f(tidx)
+#           define __spinThread(fn, args)      __spinThread_f(fn, args)
+#           define __getThreadCount            __getThreadCount_f()
+#           define __getHighestThreadIndex     __getHighestThreadIndex_f()
+#           define __getCurrentThreadIndex     __getCurrentThreadIndex_f()
+#           define __threadTimeslice           __threadTimeslice_f()
+#           define __createThreadLock(pLock)   __createThreadLock_f(pLock)
+#           define __destroyThreadLock(pLock)  __destroyThreadLock_f(pLock)
+#           define __obtainThreadLock(pLock)   __obtainThreadLock_f(pLock)
+#           define __releaseThreadLock(pLock)  __releaseThreadLock_f(pLock)
+#       endif /* (!) SINGLE_THREADED */
 
-void __initThreads(void);
-void __deinitThreads(void);
-void __terminateCurrentThread(void);
-void __terminateThread(int tidx);
-void __waitForThreadToDie(int tidx);
-int __spinThread(void (*_fn)(void *x), void *_args);
-int  __getThreadCount(void);
-int  __getHighestThreadIndex(void);
-int  __getCurrentThreadIndex(void);
-void __threadTimeslice(void);
-void __createThreadLock(PThreadLock pThreadLock);
-void __destroyThreadLock(PThreadLock pThreadLock);
-void __obtainThreadLock(PThreadLock pThreadLock);
-void __releaseThreadLock(PThreadLock pThreadLock);
+    /* These exist in multi and single thread mode... */
+    void __initThreads(void);
+    void __deinitThreads(void);
 
-#endif /* _INCLUDE_THREADS_H_ */
+#   endif /* _INCLUDE_THREADS_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of Threads.h ... */

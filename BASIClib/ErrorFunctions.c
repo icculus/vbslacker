@@ -8,7 +8,6 @@
 #include <string.h>
 #include "ErrorFunctions.h"
 
-extern int basicErrno;
 
 int vbi_err(void)
 /*
@@ -18,7 +17,7 @@ int vbi_err(void)
  *   returns : last thrown BASIC error.
  */
 {
-    return(basicErrno);
+    return(__getBasicErrno());
 } /* vbi_err */
 
 

@@ -10,27 +10,17 @@
 #include "BasicError.h"
 
 
-#warning !!! basicErrno and __basicErrno need thread-proofing!
-
-/*
- * We keep an extra copy of the BASIC error number around. Both are set
- *  equally in case of an error, but otherwise, "__basicErrno" is
- *  ignored. This allows internal BASIClib routines to reset the errno to
- *  NO_ERROR, call something, and test for error, all without altering
- *  the errno that is accessable by outside programs.
- */
-int basicErrno = ERR_NO_ERROR;
-int __basicErrno = ERR_NO_ERROR;
+int *basicErrno = NULL;
 
     /*
      * These are the strings for ERROR$()...
      */
-static char *errStrings[MAX_ERRS];
+char *errStrings[MAX_ERRS];
 
     /*
      * module-scope ThreadLock.
      */
-static ThreadLock basicErrorLock;
+ThreadLock basicErrorLock;
 
     /*
      * onErrorThreadStates stores the start of the handler list used by each
@@ -38,7 +28,7 @@ static ThreadLock basicErrorLock;
      *  ThreadLocks when accessing this dynamic array, and not the individual
      *  structures.
      */
-static __POnErrorHandler *onErrorThreadStates = NULL;
+__POnErrorHandler *onErrorThreadStates = NULL;
 
 
 static void __initErrorStringTable(void);
@@ -81,14 +71,19 @@ void __initThreadBasicError(int tidx)
  *     returns : void, but all the tables could get realloc()ed.
  */
 {
+    int maxThreads = __getHighestThreadIndex + 1;
+
     __obtainThreadLock(&basicErrorLock);
     onErrorThreadStates = realloc(onErrorThreadStates,
-                                  (__getHighestThreadIndex() + 1) *
-                                      sizeof (__POnErrorHandler *));
+                                  maxThreads * sizeof (__POnErrorHandler *));
 
-    if (onErrorThreadStates == NULL)
+
+    basicErrno = realloc(basicErrno, maxThreads * sizeof (int));
+
+    if ((onErrorThreadStates == NULL) || (basicErrno == NULL))
         __fatalRuntimeError(ERR_INTERNAL_ERROR);
 
+    basicErrno[tidx] = ERR_NO_ERROR;
     onErrorThreadStates[tidx] = NULL;
     __releaseThreadLock(&basicErrorLock);
 } /* __initThreadOnError */
@@ -106,6 +101,17 @@ void __initThreadBasicError(int tidx)
  */
 
 
+int __getBasicErrno(void)
+/*
+ * Return the current BASIC error number for the current thread.
+ *
+ *    params : void.
+ *   returns : see above.
+ */
+{
+    return(basicErrno[__getCurrentThreadIndex]);
+} /* __getBasicErrno */
+
 
 
 static __POnErrorHandler __getOnErrorThreadState(void)
@@ -120,7 +126,7 @@ static __POnErrorHandler __getOnErrorThreadState(void)
     __POnErrorHandler retVal;
 
     __obtainThreadLock(&basicErrorLock);
-    retVal = onErrorThreadStates[__getCurrentThreadIndex()];
+    retVal = onErrorThreadStates[__getCurrentThreadIndex];
     __releaseThreadLock(&basicErrorLock);
 
     return(retVal);
@@ -151,7 +157,7 @@ static void __setOnErrorThreadState(__POnErrorHandler pHandler)
  */
 {
     __obtainThreadLock(&basicErrorLock);
-    onErrorThreadStates[__getCurrentThreadIndex()] = pHandler;
+    onErrorThreadStates[__getCurrentThreadIndex] = pHandler;
     __releaseThreadLock(&basicErrorLock);
 } /* __setOnErrorThreadState */
 
@@ -353,30 +359,22 @@ void __prepareResume(void *base)
 
 static void __defaultRuntimeErrorHandler(void)
 {
-#warning update __defaultRuntimeErrorHandler()!
-#ifdef BROKEN
     char *errStr;
+    int bErr = __getBasicErrno();
     char msg[strlen(errStr) + 300];   /* !!! generalize? */
 
-    errStr = ((basicErrno > MAX_ERRS) ?
-                STR_UNKNOWN_ERR : errStrings[basicErrno]);
+    errStr = ((bErr > MAX_ERRS) ?
+                STR_UNKNOWN_ERR : errStrings[bErr]);
 
     if (errStr == NULL)
         errStr = STR_UNKNOWN_ERR;
 
-/* !!! */
     sprintf(msg, "\n\n***Unhandled runtime error***\n"
-                 "  \"%s\" (#%d)\n"
-                 "    - __stIP     == (%p)\n"
-                 "    - __stNextIP == (%p)\n"
-                 "    - __stBP     == (%p)\n"
-                 "    - __stSP     == (%p)\n"
-                 "\n\n",
-                 errStr, basicErrno, __stIP, __stNextIP, __stBP, __stSP);
+                 "  \"%s\" (#%d)\n\n", errStr, bErr);
 
     __printAsciz(msg);
-#endif
-    exit(basicErrno);
+
+    exit(bErr);
 } /* __defaultRuntimeErrorHandler */
 
 
@@ -389,14 +387,14 @@ void __fatalRuntimeError(int errorNum)
  *   returns : never.
  */
 {
-    basicErrno = __basicErrno = errorNum;
+    basicErrno[__getCurrentThreadIndex] = errorNum;
     __defaultRuntimeErrorHandler();
 } /* __fatalRuntimeError */
 
 
 void __runtimeError(int errorNum)
 {
-    basicErrno = __basicErrno = errorNum;
+    basicErrno[__getCurrentThreadIndex] = errorNum;
 
     if (errorNum != ERR_NO_ERROR)
     {
