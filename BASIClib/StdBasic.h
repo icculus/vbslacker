@@ -23,7 +23,7 @@
 #include "BasicString.h"
 #include "Variant.h"
 #include "OnOffStopType.h"
-#include "InternalMemManager.h"
+#include "MemoryManager.h"
 #include "BasicError.h"
 #include "Threads.h"
 #include "Initialize.h"
