@@ -19,7 +19,7 @@ void test___runtimeError(STATEPARAMS)
 {
     printf("Testing __runtimeError()...\n");
 
-    __setResumeStack;
+    __setStateStack;
     __registerOnEventHandler(STATEARGS, &&errError, ONERROR);
 
     __basicErrno = ERR_NO_ERROR;
@@ -52,7 +52,7 @@ void test_err(STATEPARAMS)
 
     printf("Testing ERR()...\n");
 
-    __setResumeStack;
+    __setStateStack;
     __registerOnEventHandler(STATEARGS, &&errError, ONERROR);
 
     __basicErrno = ERR_NO_ERROR;
@@ -87,7 +87,7 @@ void test_error(STATEPARAMS)
 
     printf("Testing ERROR()...\n");
 
-    __setResumeStack;
+    __setStateStack;
     __registerOnEventHandler(STATEARGS, &&errErrorHandler, ONERROR);
 
     vbpi_error(STATEARGS, ERR_LABEL_NOT_DEFINED);

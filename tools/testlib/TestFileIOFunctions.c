@@ -8,7 +8,7 @@
 #include "BasicLib.h"
 
 
-boolean test___FileOpen(STATEPARAMS)
+__boolean test___FileOpen(STATEPARAMS)
 {
     PBasicString pFile;
 
@@ -23,7 +23,7 @@ boolean test___FileOpen(STATEPARAMS)
     return true;
 }
 
-boolean test___FileClose(STATEPARAMS)
+__boolean test___FileClose(STATEPARAMS)
 {
     printf("Testing VBClose functions...\n");
 

@@ -23,7 +23,7 @@ uchar TEST_RTRIM[] = "        Here's some trimmable spaces!";
 
 
 void cmpStr(STATEPARAMS, PBasicString pStr, char *data,
-            int length, boolean fixedLength)
+            int length, __boolean fixedLength)
 /*
  * This function checks a BasicString to verify that its various attributes
  *  are correct, and display details if they are not.

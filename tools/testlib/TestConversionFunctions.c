@@ -19,8 +19,8 @@ void test_chr_DC_(STATEPARAMS)
     int i;
     PBasicString rc;
 
-    __setResumeStack;
-    __setResumeInstructs(&&chrErrorResume, &&chrErrorResumeNext);
+    __setStateStack;
+    __setStateInstructs(&&chrErrorResume, &&chrErrorResumeNext);
 
     printf("Testing CHR$()...\n");
 
@@ -103,8 +103,8 @@ void test_asc(STATEPARAMS)
     PBasicString argStr = __createString(STATEARGS, "The Quick brown fox... ",
                                          false);
 
-    __setResumeStack;
-    __setResumeInstructs(&&ascErrorResume, &&ascErrorResumeNext);
+    __setStateStack;
+    __setStateInstructs(&&ascErrorResume, &&ascErrorResumeNext);
 
     printf("Testing ASC()...\n");
 

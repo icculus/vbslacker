@@ -24,7 +24,7 @@ static void *_stack_ptr2_;
 static void *_base_ptr2_;
 
 
-boolean binaryDump(char *fileName, void *data, int size)
+__boolean binaryDump(char *fileName, void *data, int size)
 /*
  * Dump a chunk of memory to a binary file.
  *
@@ -32,11 +32,11 @@ boolean binaryDump(char *fileName, void *data, int size)
  *                         any previous contents.
  *            data     == memory to write.
  *            size     == number of bytes to write, starting with (data).
- *  returns : boolean true if data written, boolean false otherwise.
+ *  returns : __boolean true if data written, __boolean false otherwise.
  */
 {
     FILE *binStream = fopen(fileName, "wb");
-    boolean retVal = false;
+    __boolean retVal = false;
 
     if (binStream == NULL)
         printf("  - COULDN'T OPEN [%s] FOR BINARY OUTPUT!\n", fileName);
@@ -97,7 +97,7 @@ void test__getStackPointer_recurse(void)
 
 
 void __triggerOnEvent_recurse(STATEPARAMS, OnEventTypeEnum evType,
-                              boolean printErr)
+                              __boolean printErr)
 /*
  * This function calls itself RECURSION_COUNT times, to pile
  *  some data on the stack, then calls __triggerOnEvent(evType)...
@@ -176,7 +176,7 @@ void testOnEventGotoHandling(STATEPARAMS, int runCount)
     __getBasePointer(&_base_ptr_); 
     __getStackPointer(&_stack_ptr_);
 
-    __setResumeStack;
+    __setStateStack;
     __registerOnEventHandler(STATEARGS, &&errHandler ,ONERROR);
 
     recursive = 0;
@@ -277,7 +277,7 @@ void testOnEventGotoRecurseHandling(STATEPARAMS, int runCount)
     __getBasePointer(&_base_ptr_); 
     __getStackPointer(&_stack_ptr_);
 
-    __setResumeStack;
+    __setStateStack;
     __registerOnEventHandler(STATEARGS, &&errHandler, ONERROR);
 
     recursive = 0;
@@ -366,8 +366,8 @@ void testResumeNext(STATEPARAMS, int runCount)
     __getBasePointer(&_base_ptr_); 
     __getStackPointer(&_stack_ptr_);
 
-    __setResumeStack;
-    __setResumeInstructs(&&resumeZeroWrong, &&resumeNextRight);
+    __setStateStack;
+    __setStateInstructs(&&resumeZeroWrong, &&resumeNextRight);
 
     printf("Testing RESUME NEXT (run #%d)...\n", runCount);
 
@@ -435,8 +435,8 @@ void testResumeZero(STATEPARAMS, int runCount)
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
-    __setResumeStack;
-    __setResumeInstructs(&&resumeZeroRight, &&resumeNextWrong);
+    __setStateStack;
+    __setStateInstructs(&&resumeZeroRight, &&resumeNextWrong);
 
     printf("Testing RESUME 0 (run #%d)...\n", runCount);
 
