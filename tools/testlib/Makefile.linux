@@ -2,7 +2,7 @@
 
 # move this to root makefile. export it.
 OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o \
-       TestErrorFunctions.o TestStringFunctions.o
+       TestErrorFunctions.o TestStringFunctions.o TestFileIOFunctions.o
 CC = gcc
 LINKER = gcc
 
