@@ -42,6 +42,11 @@ void __initOnEvents(void)
     } /* for */
 } /* __initOnEvents */
 
+void __callOnEventHandler(POnEventHandler pHandler)
+{
+    /* !!! Inline ASM goes here... */
+} /* __callOnEventHandler */
+
 
 POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
 /*
