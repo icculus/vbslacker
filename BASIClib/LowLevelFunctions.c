@@ -5,7 +5,18 @@
  */
 
 #include <errno.h>
+
+#ifdef LINUX
 #include <sys/io.h>
+
+
+#elif defined WIN32
+#warning WIN32 portio is nonexistant, right now!
+#define iopl(x) -1
+#define inb(x) 0
+#define outb(x, y)
+#endif
+
 #include "LowLevelFunctions.h"
 
 
