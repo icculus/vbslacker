@@ -36,7 +36,7 @@ __boolean __fileExists(__byte *fullPathName)
     __boolean retVal = false;
 
     strcpy(path, fullPathName);
-    fileName = strrchr(path, PATHCHAR);
+    fileName = strrchr(path, __PATHCHAR);
 
     if (fileName == NULL)   /* no path? */
         fileName = path;
@@ -46,7 +46,7 @@ __boolean __fileExists(__byte *fullPathName)
         fileName++;        /* get past path char... */
     } /* else */
 
-    dp = opendir((fileName == path) ? CURRENTDIRSTR : (char *) path);
+    dp = opendir((fileName == path) ? __CURRENTDIRSTR : (char *) path);
     if (dp == NULL)
         __runtimeError(ERR_INTERNAL_ERROR);
     else
@@ -160,7 +160,17 @@ static __long __fileSystemErrors(void)
 
 
 void _vbpS_kill(PBasicString fileName)
+/*
+ * Remove a file or files from the file system. Wildcards may be
+ *  specified to remove multiple files. Use with care.
+ *
+ *    params : fileName == Name of file to remove (wildcards accepted).
+ *   returns : void.
+ */
 {
+
+#warning kill() needs to accept wildcards.
+
     __byte *ascizFileName = __basicStringToAsciz(fileName);
     __long errorType;
 
@@ -206,6 +216,7 @@ void _vbpS_rmdir(PBasicString dirStr)
 
 void _vbpSS_name(PBasicString oldName, PBasicString newName)
 {
+#warning name() needs to rename files (but not directories) across filesystems.
     __byte *ascizOldName = __basicStringToAsciz(oldName);
     __byte *ascizNewName = __basicStringToAsciz(newName);
     __long errorType;
@@ -221,31 +232,33 @@ void _vbpSS_name(PBasicString oldName, PBasicString newName)
 } /* _vbpSS_name */
 
 
-void _vbp_files(void)
-{
-#warning Scrap FILES statement?
-/* !!! SCRAP THIS?! */
-    DIR *dp;
-    struct dirent *ep;
-
-    dp = opendir ("./");
-    if (dp == NULL)
-        __runtimeError(ERR_INTERNAL_ERROR);
-    else
-    {
-        /* !!! spacing won't be right. */
-        while ((ep = readdir(dp)))
-        {
-            __printAsciz(ep->d_name);
-            __printNewLine();
-        } /* while */
-        closedir(dp);
-    } /* else */
-} /* _vbp_files */
-
-
 void _vbpSS_filecopy(PBasicString src, PBasicString dest)
 {
+    int inFile = open(__basicStringToAsciz(src), O_RDONLY);
+    int outFile = open(__basicStringToAsciz(dest), O_WRONLY | O_TRUNC);
+    char buffer[512];
+    int br;
+    int errorCode = ERR_NO_ERROR;
+
+    if ((inFile == -1) || (outFile == -1))
+    {
+        /* !!! check error. */ ;
+    } /* if */
+    else
+    {
+        do
+        {
+            br = read(inFile, buffer, sizeof (buffer));
+            if (br > 0)
+                write(outFile, buffer, br);
+        } while (br == sizeof (buffer));
+    } /* else */
+
+    close(inFile);
+    close(outFile);
+
+    if (errorCode != ERR_NO_ERROR)
+        __runtimeError(errorCode);
 } /* _vbpSS_filecopy */
 
 /* end of FileSystemFunctions.c ... */

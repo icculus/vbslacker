@@ -24,6 +24,7 @@
 #   include <pthread.h>
 #   include <sched.h>
 #   include <signal.h>
+#   include "gc.h"     /* redefines some pthread stuff; must be last. */
 
     /*
      * This structure contains the arguments to be
@@ -40,7 +41,7 @@
     typedef ThreadEntryArgs *PThreadEntryArgs;
 
     static ThreadLock lock;              /* module-scope thread lock.        */
-    static pthread_t *indexes;           /* Vector of actual TIDs...         */
+    static pthread_t *indexes = NULL;    /* Vector of actual TIDs...         */
     static __integer threadCount = 0;    /* Count of total existing threads. */
     static __integer maxIndex = -1;      /* Size of (indexes) vector.        */
 #endif /* !defined SINGLE_THREADED */
@@ -91,10 +92,10 @@ void __deinitThreads(void)
 
     __obtainThreadLock(&lock);
 
-    for (i = 0; i < maxIndex; i++)
+    for (i = maxIndex; i >= 0; i--)
     {
         if ((indexes[i] != (pthread_t) NULL) && (indexes[i] != tid))
-            __terminateThread(indexes[i]);
+            __terminateThread(i);
     } /* for */
 
     __releaseThreadLock(&lock);
@@ -188,7 +189,7 @@ void __terminateThread_f(__integer tidx)
     else
     {
         __obtainThreadLock_f(&lock);
-        if (tidx <= maxIndex)
+        if ((tidx >= 0) && (tidx <= maxIndex))
             thread = indexes[tidx];
         __releaseThreadLock_f(&lock);
 
@@ -212,7 +213,7 @@ void __waitForThreadToDie_f(__integer tidx)
     pthread_t thread = 0;
 
     __obtainThreadLock_f(&lock);
-    if (tidx <= maxIndex)
+    if ((tidx >= 0) && (tidx <= maxIndex))
         thread = indexes[tidx];
     __releaseThreadLock_f(&lock);
 
@@ -253,6 +254,9 @@ __integer __spinThread_f(void (*_fn)(void *x), void *_args)
     pthread_t *saveLoc = NULL;
     __integer retVal;
     int rc;
+
+    if (indexes == NULL)        /* Threads not yet initialized? */
+        return(-1);
 
     args->fn = _fn;
     args->args = _args;

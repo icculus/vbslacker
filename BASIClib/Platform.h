@@ -77,13 +77,13 @@ extern "C" {
         #ifndef LINUX
             #define LINUX
         #endif
-        #define I386
-        #define ARCHITECTURE      "i386"
-        #define FUNCNAME_PREPEND  ""
-        #define STACK_DIRECTION   -1
-        #define EOL_STRING        "\n"
-        #define PATHCHAR          '/'
-        #define CURRENTDIRSTR     "."
+        #define __I386
+        #define __ARCHITECTURE      "i386"
+        #define __FUNCNAME_PREPEND  ""
+        #define __STACK_DIRECTION   -1
+        #define __EOL_STRING        "\n"
+        #define __PATHCHAR          '/'
+        #define __CURRENTDIRSTR     "."
         typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
@@ -95,13 +95,13 @@ extern "C" {
         #ifndef LINUX
             #define LINUX
         #endif
-        #define I386
-        #define ARCHITECTURE      "i386"
-        #define FUNCNAME_PREPEND  "_"
-        #define STACK_DIRECTION   -1
-        #define EOL_STRING        "\n"
-        #define PATHCHAR          '/'
-        #define CURRENTDIRSTR     "."
+        #define __I386
+        #define __ARCHITECTURE      "i386"
+        #define __FUNCNAME_PREPEND  "_"
+        #define __STACK_DIRECTION   -1
+        #define __EOL_STRING        "\n"
+        #define __PATHCHAR          '/'
+        #define __CURRENTDIRSTR     "."
         typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
@@ -113,13 +113,13 @@ extern "C" {
         #ifndef WIN32
             #define WIN32
         #endif
-        #define I386
-        #define ARCHITECTURE      "i386"
-        #define FUNCNAME_PREPEND  "_"
-        #define STACK_DIRECTION   -1
-        #define EOL_STRING        "\r\n"
-        #define PATHCHAR          '\\'
-        #define CURRENTDIRSTR     "."
+        #define __I386
+        #define __ARCHITECTURE      "i386"
+        #define __FUNCNAME_PREPEND  "_"
+        #define __STACK_DIRECTION   -1
+        #define __EOL_STRING        "\r\n"
+        #define __PATHCHAR          '\\'
+        #define __CURRENTDIRSTR     "."
         typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;

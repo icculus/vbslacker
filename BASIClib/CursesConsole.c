@@ -46,7 +46,7 @@ static int __curs_openConsole(void)
 } /* __curs_openConsole */
 
 
-static void __curs_deinitConsoleHandler(void)
+static void __curs_deinitConsoleDriver(void)
 /*
  * Deinitialize the curses library.
  *
@@ -294,7 +294,13 @@ static void __curs_vbp_locate(void)
 } /* __curs_vbp_locate */
 
 
-static void __curs_getConsoleHandlerName(__byte *buffer, __integer size)
+static void __curs_vbp_beep(void)
+{
+    beep();     /* fun, huh? */
+} /* __curs_vbp_beep */
+
+
+static void __curs_getConsoleDriverName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -305,7 +311,7 @@ static void __curs_getConsoleHandlerName(__byte *buffer, __integer size)
  */
 {
     strncpy(buffer, "CursesConsole", size);
-} /* __curs_getConsoleHandlerName */
+} /* __curs_getConsoleDriverName */
 
 
 __boolean __initCursesConsole(void)
@@ -320,8 +326,8 @@ __boolean __initCursesConsole(void)
 
     if (__curs_openConsole() != -1)
     {
-        __getConsoleHandlerName = __curs_getConsoleHandlerName;
-        __deinitConsoleHandler = __curs_deinitConsoleHandler;
+        __getConsoleDriverName = __curs_getConsoleDriverName;
+        __deinitConsoleDriver = __curs_deinitConsoleDriver;
         __printNewLine = __curs_printNewLine;
         __printNChars = __curs_printNChars;
         _vbpii_viewPrint = __curs_vbpii_viewPrint;
@@ -336,6 +342,7 @@ __boolean __initCursesConsole(void)
         _vbpNi_locate = __curs_vbpNi_locate;
         _vbpiN_locate = __curs_vbpiN_locate;
         _vbp_locate = __curs_vbp_locate;
+        _vbp_beep = __curs_vbp_beep;
         retVal = true;
     } /* if */
 

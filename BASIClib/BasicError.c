@@ -4,11 +4,11 @@
  *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
 #include "BasicError.h"
-
 
 static __long *basicErrno = NULL;
 
@@ -242,9 +242,9 @@ static __POnErrorHandler __getOnErrorHandler(void)
  * Returns the current ON ERROR GOTO handler. Ignores handlers that are
  *  currently active.
  *
- * If we hit an error handler address for the specified type that is NULL,
- *  then we stop looking, since this signifies an ON ERROR GOTO 0 command,
- *  which disables handling for that OnError.
+ * If we hit an error handler address that is NULL, then we stop looking,
+ *  since this signifies an ON ERROR GOTO 0 command, which disables handling
+ *  for that OnError.
  *
  * All handlers registered to points above the stack from the chosen handler
  *  (if a handler is chosen) are deregistered, since they will go out of
@@ -357,17 +357,57 @@ void __prepareResume(__POnErrorHandler pHandler)
 
 
 static void __defaultRuntimeErrorHandler(void)
-#warning Do something about __defaultRuntimeErrorHandler()!
+/*
+ * The default runtime error handler notifies the user of a fatal
+ *  error, and terminates the program. The user is told the error
+ *  number and a brief description of the problem.
+ *
+ * If there is a GUI frontend running, a MsgBox is generated to
+ *  display this information. Otherwise, we make sure that the
+ *  currently selected console driver is not "NoConsole", and
+ *  output the information there. NoConsole driver and no GUI
+ *  frontend means a sudden termination without explanation, but
+ *  that's what you get for having a "detached" process.  :)
+ *
+ * exit() is called, so __deinitBasicLib() will still be executed.
+ *  This may change if problems persist from this...
+ *
+ *     params : void.
+ *    returns : officially void, but never actually returns. (exit() called).
+ */
 {
     int bErr = __getBasicErrno();
+    char numeric[20];
+    char consDriverName[10];
     char *errStr = ( (bErr > MAX_ERRS) ?
                       STR_UNKNOWN_ERR : ((char *) errStrings[bErr]) );
+
+    sprintf(numeric, "(#%d)", bErr);
 
     if (errStr == NULL)
         errStr = STR_UNKNOWN_ERR;
 
-    printf("\n\n***Unhandled runtime error***\n"
-           "  \"%s\" (#%d)\n\n", errStr, bErr);
+    if (__getInitFlags() & INITFLAG_ENABLE_GUIFRONTEND)
+        /* !!! put up a msgbox... */ ;
+    else
+    {
+        __getConsoleDriverName(consDriverName, sizeof (consDriverName));
+        if (strcmp(consDriverName, "NoConsole") != 0)
+        {
+            __printNewLine();
+            __printNewLine();
+            __printAsciz("***");
+            __printAsciz(STR_UNHANDLED_RT_ERROR);
+            __printAsciz("***");
+            __printNewLine();
+            __printAsciz("  \"");
+            __printAsciz(errStr);
+            __printAsciz("\" ");
+            __printAsciz(numeric);
+            __printNewLine();
+            __printNewLine();
+        } /* if */
+    } /* else */
 
     exit(bErr);
 } /* __defaultRuntimeErrorHandler */
@@ -412,41 +452,37 @@ void __runtimeError(__long errorNum)
 
 
 static void __initErrorStringTable(void)
-/* !!! comment */
+/*
+ * Set up the error string table. This is an array of char pointers. Each
+ *  index corresponds to an error number that BASIC can throw. Therefore,
+ *  when trying to determine what error #76 means, you'll find that
+ *  errStrings[76] contains a pointer to the string "Path not found."
+ *  (or whatever that would be in the current language BASIClib is using...)
+ *
+ * Elements set to NULL are undefined and/or user-thrown errors.
+ *
+ *  !!! TODO : Make this read in from a text file at startup. That way, we
+ *              don't need to recompile for every language...
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
     memset(errStrings, '\0', sizeof (errStrings));
     errStrings[ERR_NO_ERROR] = STR_NO_ERROR;
-    errStrings[ERR_NEXT_WITHOUT_FOR] = STR_NEXT_WITHOUT_FOR;
-    errStrings[ERR_SYNTAX_ERROR] = STR_SYNTAX_ERROR;
     errStrings[ERR_RETURN_WITHOUT_GOSUB] = STR_RETURN_WITHOUT_GOSUB;
     errStrings[ERR_OUT_OF_DATA] = STR_OUT_OF_DATA;
     errStrings[ERR_ILLEGAL_FUNCTION_CALL] = STR_ILLEGAL_FUNCTION_CALL;
     errStrings[ERR_OVERFLOW] = STR_OVERFLOW;
     errStrings[ERR_OUT_OF_MEMORY] = STR_OUT_OF_MEMORY;
-    errStrings[ERR_LABEL_NOT_DEFINED] = STR_LABEL_NOT_DEFINED;
     errStrings[ERR_SUBSCRIPT_OUT_OF_RANGE] = STR_SUBSCRIPT_OUT_OF_RANGE;
-    errStrings[ERR_DUPLICATE_DEFINITION] = STR_DUPLICATE_DEFINITION;
     errStrings[ERR_DIVISION_BY_ZERO] = STR_DIVISION_BY_ZERO;
-    errStrings[ERR_ILLEGAL_IN_DIRECT_MODE] = STR_ILLEGAL_IN_DIRECT_MODE;
     errStrings[ERR_TYPE_MISMATCH] = STR_TYPE_MISMATCH;
     errStrings[ERR_OUT_OF_STRING_SPACE] = STR_OUT_OF_STRING_SPACE;
-    errStrings[ERR_STRING_FORMULA_TOO_COMPLEX]=STR_STRING_FORMULA_TOO_COMPLEX;
+    errStrings[ERR_EXPRESSION_TOO_COMPLEX] = STR_EXPRESSION_TOO_COMPLEX;
     errStrings[ERR_CANNOT_CONTINUE] = STR_CANNOT_CONTINUE;
-    errStrings[ERR_FUNCTION_NOT_DEFINED] = STR_FUNCTION_NOT_DEFINED;
-    errStrings[ERR_NO_RESUME] = STR_NO_RESUME;
     errStrings[ERR_RESUME_WITHOUT_ERROR] = STR_RESUME_WITHOUT_ERROR;
-    errStrings[ERR_DEVICE_TIMEOUT] = STR_DEVICE_TIMEOUT;
-    errStrings[ERR_DEVICE_FAULT] = STR_DEVICE_FAULT;
-    errStrings[ERR_FOR_WITHOUT_NEXT] = STR_FOR_WITHOUT_NEXT;
-    errStrings[ERR_OUT_OF_PAPER] = STR_OUT_OF_PAPER;
-    errStrings[ERR_WHILE_WITHOUT_WEND] = STR_WHILE_WITHOUT_WEND;
-    errStrings[ERR_WEND_WITHOUT_WHILE] = STR_WEND_WITHOUT_WHILE;
-    errStrings[ERR_DUPLICATE_LABEL] = STR_DUPLICATE_LABEL;
     errStrings[ERR_SUBPROGRAM_NOT_DEFINED] = STR_SUBPROGRAM_NOT_DEFINED;
-    errStrings[ERR_ARGUMENT_COUNT_MISMATCH] = STR_ARGUMENT_COUNT_MISMATCH;
-    errStrings[ERR_ARRAY_NOT_DEFINED] = STR_ARRAY_NOT_DEFINED;
-    errStrings[ERR_VARIABLE_REQUIRED] = STR_VARIABLE_REQUIRED;
-    errStrings[ERR_FIELD_OVERFLOW] = STR_FIELD_OVERFLOW;
     errStrings[ERR_INTERNAL_ERROR] = STR_INTERNAL_ERROR;
     errStrings[ERR_BAD_FILE_NAME_OR_NUMBER] = STR_BAD_FILE_NAME_OR_NUMBER;
     errStrings[ERR_FILE_NOT_FOUND] = STR_FILE_NOT_FOUND;
@@ -459,15 +495,12 @@ static void __initErrorStringTable(void)
     errStrings[ERR_DISK_FULL] = STR_DISK_FULL;
     errStrings[ERR_INPUT_PAST_END_OF_FILE] = STR_INPUT_PAST_END_OF_FILE;
     errStrings[ERR_BAD_RECORD_NUMBER] = STR_BAD_RECORD_NUMBER;
-    errStrings[ERR_BAD_FILE_NAME] = STR_BAD_FILE_NAME;
     errStrings[ERR_TOO_MANY_FILES] = STR_TOO_MANY_FILES;
     errStrings[ERR_DEVICE_UNAVAILABLE] = STR_DEVICE_UNAVAILABLE;
     errStrings[ERR_COMMUNICATION_BUFFER_OVERFLOW] =
                STR_COMMUNICATION_BUFFER_OVERFLOW;
     errStrings[ERR_PERMISSION_DENIED] = STR_PERMISSION_DENIED;
     errStrings[ERR_DISK_NOT_READY] = STR_DISK_NOT_READY;
-    errStrings[ERR_DISK_MEDIA_ERROR] = STR_DISK_MEDIA_ERROR;
-    errStrings[ERR_FEATURE_UNAVAILABLE] = STR_FEATURE_UNAVAILABLE;
     errStrings[ERR_RENAME_ACROSS_DISKS] = STR_RENAME_ACROSS_DISKS;
     errStrings[ERR_PATH_FILE_ACCESS_ERROR] = STR_PATH_FILE_ACCESS_ERROR;
     errStrings[ERR_PATH_NOT_FOUND] = STR_PATH_NOT_FOUND;

@@ -9,7 +9,7 @@
 #include "ConsoleFunctions.h"
 #include "NoConsole.h"
 
-static void __nocons_deinitConsoleHandler(void) {}
+static void __nocons_deinitConsoleDriver(void) {}
 
 static void __nocons_printNChars(__byte *str, __long n)
 {
@@ -83,10 +83,15 @@ static void __nocons_vbp_locate(void)
     __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbp_locate */
 
-static void __nocons_getConsoleHandlerName(__byte *buffer, __integer size)
+static void __nocons_vbp_beep(void)
+{
+    /* !!! do nothing? */
+} /* __nocons_vbp_beep */
+
+static void __nocons_getConsoleDriverName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
- *  handler to a buffer.
+ *  driver to a buffer.
  *
  *      params : buffer == allocated buffer to copy name to.
  *               size   == maximum bytes to copy to buffer.
@@ -94,7 +99,7 @@ static void __nocons_getConsoleHandlerName(__byte *buffer, __integer size)
  */
 {
     strncpy(buffer, "NoConsole", size);
-} /* __nocons_getConsoleHandlerName */
+} /* __nocons_getConsoleDriverName */
 
 
 __boolean __initNoConsole(void)
@@ -103,7 +108,7 @@ __boolean __initNoConsole(void)
  *  error-throwing stubs.
  *
  *   params : void.
- *  returns : Returns (true) if set as new console handler, (false) otherwise.
+ *  returns : Returns (true) if set as new console driver, (false) otherwise.
  */
 {
     __boolean retVal = ( (__getInitFlags() & INITFLAG_DISABLE_CONSOLE) ?
@@ -111,8 +116,8 @@ __boolean __initNoConsole(void)
 
     if (retVal == true)
     {
-        __getConsoleHandlerName = __nocons_getConsoleHandlerName;
-        __deinitConsoleHandler = __nocons_deinitConsoleHandler;
+        __getConsoleDriverName = __nocons_getConsoleDriverName;
+        __deinitConsoleDriver = __nocons_deinitConsoleDriver;
         __printNewLine = __nocons_printNewLine;
         __printNChars = __nocons_printNChars;
         _vbpii_viewPrint = __nocons_vbpii_viewPrint;
@@ -127,6 +132,7 @@ __boolean __initNoConsole(void)
         _vbpNi_locate = __nocons_vbpNi_locate;
         _vbpiN_locate = __nocons_vbpiN_locate;
         _vbp_locate = __nocons_vbp_locate;
+        _vbp_beep = __nocons_vbp_beep;
     } /* if */
 
     return(retVal);

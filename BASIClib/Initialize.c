@@ -1,16 +1,99 @@
 /*
- * General initialization routines for BASIClib.
+ * General initialization and module communication routines for BASIClib.
  *
  *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "BasicLib.h"
 
-static __long initFlags = INITFLAG_NOT_INITIALIZED;
+
 static __boolean initialized = false;
+static __long initFlags = INITFLAG_NOT_INITIALIZED;
+static char *vbHomeDir = NULL;
 
 
-void __initBasicLib(void *base, __long flags, int argc, char **argv)
+static void __calculateUserAppDir(void)
+/*
+ * Attempt to find out where the "vbHome" directory should be. By default,
+ *  it will be "$HOME/.vbslacker/" ...but, this can be overriden by setting
+ *  the environment variable $VBHOME.
+ *
+ * (Failing all else, the thing gets set to "/.vbslacker/" ...)
+ *
+ *     params : void.
+ *    returns : void.
+ */
+{
+    char *rc;
+    char *retVal = NULL;
+
+    if (vbHomeDir != NULL)     /* safety check. */
+        return;
+
+    rc = getenv(__ENVSTR_VBHOME);
+
+    if (rc == NULL)     /* no $VBHOME? Try the default... */
+    {
+        rc = getenv(__ENVSTR_HOME);
+
+        if (rc == NULL) /* No $HOME?! Go for a REAL default... */
+        {
+            retVal = malloc(strlen(__DIRNAME_VBHOME) + 3);
+            if (retVal != NULL)
+            {
+                sprintf(retVal, "%c%s%c", __PATHCHAR,
+                        __DIRNAME_VBHOME, __PATHCHAR);
+            } /* if */
+        } /* if */
+
+        else
+        {
+            retVal = malloc(strlen(rc) + strlen(__DIRNAME_VBHOME) + 2);
+            if (retVal != NULL)
+            {
+                sprintf(retVal, "%s%c%s%c", rc, __PATHCHAR,
+                        __DIRNAME_VBHOME, __PATHCHAR);
+            } /* if */
+        } /* if */
+    } /* if */
+
+    else    /* $VBHOME exists? */
+    {
+        retVal = malloc(strlen(rc) + 2);
+        if (retVal != NULL)
+            sprintf(retVal, "%s%c", rc, __PATHCHAR);
+    } /* else */
+
+    vbHomeDir = retVal;
+} /* __calculateUserAppDir */
+
+
+char *__getUserAppDir(void)
+/*
+ * Get the directory where vbSlacker's user-specific files can be stored.
+ *  (i.e. - "/home/bobo/.vbslacker/") The returned string is allocated
+ *  via __memAllocNoPtrs(), and will be automatically garbage collected.
+ *  please set all references to NULL when finished with them.
+ *
+ *     params : void.
+ *    returns : ptr to string containing path.
+ */
+{
+    char *retVal = NULL;
+
+    if (vbHomeDir != NULL)
+    {
+        retVal = __memAllocNoPtrs(strlen(vbHomeDir) + 1);
+        strcpy(retVal, vbHomeDir);
+    } /* if */
+
+    return(retVal);
+} /* __getUserAppDir */
+
+
+void __initBasicLib(__long flags, int argc, char **argv, char **envp)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
  *  else with the library. This function just calls each other sections'
@@ -24,13 +107,15 @@ void __initBasicLib(void *base, __long flags, int argc, char **argv)
     {
         initFlags = flags;
 
-        __initMemoryManager(base, NULL);   /* !!! FIX! */
+        __calculateUserAppDir();
+
+        __initMemoryManager();
         __initSignalHandlers();
         __initBasicError();
         __initConsoleFunctions();
         __initEnvrFunctions(argc, argv);
         __initTimeDateFunctions();
-        __initBasicFileStream();
+        __initRegistryFunctions();
         __initGUIFrontEnd();
         __initThreads();    /* Make sure this is last init call. */
 
@@ -49,12 +134,12 @@ void __deinitBasicLib(void)
     if (initialized == true)
     {
         initFlags = INITFLAG_NOT_INITIALIZED;
+        __deinitRegistryFunctions();
         __deinitEnvrFunctions();
         __deinitThreads();
         __deinitGUIFrontEnd();
         __deinitConsoleFunctions();
         __deinitBasicError();
-        __deinitMemoryManager();
         initialized = false;
     } /* if */
 } /* __deinitBasicLib */
@@ -70,7 +155,6 @@ void __initThread(__integer tidx)
  *   returns : void.
  */
 {
-    __initThreadMemoryManager(tidx);
     __initThreadBasicError(tidx);
 } /* __initThread */
 
@@ -85,7 +169,7 @@ void __deinitThread(__integer tidx)
  *   returns : void.
  */
 {
-    __deinitThreadMemoryManager(tidx);
+    /* Hhm, nothing here, right now! */
 } /* __deinitThread */
 
 

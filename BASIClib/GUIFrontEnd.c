@@ -7,7 +7,7 @@
 
 #include "GUIFrontEnd.h"
 
-static __boolean initializedGUIFrontEnd = __false;
+static __boolean initializedGUIFrontEnd = false;
 
 
 void __initGUIFrontEnd(void)
@@ -19,7 +19,7 @@ void __initGUIFrontEnd(void)
 {
     if (__getInitFlags() & INITFLAG_ENABLE_GUIFRONTEND)
     {
-        initializedGUIFrontEnd = __true;
+        initializedGUIFrontEnd = true;
     } /* if */
 } /* __initGUIFrontEnd */
 
@@ -36,7 +36,7 @@ void __deinitGUIFrontEnd(void)
     if (initializedGUIFrontEnd)
     {
         /* !!! deinitialize it. */
-        initializedGUIFrontEnd = __false;
+        initializedGUIFrontEnd = false;
     } /* if */
 } /* __deinitGUIFrontEnd */
 

@@ -4,6 +4,8 @@
  *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>
+
 #include "ConsoleFunctions.h"
 
     /* Console drivers... */
@@ -19,8 +21,8 @@ static void __preinitPrintNewLine(void);
 static void __preinitPrintNChars(__byte *str, __long n);
 
 /* variable function pointers... */
-void (*__getConsoleHandlerName)(__byte *buf, __integer size) = NULL;
-void (*__deinitConsoleHandler)(void) = NULL;
+void (*__getConsoleDriverName)(__byte *buf, __integer size) = NULL;
+void (*__deinitConsoleDriver)(void) = NULL;
 void (*__printNewLine)(void) = __preinitPrintNewLine;
 void (*__printNChars)(__byte *str, __long n) = __preinitPrintNChars;
 void (*_vbpii_viewPrint)( __integer top, __integer bottom) = NULL;
@@ -35,11 +37,12 @@ void (*_vbpii_locate)(__integer newY, __integer newX) = NULL;
 void (*_vbpNi_locate)(__integer newX) = NULL;
 void (*_vbpiN_locate)(__integer newY) = NULL;
 void (*_vbp_locate)(void) = NULL;
+void (*_vbp_beep)(void) = NULL;
 
 
 void __initConsoleFunctions(void)
 /*
- * Run down the possible console handlers, in order of precedence,
+ * Run down the possible console drivers, in order of precedence,
  *  until we either find one that works, or we run out of options.
  *  If we run out of options, we force the redirected console to init,
  *  which performs simple output to stdout.
@@ -58,10 +61,10 @@ void __initConsoleFunctions(void)
 
 void __deinitConsoleFunctions(void)
 {
-    __deinitConsoleHandler();   /* call handler-specific de-init. */
+    __deinitConsoleDriver();   /* call driver-specific de-init. */
 
-    __getConsoleHandlerName = NULL;  /* blank all the func pointers out... */
-    __deinitConsoleHandler = NULL;
+    __getConsoleDriverName = NULL;  /* blank all the func pointers out... */
+    __deinitConsoleDriver = NULL;
     __printNewLine = __preinitPrintNewLine;
     __printNChars = __preinitPrintNChars;
     _vbpii_viewPrint = NULL;
@@ -76,6 +79,7 @@ void __deinitConsoleFunctions(void)
     _vbpNi_locate = NULL;
     _vbpiN_locate = NULL;
     _vbp_locate = NULL;
+    _vbp_beep = NULL;
 } /* __deinitConsoleFunctions */
 
 
@@ -150,7 +154,7 @@ static void __preinitPrintNewLine(void)
  *    returns : void.
  */
 {
-    fprintf(stderr, EOL_STRING);
+    fprintf(stderr, __EOL_STRING);
 } /* __preinitPrintNewLine */
 
 
