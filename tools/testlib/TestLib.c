@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-#include "Initialize.h"
 #include "TestLib.h"
 
 
@@ -16,7 +15,7 @@ void initTestLib(STATEPARAMS)
     setbuf(stdout, NULL);
     printf("\n[TESTLIB FOR VBSLACKER STARTING UP...]\n");
     printf("Making call to __initBasicLib()...\n"); 
-    __initBasicLib(STATEARGS, INITFLAG_NO_FLAGS);
+    __initBasicLib(STATEARGS, INITFLAG_DISABLE_CONSOLE);
 } /* initTestLib */
 
 void deinitTestLib(STATEPARAMS)
@@ -25,7 +24,7 @@ void deinitTestLib(STATEPARAMS)
     printf("Making call to __deinitBasicLib()...\n"); 
 
         /* !!! This will be done automatically, eventually... */
-    __deinitBasicLib(STATEARGS);
+    __deinitBasicLib();
 
     printf("\n");
 } /* deinitTestLib */

@@ -6,8 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Threads.h"
-#include "Boolean.h"
+#include "BasicLib.h"
 
 static boolean changed = false;
 
@@ -30,7 +29,6 @@ void test__spinThread(STATEPARAMS)
  *   returns : void.
  */
 {
-    pthread_t tid;
     int tidx;
     int i;
 
@@ -70,8 +68,6 @@ void testThreads(STATEPARAMS)
 
 
 #ifdef STANDALONE
-
-#include "Initialize.h"
 
 int main(void)
 {

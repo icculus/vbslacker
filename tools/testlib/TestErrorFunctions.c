@@ -6,8 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "OnEvents.h"
-#include "ErrorFunctions.h"
+#include "BasicLib.h"
 
 
 void test___runtimeError(STATEPARAMS)
@@ -41,9 +40,9 @@ errError:              /* error handler... */
 } /* test___runtimeError */
 
 
-void test_func_err(STATEPARAMS)
+void test_err(STATEPARAMS)
 /*
- * Test err() functionality.
+ * Test vbi_err() functionality.
  *
  *    params : void.
  *   returns : void.
@@ -51,7 +50,7 @@ void test_func_err(STATEPARAMS)
 {
     int rc;
 
-    printf("Testing err() function...\n");
+    printf("Testing ERR()...\n");
 
     __setResumeStack;
     __registerOnEventHandler(STATEARGS, &&errError, ONERROR);
@@ -63,11 +62,11 @@ void test_func_err(STATEPARAMS)
     return;
 
 errError:              /* error handler... */ 
-    rc = func_err(STATEARGS);
+    rc = vbi_err(STATEARGS);
 
     if (rc != ERR_TOO_MANY_FILES)
     {
-        printf("  - returned (%d), should have returned (%d)!\n",
+        printf("  - ERR() returned (%d), should have returned (%d)!\n",
                         rc, ERR_TOO_MANY_FILES);
     } /* if */
 
@@ -76,9 +75,9 @@ errError:              /* error handler... */
 
 
 
-void test_proc_err(STATEPARAMS)
+void test_error(STATEPARAMS)
 /*
- * Test "err = errno" functionality.
+ * Test ERROR statement functionality.
  *
  *    params : void.
  *   returns : void.
@@ -86,15 +85,24 @@ void test_proc_err(STATEPARAMS)
 {
     int rc;
 
-    printf("Testing err() procedure...\n");
+    printf("Testing ERROR()...\n");
 
-    proc_err(STATEARGS, ERR_LABEL_NOT_DEFINED);
-    rc = func_err(STATEARGS);
-    if (rc != ERR_LABEL_NOT_DEFINED)
+    __setResumeStack;
+    __registerOnEventHandler(STATEARGS, &&errErrorHandler, ONERROR);
+
+    vbpi_error(STATEARGS, ERR_LABEL_NOT_DEFINED);
+    printf("  - Didn't call error handler.\n");
+    return;
+
+errErrorHandler:
+
+    if (__basicErrno != ERR_LABEL_NOT_DEFINED)
     {
         printf("  - returned (%d), should have returned (%d)!\n",
                         rc, ERR_LABEL_NOT_DEFINED);
     } /* if */
+
+    __deregisterOnEventHandlers(STATEARGS);
 } /* test_proc_err */
 
 
@@ -110,20 +118,19 @@ void testErrorFunctions(STATEPARAMS)
     printf("\n[TESTING ERROR FUNCTIONS...]\n");
 
     test___runtimeError(STATEARGS);
-    test_func_err(STATEARGS);
-    test_proc_err(STATEARGS);
+    test_err(STATEARGS);
+    test_error(STATEARGS);
 } /* testErrorFunctions */
 
 
 #ifdef STANDALONE
-
-#include "Initialize.h"
 
 int main(void)
 {
     __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAG);
     testErrorFunctions(NULLSTATEARGS);
     __deinitBasicLib(NULLSTATEARGS);
+    return(0);
 } /* main */
 
 #endif

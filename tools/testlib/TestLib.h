@@ -7,7 +7,7 @@
 #ifndef _INCLUDE_TESTLIB_H_
 #define _INCLUDE_TESTLIB_H_
 
-#include "RegState.h"
+#include "StdBasic.h"
 
 void testOnEvents(STATEPARAMS);
 void testErrorFunctions(STATEPARAMS);
@@ -18,5 +18,5 @@ void testFileIOFunctions(STATEPARAMS);
 
 #endif
 
-/* end of testlib.h ... */
+/* end of TestLib.h ... */
 

@@ -1,16 +1,12 @@
 /*
- * Test conversion functions.
+ * Test OnEvents subsystem...
  *
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <stdio.h>
 #include <string.h>
-#include "Threads.h"
-#include "OnEvents.h"
-#include "ErrorFunctions.h"
-#include "Boolean.h"
-#include "RegState.h"
+#include "BasicLib.h"
 
 #define TESTVAR_VALUE1 0xABCD
 #define TESTVAR_VALUE2 0x1234
@@ -560,8 +556,6 @@ void testOnEvents(STATEPARAMS)
 
 #ifdef STANDALONE
 
-#include "Initialize.h"
-
 int main(void)
 {
     __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
@@ -572,6 +566,6 @@ int main(void)
 
 #endif
 
-/* end of TestConversionFunctions.c ... */
+/* end of TestOnEvents.c ... */
 
 
