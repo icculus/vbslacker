@@ -91,7 +91,7 @@ void _vbpl_sleep(__long napTime)
             do      /* give up time slices until (napTime) seconds elaspe. */
             {
                 __memDoPartialCollect();
-                __threadTimeslice;
+                __threadTimeslice();
                 time(&currentTime);
             } while (difftime(currentTime, startTime) < dNapTime);
         } /* else */
