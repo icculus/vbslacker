@@ -20,6 +20,12 @@ static void __crashHandler(int sig)
 } /* __crashHandler */
 
 
+static void __sigwinchHandler(int sig)
+{
+    printf("sigwinch handler!\n");
+} /* __sigwinchHandler */
+
+
 void __initSignalHandlers(STATEPARAMS)
 {
     (void) signal(SIGINT, __sigintHandler);
@@ -27,6 +33,7 @@ void __initSignalHandlers(STATEPARAMS)
     (void) signal(SIGILL, __crashHandler);
     (void) signal(SIGBUS, __crashHandler);
     (void) signal(SIGFPE, __crashHandler);
+    (void) signal(SIGWINCH, __sigwinchHandler);
 } /* __initSignalHandlers */
 
 
