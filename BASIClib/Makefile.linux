@@ -11,7 +11,7 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
        FileSystemFunctions.o Variant.o BasicError.o NoConsole.o \
        DirectConsole.o RedirectedConsole.o CursesConsole.o \
-       EnvrFunctions.o ProcessFunctions.o
+       EnvrFunctions.o
 
 CC = gcc
 LINKER = gcc
@@ -119,9 +119,6 @@ BasicError.o : BasicError.c BasicError.h
 
 EnvrFunctions.o : EnvrFunctions.c EnvrFunctions.h
 	$(CC) $(COPTIONS) EnvrFunctions.o EnvrFunctions.c
-
-ProcessFunctions.o : ProcessFunctions.c ProcessFunctions.h
-	$(CC) $(COPTIONS) ProcessFunctions.o ProcessFunctions.c
 
 # end of Makefile.linux ...
 
