@@ -64,6 +64,8 @@ void __deinitConsoleFunctions(STATEPARAMS)
     vbi_csrline = NULL;
     vbia_pos = NULL;
     vbpiii_color = NULL;
+    vbpil_color = NULL;
+    vbpi_color = NULL;
 } /* __deinitConsoleFunctions */
 
 

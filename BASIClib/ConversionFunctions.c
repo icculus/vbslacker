@@ -36,7 +36,7 @@ PBasicString vbSi_chr_DC_(STATEPARAMS, int asciiValue)
  *  value passed.
  *
  *   params : asciiValue == ascii code to convert to a string.
- *  returns : one char string of ascii value.
+ *  returns : one char-length string of ascii value in boxcar..
  */
 {
     PBasicString retVal = NULL;
@@ -46,7 +46,7 @@ PBasicString vbSi_chr_DC_(STATEPARAMS, int asciiValue)
     else
     {
         retVal = __allocString(STATEARGS, 1, false);
-        retVal->data[0] = (char) asciiValue;
+        retVal->data[0] = (__byte) asciiValue;
     } /* else */
 
     return(retVal);
@@ -62,10 +62,10 @@ PBasicString vbSd_str_DC_(STATEPARAMS, double numeric)
  *  placed in the string if needed. For example, str$(1.0) will return " 1".
  *
  *    params : numeric == number to convert to a BASIC string.
- *   returns : newly allocated BASIC string.
+ *   returns : newly allocated BASIC string in boxcar.
  */
 {
-#ifdef BROKEN
+#ifdef BROKEN   /* !!! MEMORY LEAKS, AMONG OTHER PROBLEMS... */
     PBasicString retVal;
     int allocated = 10;
     int decimalPlaces = 0;
@@ -111,13 +111,11 @@ PBasicString vbSd_str_DC_(STATEPARAMS, double numeric)
     return(retVal);
 
 #else
-
-#warning "str_DC_() is still a kludge!"
-
-/* !!! fix this. */
-
+    /* !!! fix this. */
     char buffer[100];
-    sprintf(buffer, "%f", numeric);
+
+    buffer[0] = ' ';  /* just in case it's positive... */
+    sprintf(buffer + ((numeric <= 0.0) ? 0 : 1), "%f", numeric);
     return(__createString(STATEARGS, buffer, false));
 #endif
 
