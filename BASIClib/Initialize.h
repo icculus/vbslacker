@@ -29,6 +29,7 @@ extern "C" {
 
     /* function prototypes ... */
 char *__getUserAppDir(void);
+__boolean __initializationComplete(void);
 void __initBasicLib(__long flags, int argc, char **argv, char **envp);
 void __deinitBasicLib(void);
 __long __getInitFlags();
