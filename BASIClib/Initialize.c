@@ -1,7 +1,7 @@
 /*
  * General initialization routines for BASIClib.
  *
- *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include "BasicLib.h"

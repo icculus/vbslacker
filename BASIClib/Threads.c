@@ -18,7 +18,7 @@
  *  We'll remove all the #ifndef WIN32 stuff when Cygnus finishes their
  *  pthread support in cygwin32/egcs...hopefully soon.
  *
- *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include "Threads.h"

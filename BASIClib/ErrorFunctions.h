@@ -1,7 +1,7 @@
 /*
  * Declarations for BASIC runtime error subsystem.
  *
- *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_ERRORFUNCTIONS_H_
@@ -15,7 +15,7 @@ int vbi_erl(void);
 int vbi_erdev(void);
 PBasicString vbS_erdev_DC_(void);
 
-#endif
+#endif /* _INCLUDE_ERRORFUNCTIONS_H_ */
 
 /* end of ErrorFunctions.h ... */
 

@@ -1,7 +1,7 @@
 /*
  * Console functions for BASIClib.
  *
- *    Copyright (c) Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include "ConsoleFunctions.h"

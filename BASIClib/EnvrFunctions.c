@@ -2,7 +2,7 @@
  * APIs that deal with the environment, or, the interface between the
  *  operating system and the application.
  *
- *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <unistd.h>

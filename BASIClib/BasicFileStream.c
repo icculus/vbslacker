@@ -1,7 +1,7 @@
 /*
  * Internal stream support for use with FileIOFunctions.c module.
  *
- *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #include <stdlib.h>

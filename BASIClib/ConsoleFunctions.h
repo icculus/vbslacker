@@ -1,7 +1,7 @@
 /*
  * Header file for BASIClib console routines.
  *
- *   Copyright (c) 1998 Ryan Gordon and Gregory S. Read.
+ *   Copyright (c) 1999 Ryan Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_CONSOLEFUNCTIONS_H_

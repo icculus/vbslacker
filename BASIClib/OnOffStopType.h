@@ -3,7 +3,7 @@
  *  constant of ON, OFF, or STOP. It is signified in the name
  *  mangling as 'O', for "OnOffStopType."
  *
- *   Copyright (c) Ryan C. Gordon and Gregory S. Read.
+ *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_STDBASIC_H_

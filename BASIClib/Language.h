@@ -3,7 +3,7 @@
  *  something like "English.h" or "German.h" ... it's better to
  *  #include "Language.h" and -DLANG_ENGLISH on the command line.
  *
- *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
 #ifndef _INCLUDE_STDBASIC_H_
