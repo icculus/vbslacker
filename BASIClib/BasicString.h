@@ -20,8 +20,10 @@ typedef BasicString *PBasicString;
 
 PBasicString __allocString(int length, boolean fixedLength);
 PBasicString __createString(char *asciz, boolean fixedLength);
-PBasicString __cloneString(PBasicString pBasicStr);
+PBasicString __constString(char *asciz);
 void __freeString(PBasicString pBasicStr);
+void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign);
+void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat);
 
 #endif
 
