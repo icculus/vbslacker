@@ -120,7 +120,8 @@ static void __curs_vbpii_viewPrint(__integer topRow, __integer bottomRow)
     else
     {
         wresize(cons, (bottomRow - topRow) + 1, columns);
-        mvwin(cons, topRow, 0);
+        mvwin(cons, topRow - 1, 0);
+        wmove(cons, 0, 0);
     } /* else */
 
     __releaseThreadLock(&consoleLock);
@@ -143,9 +144,9 @@ static void __curs_vbp_viewPrint(void)
     getmaxyx(stdscr, lines, columns);
     mvwin(cons, 0, 0);
     wresize(cons, lines, columns);
+    wmove(cons, 0, 0);
     __releaseThreadLock(&consoleLock);
 } /* __curs_vbp_viewPrint */
-
 
 
 static void __curs_vbp_cls(void)
@@ -177,7 +178,7 @@ static __integer __curs_vbi_csrline(void)
     int y;
 
     __obtainThreadLock(&consoleLock);
-    getsyx(y, x);
+    getyx(cons, y, x);
     __releaseThreadLock(&consoleLock);
 
     return((__integer) y);
@@ -196,7 +197,7 @@ static __integer __curs_vbia_pos(void *pVar)
     int y;
 
     __obtainThreadLock(&consoleLock);
-    getsyx(y, x);
+    getyx(cons, y, x);
     __releaseThreadLock(&consoleLock);
 
     return((__integer) x);
@@ -239,16 +240,52 @@ static void __curs_vbpi_color(__integer fore)
 
 static void __curs_vbpii_locate(__integer newY, __integer newX)
 {
+    int top;
+    int bottom;
+    int right;
+
+    getbegyx(cons, top, right);
+    getmaxyx(cons, bottom, right);
+
+    if ((newY < top) || (newY > bottom) || (newX < 0) || (newX > right))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+
+    wmove(cons, newY - 1, newX - 1);
+    wrefresh(cons);
 } /* __curs_vbpii_locate */
 
 
 static void __curs_vbpNi_locate(__integer newX)
 {
+    int dummy;
+    int right;
+    int curY;
+
+    getyx(cons, curY, dummy);
+    getmaxyx(cons, dummy, right);
+
+    if ((newX < 0) || (newX > right))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    wmove(cons, curY, newX - 1);
+    wrefresh(cons);
 } /* __curs_vbpNi_locate */
 
 
 static void __curs_vbpiN_locate(__integer newY)
 {
+    int dummy;
+    int top;
+    int bottom;
+    int curX;
+
+    getyx(cons, dummy, curX);
+    getbegyx(cons, top, dummy);
+    getmaxyx(cons, bottom, dummy);
+
+    if ((newY < top) || (newY > bottom))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    wmove(cons, newY - 1, curX);
+    wrefresh(cons);
 } /* __curs_vbpiN_locate */
 
 
