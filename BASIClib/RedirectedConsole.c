@@ -11,7 +11,7 @@
 #include "RedirectedConsole.h"
 
 
-static void __redir_deinitConsoleHandler(STATEPARAMS)
+static void __redir_deinitConsoleHandler(void)
 /*
  * Deinitialize this console handler. In this case, just bump the
  *  cursor down to the start of the next line...
@@ -24,7 +24,7 @@ static void __redir_deinitConsoleHandler(STATEPARAMS)
 } /* __redir_deinitConsole */
 
 
-static void __redir_printNChars(STATEPARAMS, char *str, int n)
+static void __redir_printNChars(char *str, int n)
 /*
  * Write (n) chars from (str) to the printable window, scrolling if 
  *  needed, and moving the cursor to the new position.
@@ -40,7 +40,7 @@ static void __redir_printNChars(STATEPARAMS, char *str, int n)
 } /* __redir_vbpS_print */
 
 
-static void __redir_printNewLine(STATEPARAMS)
+static void __redir_printNewLine(void)
 /*
  * Move the cursor down to the start of the next line. Scroll if necessary.
  *
@@ -52,7 +52,7 @@ static void __redir_printNewLine(STATEPARAMS)
 } /* __redir_printNewLine */
 
 
-static void __redir_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
+static void __redir_vbpii_viewPrint(int topRow, int bottomRow)
 /*
  * This can't do anything, if we're redirected, so just return.
  *
@@ -65,7 +65,7 @@ static void __redir_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
 } /* __redir_vbpii_viewPrint */
 
 
-static void __redir_vbp_viewPrint(STATEPARAMS)
+static void __redir_vbp_viewPrint(void)
 /*
  * This can't do anything, if we're redirected, so just return.
  *
@@ -78,7 +78,7 @@ static void __redir_vbp_viewPrint(STATEPARAMS)
 
 
 
-static void __redir_vbp_cls(STATEPARAMS)
+static void __redir_vbp_cls(void)
 /*
  * This can't do much, if we're redirected, so just send on a newline,
  *  and return.
@@ -91,7 +91,7 @@ static void __redir_vbp_cls(STATEPARAMS)
 } /* __redir_vbp_cls */
 
 
-static int __redir_vbi_csrline(STATEPARAMS)
+static int __redir_vbi_csrline(void)
 /*
  * Can't manipulate the cursor in redirected mode, so return (0).
  *
@@ -103,7 +103,7 @@ static int __redir_vbi_csrline(STATEPARAMS)
 } /* __redir_vbi_csrline */
 
 
-static int __redir_vbia_pos(STATEPARAMS, void *pVar)
+static int __redir_vbia_pos(void *pVar)
 /*
  * Can't manipulate the cursor in redirected mode, so return (0).
  *
@@ -115,7 +115,7 @@ static int __redir_vbia_pos(STATEPARAMS, void *pVar)
 } /* vbia_pos */
 
 
-static void __redir_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
+static void __redir_vbpiii_color(int fore, int back, int bord)
 /*
  * This can't do anything, if we're redirected, so just return.
  *
@@ -127,7 +127,7 @@ static void __redir_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
 } /* __redir_vbpiii_color */
 
 
-static void __redir_vbpil_color(STATEPARAMS, int fore, long feh)
+static void __redir_vbpil_color(int fore, long feh)
 /*
  * This is for graphic modes only; throw an error.
  *
@@ -136,11 +136,11 @@ static void __redir_vbpil_color(STATEPARAMS, int fore, long feh)
  *  returns : void.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* __redir_vbpil_color */
 
 
-static void __redir_vbpi_color(STATEPARAMS, int fore)
+static void __redir_vbpi_color(int fore)
 /*
  * This is for graphic modes only; throw an error.
  *
@@ -148,11 +148,11 @@ static void __redir_vbpi_color(STATEPARAMS, int fore)
  *  returns : void.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* __redir_vbpi_color */
 
 
-static void __redir_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+static void __redir_getConsoleHandlerName(char *buffer, int size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -166,7 +166,7 @@ static void __redir_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
 } /* __redir_getConsoleHandlerName */
 
 
-__boolean __initRedirectedConsole(STATEPARAMS)
+__boolean __initRedirectedConsole(void)
 /*
  * Attempt to initialize curses library access.
  *
@@ -178,7 +178,7 @@ __boolean __initRedirectedConsole(STATEPARAMS)
 
     if ((isatty(STDIN_FILENO) == 0) || (isatty(STDOUT_FILENO) == 0))
     {
-        __forceRedirectedConsole(STATEARGS);
+        __forceRedirectedConsole();
         retVal = true;
     } /* if */
 
@@ -186,7 +186,7 @@ __boolean __initRedirectedConsole(STATEPARAMS)
 } /* __initRedirectedConsole */
 
 
-void __forceRedirectedConsole(STATEPARAMS)
+void __forceRedirectedConsole(void)
 /*
  * Force the function pointers to use the redirected console to write
  *  to stdout, regardless of whether we're redirected or not.

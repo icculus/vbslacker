@@ -33,23 +33,23 @@
 #define ThreadLock pthread_mutex_t
 #define PThreadLock pthread_mutex_t *
 
-void __initThreads(STATEPARAMS);
-void __deinitThreads(STATEPARAMS);
-void __terminateCurrentThread(STATEPARAMS);
-void __terminateThread(STATEPARAMS, int tidx);
-void __waitForThreadToDie(STATEPARAMS, int tidx);
-int __spinThread(STATEPARAMS, void (*_fn)(STATEPARAMS, void *x), void *_args);
-int  __getThreadCount(STATEPARAMS);
-int  __getHighestThreadIndex(STATEPARAMS);
-int  __getCurrentThreadIndex(STATEPARAMS);
-void __threadTimeslice(STATEPARAMS);
-void __createThreadLock(STATEPARAMS, PThreadLock pThreadLock);
-void __destroyThreadLock(STATEPARAMS, PThreadLock pThreadLock);
-void __obtainThreadLock(STATEPARAMS, PThreadLock pThreadLock);
-void __releaseThreadLock(STATEPARAMS, PThreadLock pThreadLock);
+void __initThreads(void);
+void __deinitThreads(void);
+void __terminateCurrentThread(void);
+void __terminateThread(int tidx);
+void __waitForThreadToDie(int tidx);
+int __spinThread(void (*_fn)(void *x), void *_args);
+int  __getThreadCount(void);
+int  __getHighestThreadIndex(void);
+int  __getCurrentThreadIndex(void);
+void __threadTimeslice(void);
+void __createThreadLock(PThreadLock pThreadLock);
+void __destroyThreadLock(PThreadLock pThreadLock);
+void __obtainThreadLock(PThreadLock pThreadLock);
+void __releaseThreadLock(PThreadLock pThreadLock);
 
-#endif
-#endif
+#endif /* _INCLUDE_THREADS_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of Threads.h ... */
 

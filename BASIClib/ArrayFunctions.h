@@ -9,9 +9,9 @@
 
 #include "StdBasic.h"
 
-void vbpAn_erase(STATEPARAMS, PBasicArray array);
-int vbiAi_lbound(STATEPARAMS, PBasicArray array, int dimension);
-int vbiAi_ubound(STATEPARAMS, PBasicArray array, int dimension);
+void vbpAn_erase(PBasicArray array);
+int vbiAi_lbound(PBasicArray array, int dimension);
+int vbiAi_ubound(PBasicArray array, int dimension);
 
 #endif /* _INCLUDE_ARRAYFUNCTIONS_H_ */
 

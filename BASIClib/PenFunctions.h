@@ -9,10 +9,10 @@
 
 #include "StdBasic.h"
 
-int vbii_pen(STATEPARAMS, int arg);
-void vbpO_pen(STATEPARAMS, OnOffStopType onOffStop);
+int vbii_pen(int arg);
+void vbpO_pen(OnOffStopType onOffStop);
 
-#endif
+#endif /* _INCLUDE_PENFUNCTIONS_H_ */
 
 /* end of PenFunctions.h ... */
 

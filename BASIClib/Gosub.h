@@ -21,10 +21,10 @@ typedef struct
 
 typedef __GosubState *__PGosubState;
 
-void __prepareGosub(STATEPARAMS, void *ret, PGosubState state);
-void *__prepareReturn(STATEPARAMS, void *addr, PGosubState state);
-/* __jump() is a macro defined in Assembler.h ... */
+void __prepareGosub(void *ret, __PGosubState state);
+void *__prepareReturn(void *addr, __PGosubState state);
 
+/* __jump() is a macro defined in Assembler.h ... */
 
 #define __GOSUBSUPPORT __GosubState __gosub = {NULL, 0}
 

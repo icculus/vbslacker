@@ -13,7 +13,7 @@
 #include "PenFunctions.h"
 
 
-int vbii_pen(STATEPARAMS, int arg)
+int vbii_pen(int arg)
 {
     switch (arg)
     {
@@ -27,14 +27,14 @@ int vbii_pen(STATEPARAMS, int arg)
         case 7: return(1);
         case 8: return(1);
         case 9: return(1);
-        default: __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        default: __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     } /* switch */
 
     return(0);  /* should never hit this, but just in case... */
 } /* vbii_pen */
 
 
-void vbpO_pen(STATEPARAMS, OnOffStopType onOffStop) {}
+void vbpO_pen(OnOffStopType onOffStop) {}
 
 
 /* end of PenFunctions.c ... */

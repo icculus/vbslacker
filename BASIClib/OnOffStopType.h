@@ -17,8 +17,8 @@
 
 typedef enum { ON, OFF, STOP } OnOffStopType;
 
-#endif
-#endif
+#endif /* _INCLUDE_ONOFFSTOPTYPE_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of OnOffStopType.h ... */
 

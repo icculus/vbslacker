@@ -22,15 +22,14 @@
 #define INITFLAG_UNIX_FILE_SYSTEM      16
 
     /* function prototypes ... */
-void __initBasicLib(STATEPARAMS, long flags, int argc, char **argv);
+void __initBasicLib(long flags, int argc, char **argv);
 void __deinitBasicLib(void);
-long __getInitFlags(STATEPARAMS);
-void __shellOutNotification(STATEPARAMS);
-void __shellRetNotification(STATEPARAMS);
+long __getInitFlags();
+void __shellOutNotification();
+void __shellRetNotification();
 
-#endif
-#endif
+#endif /* _INCLUDE_INITIALIZE_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of Initialize.h ... */
-
 

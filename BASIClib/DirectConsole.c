@@ -37,7 +37,7 @@ static ThreadLock consoleLock;
 static int cons = -1;   /* file handle of /dev/vcsa? device... */
 static unsigned char curColor = 7;
 
-static void __setCursorXY(STATEPARAMS, unsigned char _x, unsigned char _y)
+static void __setCursorXY(unsigned char _x, unsigned char _y)
 /*
  * update our cursor position variables, and /dev/vcsa?'s records.
  *
@@ -50,14 +50,14 @@ static void __setCursorXY(STATEPARAMS, unsigned char _x, unsigned char _y)
     x = _x;
     y = _y;
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     lseek(cons, 2, SEEK_SET);   /* position in /dev/vcsa? of X cursor. */
     write(cons, buf, 2);        /* update the cursor. */
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* __setCursorXY */
 
 
-static void __scrollConsole(STATEPARAMS)
+static void __scrollConsole(void)
 /*
  * Move all but the top line of the printable window up one line, and
  *  blank the bottom line.
@@ -79,18 +79,18 @@ static void __scrollConsole(STATEPARAMS)
         blankBuf[i + 1] = ' ';
     } /* for */
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     lseek(cons, scrollStart, SEEK_SET); /* read the console. */
     read(cons, scrollBuf, bufSize);
 
     lseek(cons, winTop, SEEK_SET);  /* copy it back, one line higher... */
     write(cons, scrollBuf, bufSize);
     write(cons, blankBuf, columnBytes);  /* fill last line with spaces... */
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* __scrollConsole */
 
 
-static int __cons_openConsole(STATEPARAMS)
+static int __cons_openConsole(void)
 /*
  * Open the virtual console for read/write, if at a virtual console, and
  *  the kernel will permit it.
@@ -119,7 +119,7 @@ static int __cons_openConsole(STATEPARAMS)
                 } /* if */
                 else
                 {
-                    __createThreadLock(STATEARGS, &consoleLock);
+                    __createThreadLock(&consoleLock);
                     lines = (int) br[0];
                     columns = (int) br[1];
                     x = (int) br[2];
@@ -136,7 +136,7 @@ static int __cons_openConsole(STATEPARAMS)
 } /* __cons_openConsole */
 
 
-static void __cons_deinitConsoleHandler(STATEPARAMS)
+static void __cons_deinitConsoleHandler(void)
 /*
  * Move the cursor to the start of the next line, and close the console
  *  device.
@@ -147,16 +147,16 @@ static void __cons_deinitConsoleHandler(STATEPARAMS)
 {
     if (cons != -1)
     {
-        __obtainThreadLock(STATEARGS, &consoleLock);
-        __setCursorXY(STATEARGS, 0, y + 1);
+        __obtainThreadLock(&consoleLock);
+        __setCursorXY(0, y + 1);
         close(cons);
-        __releaseThreadLock(STATEARGS, &consoleLock);
-        __destroyThreadLock(STATEARGS, &consoleLock);
+        __releaseThreadLock(&consoleLock);
+        __destroyThreadLock(&consoleLock);
     } /* if */
 } /* __cons_deinitConsole */
 
 
-static void __cons_printNChars(STATEPARAMS, char *str, int n)
+static void __cons_printNChars(char *str, int n)
 /*
  * Write a (n) characters at pos (str) to the printable window, 
  *  scrolling if needed, and moving the cursor to the new position.
@@ -169,7 +169,7 @@ static void __cons_printNChars(STATEPARAMS, char *str, int n)
     int i;
     char matrixChar[2];
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
 
     lseek(cons, __xyToConsoleMatrix(x, y), SEEK_SET);
     matrixChar[0] = curColor;   /* attribute byte. */
@@ -181,11 +181,11 @@ static void __cons_printNChars(STATEPARAMS, char *str, int n)
             case ASCII_CR:
                 if ((i + 1 < n) && (str[i] == ASCII_NL))
                     i++;
-                __printNewLine(STATEARGS);
+                __printNewLine();
                 break;
 
             case ASCII_NL:
-                __printNewLine(STATEARGS);
+                __printNewLine();
                 break;
 
             case ASCII_TAB:
@@ -216,17 +216,17 @@ static void __cons_printNChars(STATEPARAMS, char *str, int n)
 
         if (y > winBottom)
         {
-            __scrollConsole(STATEARGS);
+            __scrollConsole();
             y = winBottom;
         } /* if */
     } /* for */
 
-    __setCursorXY(STATEARGS, x, y);
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __setCursorXY(x, y);
+    __releaseThreadLock(&consoleLock);
 } /* cons_printNChars */
 
 
-static void __cons_printNewLine(STATEPARAMS)
+static void __cons_printNewLine(void)
 /*
  * Move the cursor down to the start of the next line. Scroll if necessary.
  *
@@ -234,7 +234,7 @@ static void __cons_printNewLine(STATEPARAMS)
  *   returns : void.
  */
 {
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
 
     x = 0;
     y++;
@@ -242,15 +242,15 @@ static void __cons_printNewLine(STATEPARAMS)
     if (__xyToConsoleMatrix(x, y) > winBottom)
     {
         y = winBottom;
-        __scrollConsole(STATEARGS);
+        __scrollConsole();
     } /* if */
-    __setCursorXY(STATEARGS, x, y);
+    __setCursorXY(x, y);
 
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* __cons_printNewLine */
 
 
-static void __cons_vbp_cls(STATEPARAMS)
+static void __cons_vbp_cls(void)
 /*
  * Clear the current printable window. The window will be blanked of
  *  characters, and set to the background color. The cursor is moved to
@@ -270,16 +270,16 @@ static void __cons_vbp_cls(STATEPARAMS)
         buffer[i + 1] = ' ';
     } /* for */
 
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     lseek(cons, winTop, SEEK_SET);
     write(cons, buffer, max);
-    __setCursorXY(STATEARGS, __consoleMatrixToX(winTop),
+    __setCursorXY(__consoleMatrixToX(winTop),
                    __consoleMatrixToY(winTop));
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __releaseThreadLock(&consoleLock);
 } /* __cons_vbp_cls */
 
 
-static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
+static void __cons_vbpiii_color(int fore, int back, int bord)
 /*
  * Set a new printing color.
  *
@@ -295,16 +295,16 @@ static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
 
 
 #ifdef WIN32   /* stubs for now for win32. */
-static int  __cons_openConsole(STATEPARAMS) { return(-1); }
-static void __cons_deinitConsoleHandler(STATEPARAMS) {}
-static void __cons_printNChars(STATEPARAMS, char *str, int n) {}
-static void __cons_vbp_cls(STATEPARAMS) {}
-static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord) {}
-static void __cons_printNewLine(STATEPARAMS) {}
-static void __setCursorXY(STATEPARAMS, int _x, int _y) {}
+static int  __cons_openConsole(void) { return(-1); }
+static void __cons_deinitConsoleHandler(void) {}
+static void __cons_printNChars(char *str, int n) {}
+static void __cons_vbp_cls(void) {}
+static void __cons_vbpiii_color(int fore, int back, int bord) {}
+static void __cons_printNewLine(void) {}
+static void __setCursorXY(int _x, int _y) {}
 #endif
 
-static void __cons_vbpii_viewPrint(STATEPARAMS, int top, int bottom)
+static void __cons_vbpii_viewPrint(int top, int bottom)
 /*
  * Set console lines (top) to (bottom) as the printable window.
  *
@@ -317,19 +317,19 @@ static void __cons_vbpii_viewPrint(STATEPARAMS, int top, int bottom)
     bottom--;
 
     if ( (top < 0) || (bottom < top) || (bottom > lines) )
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
-        __obtainThreadLock(STATEARGS, &consoleLock);
+        __obtainThreadLock(&consoleLock);
         winTop = __xyToConsoleMatrix(0, top);
         winBottom = __xyToConsoleMatrix(columns, bottom);
-        __setCursorXY(STATEARGS, 0, top);
-        __releaseThreadLock(STATEARGS, &consoleLock);
+        __setCursorXY(0, top);
+        __releaseThreadLock(&consoleLock);
     } /* else */
 } /* __cons_vbpii_viewPrint */
 
 
-static void __cons_vbp_viewPrint(STATEPARAMS)
+static void __cons_vbp_viewPrint(void)
 /*
  * Set the whole console window printable.
  *
@@ -337,15 +337,15 @@ static void __cons_vbp_viewPrint(STATEPARAMS)
  *    returns : void.
  */
 {
-    __obtainThreadLock(STATEARGS, &consoleLock);
+    __obtainThreadLock(&consoleLock);
     winTop = __xyToConsoleMatrix(0, 0);
     winBottom = __xyToConsoleMatrix(columns, lines);
-    __setCursorXY(STATEARGS, 0, 0);
-    __releaseThreadLock(STATEARGS, &consoleLock);
+    __setCursorXY(0, 0);
+    __releaseThreadLock(&consoleLock);
 } /* __cons_vbp_viewPrint */
 
 
-static int __cons_vbi_csrline(STATEPARAMS)
+static int __cons_vbi_csrline(void)
 /*
  * Return current cursor row.
  *
@@ -357,7 +357,7 @@ static int __cons_vbi_csrline(STATEPARAMS)
 } /* __cons_vbi_csrline */
 
 
-static int __cons_vbia_pos(STATEPARAMS, void *pVar)
+static int __cons_vbia_pos(void *pVar)
 /*
  * Return current cursor column.
  *
@@ -369,27 +369,27 @@ static int __cons_vbia_pos(STATEPARAMS, void *pVar)
 } /* __cons_vbia_pos */
 
 
-static void __cons_vbpil_color(STATEPARAMS, int fore, long feh)
+static void __cons_vbpil_color(int fore, long feh)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* __cons_vbpiii_color */
 
 
-static void __cons_vbpi_color(STATEPARAMS, int fore)
+static void __cons_vbpi_color(int fore)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
  */
 {
-    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 } /* __cons_vbpiii_color */
 
 
-static void __cons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+static void __cons_getConsoleHandlerName(char *buffer, int size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -403,7 +403,7 @@ static void __cons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
 } /* __cons_getConsoleHandlerName */
 
 
-__boolean __initDirectConsole(STATEPARAMS)
+__boolean __initDirectConsole(void)
 /*
  * Attempt to initialize direct-to-console access.
  *
@@ -413,7 +413,7 @@ __boolean __initDirectConsole(STATEPARAMS)
 {
     __boolean retVal = false;
 
-    if (__cons_openConsole(STATEARGS) != -1)
+    if (__cons_openConsole() != -1)
     {
         __deinitConsoleHandler = __cons_deinitConsoleHandler;
         __getConsoleHandlerName = __cons_getConsoleHandlerName;

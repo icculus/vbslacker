@@ -9,13 +9,13 @@
 
 #include "StdBasic.h"
 
-int vbiS_asc(STATEPARAMS, PBasicString pBasicStr);
-PBasicString vbSi_chr_DC_(STATEPARAMS, int asciiValue);
-PBasicString vbSd_str_DC_(STATEPARAMS, double numeric);
-double vbdS_val(STATEPARAMS, PBasicString pBasicStr);
-PBasicString vbSl_hex_DC_(STATEPARAMS, long x);
-PBasicString vbSl_oct_DC_(STATEPARAMS, long x);
-PBasicString vbS_mki_DC_(STATEPARAMS, int num);
+int vbiS_asc(PBasicString pBasicStr);
+PBasicString vbSi_chr_DC_(int asciiValue);
+PBasicString vbSd_str_DC_(double numeric);
+double vbdS_val(PBasicString pBasicStr);
+PBasicString vbSl_hex_DC_(long x);
+PBasicString vbSl_oct_DC_(long x);
+PBasicString vbS_mki_DC_(int num);
 
 #endif /* _INCLUDE_CONVERSIONFUNCTIONS_H_ */
 

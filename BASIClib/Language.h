@@ -19,12 +19,12 @@
 #if defined LANG_ENGLISH
     #include "English.h"
 #else
-    #error No language defined. Try "-DLANG_ENGLISH" ...
+    #error No language defined. Try putting one of these on the command line:
+    #error   "-DLANG_ENGLISH"
 #endif
 
 
 #endif /* #ifndef INCLUDE_LANGUAGE_H_ */
-
 #endif /* #ifndef INCLUDE_STDBASIC_H_ */
 
 /* end of Language.h ... */

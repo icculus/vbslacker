@@ -13,7 +13,7 @@
 #ifndef _INCLUDE_SIGNALHANDLERS_H_
 #define _INCLUDE_SIGNALHANDLERS_H_
 
-void __initSignalHandlers(STATEPARAMS);
+void __initSignalHandlers(void);
 
 #endif /* _INCLUDE_SIGNALHANDLERS_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

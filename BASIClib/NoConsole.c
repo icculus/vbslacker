@@ -9,61 +9,61 @@
 #include "ConsoleFunctions.h"
 #include "NoConsole.h"
 
-static void __nocons_deinitConsoleHandler(STATEPARAMS) {}
+static void __nocons_deinitConsoleHandler(void) {}
 
-static void __nocons_printNChars(STATEPARAMS, char *str, int n)
+static void __nocons_printNChars(char *str, int n)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpS_print */
 
-static void __nocons_printNewLine(STATEPARAMS)
+static void __nocons_printNewLine(void)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_printNewLine */
 
-static void __nocons_vbpii_viewPrint(STATEPARAMS, int top, int bottom)
+static void __nocons_vbpii_viewPrint(int top, int bottom)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpii_viewPrint */
 
-static void __nocons_vbp_viewPrint(STATEPARAMS)
+static void __nocons_vbp_viewPrint(void)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbp_viewPrint */
 
-static void __nocons_vbp_cls(STATEPARAMS)
+static void __nocons_vbp_cls(void)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbp_cls */
 
-static int __nocons_vbi_csrline(STATEPARAMS)
+static int __nocons_vbi_csrline(void)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
     return(0);  /* never hits this. */
 } /* __nocons_vbi_csrline */
 
-static int  __nocons_vbia_pos(STATEPARAMS, void *pVar)
+static int  __nocons_vbia_pos(void *pVar)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
     return(0);  /* never hits this. */
 } /* __nocons_vbia_pos */
 
-static void __nocons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
+static void __nocons_vbpiii_color(int fore, int back, int bord)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpiii_color */
 
-static void __nocons_vbpil_color(STATEPARAMS, int fore, long feh)
+static void __nocons_vbpil_color(int fore, long feh)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpil_color */
 
-static void __nocons_vbpi_color(STATEPARAMS, int fore)
+static void __nocons_vbpi_color(int fore)
 {
-    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpi_color */
 
-static void __nocons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+static void __nocons_getConsoleHandlerName(char *buffer, int size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -76,7 +76,7 @@ static void __nocons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
     strncpy(buffer, "NoConsole", size);
 } /* __nocons_getConsoleHandlerName */
 
-__boolean __initNoConsole(STATEPARAMS)
+__boolean __initNoConsole(void)
 /*
  * Check if console is disabled, and if so, set all console functions to
  *  error-throwing stubs.
@@ -87,7 +87,7 @@ __boolean __initNoConsole(STATEPARAMS)
 {
     __boolean retVal;
 
-    if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_CONSOLE)
+    if (__getInitFlags() & INITFLAG_DISABLE_CONSOLE)
     {
         __getConsoleHandlerName = __nocons_getConsoleHandlerName;
         __deinitConsoleHandler = __nocons_deinitConsoleHandler;

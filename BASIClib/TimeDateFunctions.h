@@ -9,13 +9,13 @@
 
 #include "StdBasic.h"
 
-void __initTimeDateFunctions(STATEPARAMS);
-float vbf_timer(STATEPARAMS);
-void vbpO_timer(STATEPARAMS, OnOffStopType setting);
-PBasicString vbS_time_DC_(STATEPARAMS);
-void vbpS_time_DC_(STATEPARAMS, PBasicString newTimeStr);
-PBasicString vbS_date_DC_(STATEPARAMS);
-void vbpS_date_DC_(STATEPARAMS, PBasicString newDateStr);
+void __initTimeDateFunctions(void);
+float vbf_timer(void);
+void vbpO_timer(OnOffStopType setting);
+PBasicString vbS_time_DC_(void);
+void vbpS_time_DC_(PBasicString newTimeStr);
+PBasicString vbS_date_DC_(void);
+void vbpS_date_DC_(PBasicString newDateStr);
 
 #endif /* _INCLUDE_TIMEDATEFUNCTIONS_H_ */
 

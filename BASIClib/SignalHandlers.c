@@ -45,7 +45,7 @@ static void __sigintHandler(int sig)
 } /* __sigintHandler */
 
 
-void __initSignalHandlers(STATEPARAMS)
+void __initSignalHandlers(void)
 {
     (void) signal(SIGINT, __sigintHandler);
     (void) signal(SIGSEGV, __crashHandler);

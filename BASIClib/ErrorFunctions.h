@@ -9,11 +9,11 @@
 
 #include "StdBasic.h"
 
-int vbi_err(STATEPARAMS);
-void vbpi_error(STATEPARAMS, int newErr);
-int vbi_erl(STATEPARAMS);
-int vbi_erdev(STATEPARAMS);
-PBasicString vbS_erdev_DC_(STATEPARAMS);
+int vbi_err(void);
+void vbpi_error(int newErr);
+int vbi_erl(void);
+int vbi_erdev(void);
+PBasicString vbS_erdev_DC_(void);
 
 #endif
 

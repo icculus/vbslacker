@@ -9,7 +9,7 @@
 
 #include "StdBasic.h"
 
-__boolean __initDirectConsole(STATEPARAMS);
+__boolean __initDirectConsole(void);
 
 #endif
 

@@ -9,7 +9,7 @@
 #include "ProcessFunctions.h"
 
 
-void vbpS_shell(STATEPARAMS, PBasicString shCmd)
+void vbpS_shell(PBasicString shCmd)
 /*
  * Spawn a shell, and give it (shCmd) as a command line. This can be
  *  used to execute other programs, or use internal shell commands.
@@ -25,16 +25,16 @@ void vbpS_shell(STATEPARAMS, PBasicString shCmd)
  *     returns : void.
  */
 {
-    char *cmd = __basicStringToAsciz(STATEARGS, shCmd);
+    char *cmd = __basicStringToAsciz(shCmd);
 
-    __shellOutNotification(STATEARGS);
+    __shellOutNotification();
     system(cmd);
-    __shellRetNotification(STATEARGS);
-    __memFree(STATEARGS, cmd);
+    __shellRetNotification();
+    __memFree(cmd);
 } /* vbpS_shell */
 
 
-void vbp_end(STATEPARAMS)
+void vbp_end(void)
 /*
  * Terminate the program.
  *
@@ -46,7 +46,7 @@ void vbp_end(STATEPARAMS)
 } /* vbp_end */
 
 
-void vbp_sleep(STATEPARAMS)
+void vbp_sleep(void)
 /*
  * Make program (ALL THREADS) sleep (yield) until an
  *  OnEvent occurs, or A KEY IS PRESSED. Yikes.
@@ -61,7 +61,7 @@ void vbp_sleep(STATEPARAMS)
 } /* vbp_sleep */
 
 
-void vbpl_sleep(STATEPARAMS, long napTime)
+void vbpl_sleep(long napTime)
 /*
  * Make current thread sleep (yield) for (napTime) seconds.
  *
@@ -81,17 +81,17 @@ void vbpl_sleep(STATEPARAMS, long napTime)
     double dNapTime = (double) napTime;
 
     if (napTime == 0)           /* delegate this to no-arg version ... */
-        vbp_sleep(STATEARGS);
+        vbp_sleep();
     else
     {
         if (time(&startTime) == -1)     /* calendar time unavailable ?! */
-            __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
+            __runtimeError(ERR_INTERNAL_ERROR);
         else
         {
             do      /* give up time slices until (napTime) seconds elaspe. */
             {
-                __memForcePartialBoxcarRelease(STATEARGS);
-                __threadTimeslice(STATEARGS);
+                __memForcePartialBoxcarRelease();
+                __threadTimeslice();
                 time(&currentTime);
             } while (difftime(currentTime, startTime) < dNapTime);
         } /* else */

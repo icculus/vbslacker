@@ -31,11 +31,11 @@ typedef struct
 typedef __BasicFileStream *__PBasicFileStream;
 
 /*** Function Declarations ***/
-__PBasicFileStream __getFileStream(STATEPARAMS, short fileNumber);
-__boolean __deleteFileStream(STATEPARAMS, short fileNumber);
-void __initBasicFileStream(STATEPARAMS);
-__boolean __invalidFileNumber(STATEPARAMS, short fileNumber);
-__PBasicFileStream __createFileStream(STATEPARAMS, short fileNumber);
+__PBasicFileStream __getFileStream(short fileNumber);
+__boolean __deleteFileStream(short fileNumber);
+void __initBasicFileStream(void);
+__boolean __invalidFileNumber(short fileNumber);
+__PBasicFileStream __createFileStream(short fileNumber);
 
 #endif
 #endif

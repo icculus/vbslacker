@@ -10,7 +10,7 @@
 
 extern int basicErrno;
 
-int vbi_err(STATEPARAMS)
+int vbi_err(void)
 /*
  * Find out last thrown error number.
  *
@@ -22,7 +22,7 @@ int vbi_err(STATEPARAMS)
 } /* vbi_err */
 
 
-void vbpi_error(STATEPARAMS, int errorNum)
+void vbpi_error(int errorNum)
 /*
  * Throw a runtime error. (errorNum) must be between 1 and 255, per
  *  Qbasic specifications, so the error thrown will change to
@@ -36,11 +36,11 @@ void vbpi_error(STATEPARAMS, int errorNum)
 {
     if ((errorNum < 1) || (errorNum > 255))
         errorNum = ERR_ILLEGAL_FUNCTION_CALL;
-    __runtimeError(STATEARGS, errorNum);
+    __runtimeError(errorNum);
 } /* vbpi_error */
 
 
-int vbi_erl(STATEPARAMS)
+int vbi_erl(void)
 /*
  * In QBasic, returns line number of latest error. According to
  *  Microsoft's documentation, line labels are not returned, and
@@ -53,7 +53,7 @@ int vbi_erl(STATEPARAMS)
 } /* vbi_erl */
 
 
-int vbi_erdev(STATEPARAMS)
+int vbi_erdev(void)
 /*
  * Very DOS and hardware-specific remnant of old BASICs. Suppose to
  *  return the last device error number reported from DOS. We don't do this.
@@ -66,7 +66,7 @@ int vbi_erdev(STATEPARAMS)
 } /* vbi_erdev */
 
 
-PBasicString vbS_erdev_DC_(STATEPARAMS)
+PBasicString vbS_erdev_DC_(void)
 /*
  * Very DOS and hardware-specific remnant of old BASICs. Suppose to
  *  return the name of the last device to generate a critical error
@@ -76,7 +76,7 @@ PBasicString vbS_erdev_DC_(STATEPARAMS)
  *    returns : always a empty BASIC string ("").
  */
 {
-    return(__createString(STATEARGS, "", false));
+    return(__createString("", false));
 } /* vbS_erdev_DC_ */
 
 /* end of ErrorFunctions.c ... */

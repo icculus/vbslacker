@@ -9,25 +9,25 @@
 
 #include "StdBasic.h"
 
-extern void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size);
-extern void (*__deinitConsoleHandler)(STATEPARAMS);
-extern void (*__printNewLine)(STATEPARAMS);
-extern void (*__printNChars)(STATEPARAMS, char *str, int n);
-extern void (*vbpii_viewPrint)(STATEPARAMS, int top, int bottom);
-extern void (*vbp_viewPrint)(STATEPARAMS);
-extern void (*vbp_cls)(STATEPARAMS);
-extern int  (*vbi_csrline)(STATEPARAMS);
-extern int  (*vbia_pos)(STATEPARAMS, void *pVar);
-extern void (*vbpiii_color)(STATEPARAMS, int fore, int back, int bord);
-extern void (*vbpil_color)(STATEPARAMS, int fore, long palette);
-extern void (*vbpi_color)(STATEPARAMS, int fore);
+extern void (*__getConsoleHandlerName)(char *buf, int size);
+extern void (*__deinitConsoleHandler)(void);
+extern void (*__printNewLine)(void);
+extern void (*__printNChars)(char *str, int n);
+extern void (*vbpii_viewPrint)(int top, int bottom);
+extern void (*vbp_viewPrint)(void);
+extern void (*vbp_cls)(void);
+extern int  (*vbi_csrline)(void);
+extern int  (*vbia_pos)(void *pVar);
+extern void (*vbpiii_color)(int fore, int back, int bord);
+extern void (*vbpil_color)(int fore, long palette);
+extern void (*vbpi_color)(int fore);
 
-void __initConsoleFunctions(STATEPARAMS);
-void __deinitConsoleFunctions(STATEPARAMS);
+void __initConsoleFunctions(void);
+void __deinitConsoleFunctions(void);
 
-void vbpV_print(STATEPARAMS, PVariant pVar);
-void vbpS_print(STATEPARAMS, PBasicString str);
-void __printAsciz(STATEPARAMS, char *str);
+void vbpV_print(PVariant pVar);
+void vbpS_print(PBasicString str);
+void __printAsciz(char *str);
 
 #endif /* _INCLUDE_CONSOLEFUNCTIONS_H_ */
 

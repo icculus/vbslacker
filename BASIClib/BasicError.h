@@ -84,29 +84,30 @@ typedef struct _ONERRORHANDLER
 {
     void *thisInstruction;
     void *nextInstruction;
-    void *handlerAddr;            /* Code address of handler.             */
-    void *basePtr;                /* Base pointer in handler's function.  */
-    void *stackPtr;               /* Stack pointer in handler's function. */
-    __boolean isActive;           /* Is handler active?                   */
-    struct _ONERRORHANDLER next;  /* linked list stuff.                   */
-} OnErrorHandler;
+    void *handlerAddr;             /* Code address of handler.             */
+    void *basePtr;                 /* Base pointer in handler's function.  */
+    void *stackPtr;                /* Stack pointer in handler's function. */
+    __boolean isActive;            /* Is handler active?                   */
+    struct _ONERRORHANDLER *next;  /* linked list stuff.                   */
+} __OnErrorHandler;
 
-typedef OnErrorHandler *POnErrorHandler;
+typedef __OnErrorHandler *__POnErrorHandler;
 
 
 /* function prototypes... */
 
 extern int __basicErrno;
 
-void __initErrorFunctions(STATEPARAMS);
-void __deinitErrorFunctions(STATEPARAMS);
-void __initThreadErrorFunctions(STATEPARAMS, int tidx);
+void __initBasicError(void);
+void __deinitBasicError(void);
+void __initThreadBasicError(int tidx);
 
-void __fatalRuntimeError(STATEPARAMS, int errorNum);
-void __runtimeError(STATEPARAMS, int errorNum);
-void __registerOnErrorHandler(STATEPARAMS, POnErrorHandler pHandler, void *handlerAddr);
-void __deregisterOnErrorHandler(STATEPARAMS, POnErrorHandler pHandler);
-void __prepareResume(STATEPARAMS, void *base);
+__boolean __isOnErrorThreadStateNULL(void);
+void __fatalRuntimeError(int errorNum);
+void __runtimeError(int errorNum);
+void __registerOnErrorHandler(__POnErrorHandler pHandler, void *handlerAddr);
+void __deregisterOnErrorHandler(__POnErrorHandler pHandler);
+void __prepareResume(void *base);
 
 
 #define __ONERRORVARS      __OnErrorHandler __onError = {NULL,  \
@@ -122,7 +123,7 @@ void __prepareResume(STATEPARAMS, void *base);
                            __getStackPointer(&__onError.stackPtr)
 
 
-#define __setOnErrorHandler(addr)  __registerOnErrorHandler(STATEPARAMS, \
+#define __setOnErrorHandler(addr)  __registerOnErrorHandler(STATEARGS, \
                                                             &__onError,  \
                                                             addr)
 
