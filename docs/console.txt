@@ -38,9 +38,14 @@ isn't a local virtual console; this may be anything from an xterm to a serial
 connection to a telnet session) the ncurses library (or whatever equivalent
 is available on a given platform) is used.
 
+All graphical APIs throw errors unless in a graphics mode. Other APIs may
+throw, depending on the capabilities of a given console. Disabling the console
+makes just about every console API function throw an error.
+
 If the console needs to be switched to a graphics mode (via the SCREEN
 command), SVGAlib (or whatever equivalent is available on a given platform) is
 used. If graphics are not a possibility, ERR_CANNOT_CONTINUE is thrown.
+
 
 Therefore the APIs would need to check all sorts of conditions for each call:
 a) see if they are being redirected,
@@ -50,12 +55,59 @@ d) see if they are in graphics mode,
 and e) see if console APIs have been disabled.
 
 Rather than have the overhead of all these checks every call, not to mention
-the bulky code, BASIClib sets up a bunch of pointers to the correct set of
-functions at startup. When a mode switch occurs (due to a SCREEN command),
-those pointers are modified to point to different functions. So, in effect,
-we overload APIs like PRINT with four different versions: direct, graphical,
-stdout, and ncurses. The overhead for choosing the correct version each time
+the bulky code, BASIClib selects a console "driver" (effectively, a bunch
+of pointers to the correct set of functions) at startup. When a mode switch
+occurs (due to a SCREEN command or whatnot), those pointers are modified to
+point to a different set of functions, and the new driver is initialized. So,
+in effect, we overload APIs like PRINT with five different versions: direct,
+graphical, redirected (stdout), ncurses, and noconsole (for when console
+support is disabled). The overhead for choosing the correct version each time
 is eliminated by using function pointers.
+
+If interfacing C code calls printf() (or any stdio routines), be sure to use
+INITFLAG_DISABLE_CONSOLE in your call to __initBasicLib(), (that is, if your
+program starts in a BASIC mainline, be sure to pass the "Disable console"
+option to the compiler) ... Your best bet is to forego stdio with BASIClib,
+and call the console API, but rest assured, that the ncurses, direct video,
+and graphical console drivers don't mix well with stdio. Remember that you can
+always encourage BASIClib to select the redirected console driver by...er,
+redirecting stdout on the command line. In that case, you can more safely use
+printf(), so long as printf() is thread safe on your system.
+
+Want to know what console driver is in use? Do this:
+
+char buffer[20];
+
+__getConsoleHandlerName(STATEARGS, buffer, sizeof (buffer));
+
+
+...then (buffer) will contain the name of the console driver that is currently
+being used. Current possibilities are:
+
+"DirectConsole"      (direct video writes, text)
+"RedirectedConsole"  (console i/o goes to stdin and stdout, no frills)
+"CursesConsole"      (console i/o is handled below BASIClib by ncurses)
+"GraphicsConsole"    (Not implemented yet; graphical console.) !!!
+"NoConsole"          (console and console API have been disabled)
+
+
+Console drivers are selected in this order:
+
+1. If console support is disabled, use NoConsole driver.
+2. Failing that, if the process has its stdin or stdout redirected, use the
+   RedirectedConsole driver.
+3. Failing that, if the process is running on a console for which we can do
+   direct video writes of some sort (a "virtual console" under Linux, for
+   example), use DirectConsole driver.
+4. Failing that, if a curses library of some sort can be initialized, use
+   the CursesConsole driver.
+5. Failing that, force BASIClib to use the RedirectedConsole driver. While it
+   does not have all the functionality hoped for in a BASIC program, it is
+   the most compatible option at this point.
+
+Note that the GraphicsConsole driver is never selected at BASIClib startup.
+That driver is only switched in dynamically during program execution by the
+SCREEN command.
 
 /* end of console.txt ... */
 

@@ -31,4 +31,11 @@ SWAP can probably be generated inline by the parser/compiler.
 "SWAP a, b" becomes "tmp = a; a = b; b = tmp", plus type/range checking and
 debug/trace code.
 
+In Qbasic, CHR$(255.4999) does not fail, but CHR$(255.5) throws
+ERR_ILLEGAL_FUNCTION_CALL. Do all BASIC functions round floating point values
+when used as integer arguments, or do some functions truncate?
+
 Ugh.
+
+/* end of special_cases.txt ... */
+
