@@ -252,11 +252,11 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
     boolean getOut = false;
 
 
-
+    /* delta skymiles: 2268730674 */
     /* mom's : 215-881-5341 */
 
         /* determine if we should replace a currently registered handler. */
-    for (i = pState->handlerCount - 1; (i <= 0) && (getOut == false); i--)
+    for (i = pState->handlerCount - 1; (i >= 0) && (getOut == false); i--)
     {
         if (pState->handlers[i]->basePtr != basePtr)
             getOut = true;
@@ -328,7 +328,7 @@ void __deregisterOnEventHandlers(STATEPARAMS)
 
     __getBasePointer(&ebp);
 
-    for (i = pState->handlerCount;
+    for (i = pState->handlerCount - 1;
             (i >= 0) && (pState->handlers[i]->basePtr <= ebp);
             i--)
     {
@@ -402,15 +402,15 @@ void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
             memcpy(rc, ptrs->stackPtr, size);
 
                 /* Save original return address from stack... */
-            ptrs->retAddr = ((void **) ptrs->stackPtr)[1];
+            ptrs->retAddr = ((void **) ptrs->basePtr)[2];
 
                 /* Patch stack with new return address... */
-            ((void **) ptrs->stackPtr)[1] = &&__onEventRetAddr;
+            ((void **) ptrs->basePtr)[2] = &&__onEventRetAddr;
             
                 /* Jump into OnEvent handler...yikes. */
             __asm__ __volatile__ ("movl %%ecx, %%esp\n\t"
                                   "movl %%edx, %%ebp\n\t"
-                                  "jmpl *(%%eax)\n\t"
+                                  "jmpl *%%eax\n\t"
                                     : /* no output. */
                                     : "a" (pHandler->handlerAddr),
                                       "c" (pHandler->stackPtr),
@@ -425,14 +425,14 @@ __onEventRetAddr:
                                   "pushl %edx\n\t"
                                   "pushl %esi\n\t"
                                   "pushl %edi\n\t"
-                                  "pushl %ebx\n\t"
+                                  "pushl %ebp\n\t"
                                   
                                   PUSHNULLSTATEARGS
                                   "call " CLEANUPPROC "\n\t"
                                   "addl $" STATEARGSSIZESTR ", %esp\n\t"
                                   "movl  %eax, %ecx\n\t"
 
-                                  "popl %ebx\n\t"   /* restore registers. */
+                                  "popl %ebp\n\t"   /* restore registers. */
                                   "popl %edi\n\t"
                                   "popl %esi\n\t"
                                   "popl %edx\n\t"
@@ -486,6 +486,10 @@ void __doResume(STATEPARAMS, void *resumeAddr, void *bp, void *sp)
     void *origStack = pState->handlers[pState->handlerCount - 1]->stackPtr;
 /*    void *asmKludge[4]; */
 
+    printf("resume addr  == (%p)\n", resumeAddr);
+    printf("resume base  == (%p)\n", bp);
+    printf("resume stack == (%p)\n", sp);
+
     if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_RESUME)
         __fatalRuntimeError(STATEARGS, ERR_FEATURE_UNAVAILABLE);
 
@@ -527,8 +531,11 @@ void __doResume(STATEPARAMS, void *resumeAddr, void *bp, void *sp)
                               "stackrecopy:\n\t"
                               "  lodsb\n\t"
                               "  stosb\n\t"
-                              "loop stackrecopy\n\t"
-                              "jmpl *(%%edx)\n\t"
+                              "decl %%ecx\n\t"
+                              "orl %%ecx, %%ecx\n\t"
+                              "jnz stackrecopy\n\t"
+                              /*"loop stackrecopy\n\t"*/
+                              "jmpl *%%edx\n\t"
                                 : /* no output */
                                 : "S" (ptrs),
                                   "d" (origStack)
