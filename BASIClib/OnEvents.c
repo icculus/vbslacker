@@ -5,6 +5,7 @@
  */
 
 #include "OnEvents.h"
+#include "ErrorFunctions.h"
 #include "InternalMemManager.h"
 #include "Threads.h"
 
@@ -27,9 +28,9 @@ typedef struct
 typedef HandlerVector *PHandlerVector;
 
 
-    /* Assembly procedure prototype. */
+    /* Assembly procedure prototypes. */
 void __callOnEventHandler(POnEventHandler pHandler);
-
+void __resumeNextHandler(void);
 
     /*
      * These should be thread safe, since they are only used within
@@ -87,6 +88,12 @@ static PHandlerVector *pTables = NULL;
 void ***basePtrStacks = NULL;
 int *basePtrIndexes = NULL;
 
+    /*
+     * Thread proofed variable (each element holds data for one thread, by
+     *  index) containing last triggered On Event type for given thread.
+     */
+POnEventTypeEnum lastTriggeredOnEventType = NULL;
+
 
 void __initThreadOnEvents(int tidx)
 /*
@@ -113,6 +120,8 @@ void __initThreadOnEvents(int tidx)
                                      threadCount * sizeof (void *));
         basePtrIndexes = __memRealloc(basePtrIndexes,
                                      threadCount * sizeof (int));
+        lastTriggeredOnEventType = __memRealloc(lastTriggeredOnEventType,
+                                     threadCount * sizeof (POnEventTypeEnum));
     } /* if */
 
     __exitCriticalThreadSection();
@@ -339,11 +348,30 @@ void __triggerOnEvent(OnEventTypeEnum evType)
     basePtrStacks[tidx] = __memRealloc(basePtrStacks[tidx],
                                       (basePtrIndexes[tidx] + 1) *
                                          sizeof (void *));
+    lastTriggeredOnEventType[tidx] = evType;
     __exitCriticalThreadSection();
 
     __callOnEventHandler(pHandler);     /* initialize miracle mode... */
 } /* __triggerOnEvent */
 
+
+void __resumeNext(void)
+{
+    POnEventHandler pHandler;
+    int tidx = __getCurrentThreadIndex();
+    OnEventTypeEnum evType;
+
+    __enterCriticalThreadSection();
+    evType = lastTriggeredOnEventType[tidx];
+    __exitCriticalThreadSection();
+
+    pHandler = __getOnEventHandler(evType);
+
+    if (pHandler == NULL)
+        __runtimeError(ERR_NO_RESUME);    /* !!! or ERR_RESUME_WITHOUT_ERROR? */
+    else
+        __resumeNextHandler();
+} /* __resumeNext */
 
 /* end of OnEvents.c ... */
 

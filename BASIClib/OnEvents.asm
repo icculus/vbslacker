@@ -1,5 +1,5 @@
 ;/*
-; * Intel 80386 ASM routines for ON EVENT GOTO support in BASIClib.
+; * Intel 80386 ASM routines for ON EVENT support in BASIClib.
 ; *
 ; * Ryan is NOT an Assembly guru. Nothing here is guaranteed to be
 ; * "correct", "clean," or even "well thought out" code.
@@ -41,7 +41,7 @@ extern __calcBasePtrStorage            ; See OnEvents.c ...
 
 
 ;
-; Here's the procedure itself. Let's do the nasty...
+; Here's the Bitch Queen Procedure herself. Let's do the nasty...
 ;
 
 global __callOnEventHandler
@@ -70,18 +70,13 @@ global __callOnEventHandler
 ;    returns : any return value from BASIC routine in EAX.
 
 __callOnEventHandler:                   ; proc
-            ; Due to all our stack voodoo, there's no need to go through
-            ;  a few "standard" assembly procedure details, like pushing
-            ;  the original base pointer. Therefore, all arguments will be
-            ;  at [ebp + 4], NOT [ebp + 8]. Local variables will still be
-            ;  at [ebp - 4], though...
-
+        push    ebp
         mov     ebp,esp                 ; Move stack ptr to base ptr.
 
         call    __calcBasePtrStorage    ; Return value is in eax.
         mov     dword [eax],ebp         ; Save base pointer into basePtrStacks.
 
-        mov     ebx,[ebp + 4]           ; Store POnEventHandler in ebx.
+        mov     ebx,[ebp + 8]           ; Store POnEventHandler in ebx.
 
             ; Since the C code gives the pOnEventHandler->stackStart as
             ;  (&lastArg + sizeof(lastArg)), we're actually ONE past the start
@@ -136,24 +131,9 @@ __callOnEventHandler:                   ; proc
 
         call    __calcBasePtrStorage    ; Get pointer to our original ebp.
         mov     ebp,[eax]               ; Move it back into ebp.
+        mov     ebx,[ebp + 8]           ; Get POnEventHandler ptr again.
 
-
-            ; We need to decrement the count of base pointers stored up
-            ;  by this procedure for the current thread. So we find where it's
-            ;  stored, and alter the value...
-
-        call    __getCurrentThreadIndex ; Get current thread index in eax.
-        call    __enterCriticalThreadSection
-        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
-        mul     ebx                     ; ebx*eax make it into offset in array.
-        mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
-        add     esi,eax                 ; esi now points to our element.
-        mov     eax,[esi]               ; get value pointed to by esi.
-        dec     eax                     ; decrement it.
-        mov     dword [esi],eax         ; store it back in addr esi points to.
-        call    __exitCriticalThreadSection
-
-        mov     ebx,[ebp + 4]           ; Get POnEventHandler ptr again.
+        call    __decrementBPIndexes
 
         mov     ecx,[ebx + 12]          ; Store ebx->basePtr in esi.
         add     ecx,4                   ; Offset four points to return addr.
@@ -168,6 +148,56 @@ __callOnEventHandler:                   ; proc
         mov     esp,ecx                 ; adjust stack for return call...
         ret                             ;  ...and pray for the best.
 ;__callOnEventHandler    endp
+
+
+
+; We need to decrement the count of base pointers stored up
+;  by these procedures for the current thread. So we find where it's
+;  stored, and alter the value...
+
+__decrementBPIndexes:                   ; proc
+        pushad                          ; Save everything.
+        call    __getCurrentThreadIndex ; Get current thread index in eax.
+        call    __enterCriticalThreadSection
+        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
+        mul     ebx                     ; ebx*eax make it into offset in array.
+        mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
+        add     esi,eax                 ; esi now points to our element.
+        mov     eax,[esi]               ; get value pointed to by esi.
+        dec     eax                     ; decrement it.
+        mov     dword [esi],eax         ; store it back in addr esi points to.
+        call    __exitCriticalThreadSection
+        popad                           ; restore everything.
+        ret                             ; return.
+;__decrementBPIndexes    endp
+
+
+
+global __resumeNextHandler
+
+;
+; This procedure implements BASIC's RESUME NEXT functionality. Simply,
+;  it grabs the base pointer that __callOnEventHandler saved, and gets the
+;  needed stack pointer from there. Then, it does some clean up that
+;  __callOnEventHandler would do if it was returned to, and then returns.
+;  The return point should be in __triggerOnEvent() (see OnEvents.c), on
+;  the stack at the point of the latest call to that function. In short,
+;  it's like returning from __callOnEventHandler, but we go back to where
+;  the OnEvent was triggered, instead of the function that called the
+;  function with the error handler. Yikes. That's pretty complex for five
+;  OpCodes.  :)
+;
+;     params : void.
+;    returns : void. No registers set for return.
+;
+
+__resumeNextHandler:                    ; proc
+        call    __calcBasePtrStorage    ; get ptr to original ebp in eax.
+        mov     esp,[eax]               ;  ...and restore it to esp.
+        pop     ebp                     ; Reset ebp to sane state.
+        call    __decrementBPIndexes    ; Cleanup other data.
+        ret                             ; Perform miracles.
+;__resumeNextHandler    endp
 
 
 ; end of OnEvents.asm ...
