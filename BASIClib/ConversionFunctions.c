@@ -26,7 +26,7 @@ double asc(PBasicString pBasicStr)
     double retVal = 0;
 
     if (pBasicStr->length == 0)    /* blank string? */
-        __runtimeError(ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
         retVal = (double) pBasicStr->data[0];
 
@@ -48,7 +48,7 @@ PBasicString chr_DC_(double asciiValue)
     int intAscii = (int) asciiValue;
 
     if ((intAscii < 0) || (intAscii > 255))
-        __runtimeError(ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
         retVal = __allocString(1, false);
@@ -296,7 +296,7 @@ int __VariantToInt(PVariant var)
             retVal = (int) var->data._double;
             break;
         default:
-            __runtimeError(ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -324,7 +324,7 @@ long __VariantToLong(PVariant var)
             retVal = (long) var->data._double;
             break;
         default:
-            __runtimeError(ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -352,7 +352,7 @@ float __VariantToFloat(PVariant var)
             retVal = (float) var->data._double;
             break;
         default:
-            __runtimeError(ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -380,7 +380,7 @@ double __VariantToDouble(PVariant var)
             retVal = var->data._double;
             break;
         default:
-            __runtimeError(ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -411,7 +411,7 @@ PBasicString __VariantToString(PVariant pVar, boolean byRef)
             __assignString(&retVal, pVar->data._string);
     } // if
     else
-        __runtimeError(ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
 
     return(retVal);
 } /* __VariantToString */

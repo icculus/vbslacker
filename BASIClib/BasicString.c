@@ -154,7 +154,7 @@ void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat)
              *  a fixed length BASIC string. Throw error if it is.
              */
         if (pStr->fixedLength == true)
-            __runtimeError(INTERNAL_ERROR);
+            __runtimeError(ERR_INTERNAL_ERROR);
         else
         {
             newLength = pStr->length + pStrToCat->length;            
