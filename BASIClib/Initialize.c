@@ -17,5 +17,9 @@ void __initBasicLib(void)
     __initTimeDateFunctions();
 } /* __initBasicLib */
 
+void __deinitBasicLib(void)
+{
+} /* __deinitBasicLib */
+
 /* end of Initialize.c ... */
 
