@@ -1,5 +1,5 @@
 /*
- * Abstract thread support for BASIClib.
+ * Abstract thread support for BASIClib, based on POSIX threads.
  *
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <sched.h>
 #include <signal.h>
 #include "InternalMemManager.h"
 #include "ErrorFunctions.h"
@@ -205,7 +206,7 @@ int __getCurrentThreadIndex(void)
 
 void __threadTimeslice(void)
 {
-    /* !!! ?! */
+    (void) sched_yield();
 } /* __threadTimeslice */
 
 
