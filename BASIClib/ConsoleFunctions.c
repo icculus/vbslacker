@@ -10,17 +10,18 @@
 #include "CursesConsole.h"
 #include "RedirectedConsole.h"
 
-static boolean inGraphicsState = false;
+/*static boolean inGraphicsState = false;*/
 
 /* variable function pointers... */
 void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size);
 void (*__deinitConsoleHandler)(STATEPARAMS);
+void (*__printNewLine)(STATEPARAMS);
 void (*vbpS_print)(STATEPARAMS, PBasicString x) = NULL;
 void (*vbpii_viewPrint)(STATEPARAMS, int top, int bottom) = NULL;
 void (*vbp_viewPrint)(STATEPARAMS) = NULL;
 void (*vbp_cls)(STATEPARAMS) = NULL;
 int  (*vbi_csrline)(STATEPARAMS) = NULL;
-int  (*vbiA_pos)(STATEPARAMS, void *pVar) = NULL;
+int  (*vbia_pos)(STATEPARAMS, void *pVar) = NULL;
 void (*vbpiii_color)(STATEPARAMS, int fore, int back, int bord) = NULL;
 void (*vbpil_color)(STATEPARAMS, int fore, long palette) = NULL;
 void (*vbpi_color)(STATEPARAMS, int fore) = NULL;
@@ -51,14 +52,32 @@ void __deinitConsoleFunctions(STATEPARAMS)
 
     __getConsoleHandlerName = NULL;  /* blank all the func pointers out... */
     __deinitConsoleHandler = NULL;
-    vbpS_print = NULL;        
+    __printNewLine = NULL;
+    vbpS_print = NULL;
     vbpii_viewPrint = NULL;
     vbp_viewPrint = NULL;
     vbp_cls = NULL;
     vbi_csrline = NULL;
-    vbiA_pos = NULL;
+    vbia_pos = NULL;
     vbpiii_color = NULL;
 } /* __deinitConsoleFunctions */
+
+
+void vbpV_print(STATEPARAMS, PVariant pVar)
+/*
+ * Take a (pVar), convert to a string, and print it.
+ *
+ *   params : pVar == variable to print.
+ *  returns : void.
+ */
+{
+    PBasicString str;
+
+    str = __variantToString(STATEARGS, pVar, true);
+    vbpS_print(STATEARGS, str);
+    __freeString(STATEARGS, str);
+} /* vbpV_print */
+
 
 
 

@@ -4,61 +4,99 @@
  *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <string.h>
 #include <curses.h>
 #include "ConsoleFunctions.h"
 #include "CursesConsole.h"
 
-
-static WINDOW *cons = NULL;
-
+static WINDOW *cons = NULL;     /* WINDOW structure for printable window. */
+static ThreadLock consoleLock;
 
 static int __curs_openConsole(STATEPARAMS)
+/*
+ * Initialize the curses library, and do all sorts of setup.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
+    int retVal = -1;
     initscr();
     start_color();
     cons = newwin(0, 0, 0, 0);   /* full screen virtual window. */
-    keypad(cons, TRUE);
-    (void) nonl();
-    (void) cbreak();
-    (void) noecho();
-    (void) scrollok(cons, TRUE);
-    return(cons);
+    if (cons != NULL)
+    {
+        __createThreadLock(STATEARGS, &consoleLock);
+        keypad(cons, TRUE);
+        (void) nonl();
+        (void) cbreak();
+        (void) noecho();
+        (void) scrollok(cons, TRUE);
+        retVal = 1;
+    } /* if */
+
+    return(retVal);
 } /* __curs_openConsole */
 
 
 static void __curs_deinitConsoleHandler(STATEPARAMS)
+/*
+ * Deinitialize the curses library.
+ *
+ *    params : void.
+ *   returns : void.
+ */
 {
+    __obtainThreadLock(STATEARGS, &consoleLock);
     endwin();
+    __releaseThreadLock(STATEARGS, &consoleLock);
+    __destroyThreadLock(STATEARGS, &consoleLock);
 } /* __curs_deinitConsole */
 
 
-static void __curs_vbpV_print(STATEPARAMS, PVariant pVar)
+static void __curs_vbpS_print(STATEPARAMS, PBasicString pStr)
+/*
+ * Write a string to the printable window, scrolling if needed, and
+ *  moving the cursor to the new position.
+ *
+ *   params : pStr == BASIC string to write.
+ *  returns : void.
+ */
 {
-    PBasicString str;
     int i;
-    int max;
-    char *data;
-
-    __getConsoleAccess(STATEARGS);
-
-    str = __variantToString(STATEARGS, pVar, true);
-    max = str->length;
-    data = str->data;
+    int max = pStr->length;
+    char *data = pStr->data;
 
     __obtainThreadLock(STATEARGS, &consoleLock);
     for (i = 0; i < max; i++)
         waddch(cons, data[i]);
     wrefresh(cons);
     __releaseThreadLock(STATEARGS, &consoleLock);
-} /* __curs_vbpV_print */
+} /* __curs_vbpS_print */
+
+
+static void __curs_printNewLine(STATEPARAMS)
+/*
+ * Move the cursor down to the start of the next line. Scroll if necessary.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+} /* __curs_printNewLine */
 
 
 static void __curs_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
+/*
+ * Set console lines (top) to (bottom) as the printable window.
+ *
+ *     params : top    == highest line, option base 1.
+ *              bottom == lowest line, option base 1.
+ *    returns : void.
+ */
 {
     int lines;
     int columns;
-
-    __getConsoleAccess(STATEARGS);
 
     __obtainThreadLock(STATEARGS, &consoleLock);
     getmaxyx(stdscr, lines, columns);
@@ -80,11 +118,16 @@ static void __curs_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
 
 
 static void __curs_vbp_viewPrint(STATEPARAMS)
+/*
+ * Set the whole console window printable.
+ *
+ *     params : top    == highest line, option base 1.
+ *              bottom == lowest line, option base 1.
+ *    returns : void.
+ */
 {
     int lines;
     int columns;
-
-    __getConsoleAccess(STATEARGS);
 
     __obtainThreadLock(STATEARGS, &consoleLock);
     getmaxyx(stdscr, lines, columns);
@@ -96,8 +139,15 @@ static void __curs_vbp_viewPrint(STATEPARAMS)
 
 
 static void __curs_vbp_cls(STATEPARAMS)
+/*
+ * Clear the current printable window. The window will be blanked of
+ *  characters, and set to the background color. The cursor is moved to
+ *  the upper-left hand corner of the printable window.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
-    __getConsoleAccess(STATEARGS);
     __obtainThreadLock(STATEARGS, &consoleLock);
     wclear(cons);
     wrefresh(cons);
@@ -106,11 +156,16 @@ static void __curs_vbp_cls(STATEPARAMS)
 
 
 static int __curs_vbi_csrline(STATEPARAMS)
+/*
+ * Return current cursor row.
+ *
+ *    params : void.
+ *   returns : current y-coordinate of cursor.
+ */
 {
     int x;
     int y;
 
-    __getConsoleAccess(STATEARGS);
     __obtainThreadLock(STATEARGS, &consoleLock);
     getsyx(y, x);
     __releaseThreadLock(STATEARGS, &consoleLock);
@@ -118,12 +173,17 @@ static int __curs_vbi_csrline(STATEPARAMS)
 } /* __curs_vbi_csrline */
 
 
-static int __curs_vbiA_pos(STATEPARAMS, void *pVar)
+static int __curs_vbia_pos(STATEPARAMS, void *pVar)
+/*
+ * Return current cursor column.
+ *
+ *    params : pVar == ignored, any expression.
+ *   returns : current x-coordinate of cursor.
+ */
 {
     int x;
     int y;
 
-    __getConsoleAccess(STATEARGS);
     __obtainThreadLock(STATEARGS, &consoleLock);
     getsyx(y, x);
     __releaseThreadLock(STATEARGS, &consoleLock);
@@ -132,24 +192,48 @@ static int __curs_vbiA_pos(STATEPARAMS, void *pVar)
 
 
 static void __curs_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
+/*
+ * Set a new printing color.
+ *
+ *    params : fore == new foreground color of text.
+ *             back == new background color of text.
+ *             bord == ignored, screen border color.
+ *   returns : void.
+ */
 {
-    wcolor_set(cons, !!!
+/*    wcolor_set(cons, !!! */
 } /* __curs_vbpiii_color */
 
 
 static void __curs_vbpil_color(STATEPARAMS, int fore, long feh)
+/*
+ * This form of the COLOR command is only for graphics mode, so throw a
+ *  runtime error.
+ */
 {
     __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
 } /* __curs_vbpiii_color */
 
 
 static void __curs_vbpi_color(STATEPARAMS, int fore)
+/*
+ * This form of the COLOR command is only for graphics mode, so throw a
+ *  runtime error.
+ */
 {
     __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
 } /* __curs_vbpiii_color */
 
 
 static void __curs_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+/*
+ * (Getting rather object-oriented...) copy the name of this console
+ *  handler to a buffer.
+ *
+ *      params : buffer == allocated buffer to copy name to.
+ *               size   == maximum bytes to copy to buffer.
+ *     returns : void.
+ */
 {
     strncpy(buffer, "CursesConsole", size);
 } /* __curs_getConsoleHandlerName */
@@ -167,19 +251,22 @@ boolean __initCursesConsole(STATEPARAMS)
 
     if (__curs_openConsole(STATEARGS) != -1)
     {
-        __getConsoleHandlerName = __cons_getConsoleHandlerName;
+        __getConsoleHandlerName = __curs_getConsoleHandlerName;
         __deinitConsoleHandler = __curs_deinitConsoleHandler;
+        __printNewLine = __curs_printNewLine;
         vbpS_print = __curs_vbpS_print;
         vbpii_viewPrint = __curs_vbpii_viewPrint;
-        vbp_viewPrint = __curs_vbpii_viewPrint;
+        vbp_viewPrint = __curs_vbp_viewPrint;
         vbp_cls = __curs_vbp_cls;
         vbi_csrline = __curs_vbi_csrline;
-        vbiA_pos = __curs_vbiA_pos;
+        vbia_pos = __curs_vbia_pos;
         vbpiii_color = __curs_vbpiii_color;
-        vbpiii_color = __curs_vbpil_color;
-        vbpiii_color = __curs_vbpi_color;
+        vbpil_color = __curs_vbpil_color;
+        vbpi_color = __curs_vbpi_color;
         retVal = true;
     } /* if */
+
+    return(retVal);
 } /* __initCursesConsole */
 
 /* end of CursesConsole.c ... */

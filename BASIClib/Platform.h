@@ -25,10 +25,11 @@
     #error  Please use one of the following on the commandline/Makefile:
     #error  -DLINUX
     #error  -DWIN32
-#endif
+#endif /* defined platform */
 
 
 #endif /* _INCLUDE_PLATFORM_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of Platform.h ... */
 

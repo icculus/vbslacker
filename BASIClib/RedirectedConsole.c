@@ -4,6 +4,7 @@
  *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 #include "ConsoleFunctions.h"
@@ -11,15 +12,46 @@
 
 
 static void __redir_deinitConsoleHandler(STATEPARAMS)
+/*
+ * Deinitialize this console handler. In this case, just bump the
+ *  cursor down to the start of the next line...
+ *
+ *    params : void.
+ *   returns : void.
+ */
 {
     printf("\n");
 } /* __redir_deinitConsole */
 
 
 static void __redir_vbpS_print(STATEPARAMS, PBasicString pStr)
+/*
+ * Write a string to the printable window, scrolling if needed, and
+ *  moving the cursor to the new position.
+ *
+ *   params : pStr == BASIC string to write.
+ *  returns : void.
+ */
 {
-    /* !!! write this! */
+    int max = pStr->length;
+    char *data = pStr->data;
+    int i;
+
+    for (i = 0; i < max; i++)
+        putchar(data[i]);
 } /* __redir_vbpS_print */
+
+
+static void __redir_printNewLine(STATEPARAMS)
+/*
+ * Move the cursor down to the start of the next line. Scroll if necessary.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+    printf("\n");
+} /* __redir_printNewLine */
 
 
 static void __redir_vbpii_viewPrint(STATEPARAMS, int topRow, int bottomRow)
@@ -72,7 +104,7 @@ static int __redir_vbi_csrline(STATEPARAMS)
 } /* __redir_vbi_csrline */
 
 
-static int __redir_vbiA_pos(STATEPARAMS, void *pVar)
+static int __redir_vbia_pos(STATEPARAMS, void *pVar)
 /*
  * Can't manipulate the cursor in redirected mode, so return (0).
  *
@@ -81,7 +113,7 @@ static int __redir_vbiA_pos(STATEPARAMS, void *pVar)
  */
 {
     return(0);
-} /* vbiA_pos */
+} /* vbia_pos */
 
 
 static void __redir_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
@@ -121,6 +153,14 @@ static void __redir_vbpi_color(STATEPARAMS, int fore)
 
 
 static void __redir_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+/*
+ * (Getting rather object-oriented...) copy the name of this console
+ *  handler to a buffer.
+ *
+ *      params : buffer == allocated buffer to copy name to.
+ *               size   == maximum bytes to copy to buffer.
+ *     returns : void.
+ */
 {
     strncpy(buffer, "RedirectedConsole", size);
 } /* __redir_getConsoleHandlerName */
@@ -157,12 +197,13 @@ void __forceRedirectedConsole(STATEPARAMS)
 {
     __getConsoleHandlerName = __redir_getConsoleHandlerName;
     __deinitConsoleHandler = __redir_deinitConsoleHandler;
+    __printNewLine = __redir_printNewLine;
     vbpS_print = __redir_vbpS_print;
     vbpii_viewPrint = __redir_vbpii_viewPrint;
-    vbp_viewPrint = __redir_vbpii_viewPrint;
+    vbp_viewPrint = __redir_vbp_viewPrint;
     vbp_cls = __redir_vbp_cls;
     vbi_csrline = __redir_vbi_csrline;
-    vbiA_pos = __redir_vbiA_pos;
+    vbia_pos = __redir_vbia_pos;
     vbpiii_color = __redir_vbpiii_color;
     vbpil_color = __redir_vbpil_color;
     vbpi_color = __redir_vbpi_color;
