@@ -24,9 +24,16 @@ Here's some details on adding new modules to BASIClib:
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* my declarations... */
 
-#endif
+#ifdef __cplusplus
+}
+#endif /* ifdef __cplusplus */
+#endif /* ifdef _INCLUDE_MYFUNCTIONS_H_ */
 
 /* end of MyFunctions.h ... */
 
@@ -34,19 +41,19 @@ Here's some details on adding new modules to BASIClib:
  internal-only use...see Threads.h or BasicString.h for differences.)
 
 - If you have init or deinit functions, add a call to them in the appropriate
-  function in Initialize.c. There are functions for (de)init of program,
-  threads, and special cases, like notification that the program is
-  shelling out, etc...try to keep all communication between modules to a
-  minimum, but when necessary, try to gate it through Initialize.c by such
-  means...it makes it easier to find breaks later, and keeps the abstraction
-  going...
+  function in Initialize.c, after reading the appropriate function's
+  comments. There are functions for (de)init of program, threads, and 
+  special cases, like notification that the program is shelling out, 
+  etc...try to keep all communication between modules to a minimum, but 
+  when necessary, try to gate it through Initialize.c by such means...it
+  makes it easier to find breaks later, and keeps the abstraction going...
 
 - Add your header to BasicLib.h ... if you are writing internal-only modules,
   consider adding your header to StdBasic.h instead. Don't add it to both.
 
-- Compile with -D_REENTRANT, -DLANG_ENGLISH (or whatever) and -DLINUX (or
-  whatever) on the command line, or better yet, read below for how to add
-  your module to the makefiles...
+- Compile with -D_REENTRANT (or -DSINGLE_THREADED), -DLANG_ENGLISH (or
+  whatever) and -DLINUX_I386 (or whatever) on the command line, or better
+  yet, read below for how to add your module to the makefiles...
 
 - Makefiles: Do this for each of the Makefile.platform files. (Like
    Makefile.linux, or Makefile.win32, etc...)
