@@ -4,6 +4,7 @@
  *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>
 #include "RandomFunctions.h"
 
 /* !!!
@@ -12,33 +13,55 @@
  *  so as well. Here, it's not worth the effort.
  */
 
+/* !!! This is probably gonna suck on a bigendian system... */
+
 __single _vbf_timer(void);   /* need this for _vbp_randomize() .. */
 
-#ifdef BIGENDIAN
-#   define WORD0     0x0000FFFF
-#   define WORD1     0xFFFF0000
-#   define DWORD1    0x00000000FFFFFFFF
-#   define LOWBYTE   0xFF00
-#   define SHIFTHIGH >>
-#else
-#   define WORD0     0xFFFF0000
-#   define WORD1     0x0000FFFF
-#   define DWORD1    0xFFFFFFFF00000000
-#   define LOWBYTE   0x00FF
-#   define SHIFTHIGH <<
-#endif
+/* !!! These need to go. */
+
+typedef unsigned short WORD;
+typedef unsigned long DWORD;
+typedef unsigned long long QWORD;
+typedef unsigned char BYTE;
+
+typedef union
+{
+    QWORD qw;
+    DWORD dw[2];
+    WORD  w[4];
+    BYTE  b[8];
+    __double d;
+    __single s;
+} ByteBlock;
 
 
     /* These are the (hopefully) constants in b$EightSpaces... */
 #define ENTROPY1 0x43FD
 #define ENTROPY2 0x9EC3
-#define ENTROPY3 0x195
+#define ENTROPY3 0xC3
 #define ENTROPY4 (__single) 0x1000000
 
     /* The psuedorandom seed. */
+    /* Is there one of these for each thread? */
 static DWORD randomSeed = 0x50000;
 
-void _vbpf_randomize(__double seedAlterer)
+
+ /* !!! get rid of this. */
+static void printBytes(char *name, char *addr, int size)
+{
+    int i;
+
+    printf("bytes of %s == ", name);
+
+    for (i = 0; i < size; i++)
+        printf("[%d]  ", (int) addr[i]);
+
+    printf("\n");
+}
+
+
+
+void _vbpd_randomize(__double seedAlterer)
 /*
  * Alter the psuedorandom number generator's seed. Note that the
  *  seed is merely ALTERED, and not overwritten. While a consistent
@@ -64,20 +87,11 @@ void _vbpf_randomize(__double seedAlterer)
          *  alters, and doesn't overwrite the seed.
          */
     WORD *middleSeed = (WORD *) ( ((BYTE *) &randomSeed) + 1 );
-    DWORD trimmedBits;
-    WORD result;
-    union  /* preserve bit pattern. */
-    {
-        __double d;
-        QWORD q;
-    } alterUnion;
+    ByteBlock bb;
 
-    alterUnion.d = seedAlterer;
-    trimmedBits = (alterUnion.q & DWORD1);
-    result = (trimmedBits & WORD0);
-    result ^= (trimmedBits & WORD1);
-    *middleSeed = result;              /* write to center of seed. */
-} /* _vbpf_randomize */
+    bb.d = seedAlterer;
+    *middleSeed = bb.w[2] ^ bb.w[3];  /* write to center of seed. */
+} /* _vbpd_randomize */
 
 
 void _vbp_randomize(void)
@@ -102,14 +116,14 @@ static __single getCurrentGeneration(void)
  *   returns : next generation in sequence.
  */
 {
-    union  /* save bit pattern. */
-    {
-        DWORD dword;
-        __single single;
-    } seedUnion;
+    ByteBlock bb;
+    bb.d = randomSeed;
 
-    seedUnion.dword = randomSeed;
-    return(seedUnion.single / ENTROPY4);
+printf("seedUnion.single == (%f). dword == (%ld).\n", bb.s, randomSeed);
+printBytes("seedUnion.single", (char *) &bb.s, sizeof (__single));
+printBytes("randomSeed", (char *) &randomSeed, sizeof (DWORD));
+
+    return(bb.s / ENTROPY4);
 } /* getCurrentGeneration */
 
 
@@ -123,26 +137,33 @@ static __single getNextGeneration(void)
  *   returns : next generation in sequence.
  */
 {
-    DWORD tmp;
+    ByteBlock bb;
+    ByteBlock tmp;
     WORD lowWord;
     WORD highWord;
 
-    tmp = (randomSeed & WORD0) * ENTROPY1;
-    lowWord = (tmp & WORD0);
-    highWord = (tmp & WORD1);
+    bb.dw[0] = randomSeed;
 
-    tmp = (randomSeed & WORD1) * ENTROPY1;
-    highWord += (tmp & WORD0);
+    tmp.dw[0] = ((DWORD) bb.w[0] * (DWORD) ENTROPY1);
+    lowWord = tmp.w[0];
+    highWord = tmp.w[1];
 
-    tmp = (randomSeed & WORD0) * ENTROPY1;
+    tmp.dw[0] = ((DWORD) bb.w[1] * (DWORD) ENTROPY1);
+    highWord += tmp.w[0];
+
+    tmp.w[0] = highWord;
+    highWord += (BYTE) (tmp.b[0] + (BYTE) ENTROPY3);
+    if ( ( (DWORD) lowWord + ENTROPY2 ) > 0xFFFF)
+        highWord++;
+
+    tmp.dw[0] = (DWORD) bb.w[0] * (DWORD) ENTROPY1;
     lowWord += ENTROPY2;
+    tmp.w[0] = highWord + tmp.w[0];
+    highWord = (WORD) tmp.b[0];
 
-    highWord += (tmp & WORD0);
-
-    __addWithCarry(highWord.h.l, ENTROPY3);
-    highWord &= LOWBYTE;  /* clear high byte. */
-
-    randomSeed = (lowWord | (highWord SHIFTHIGH (sizeof (WORD) * 8)));
+    bb.w[0] = lowWord;
+    bb.w[1] = highWord;
+    randomSeed = bb.dw[0];
 
     return(getCurrentGeneration());
 } /* getNextGeneration */
@@ -174,8 +195,16 @@ static __single completelyReseed(__single arg)
         BYTE bytes[2];
     } wordUnion1, wordUnion2;
 
+    union
+    {
+        __single single;
+        WORD words[2];
+    } argUnion;
+
     seedUnion.dword = randomSeed;
 
+    argUnion.single = arg;
+    wordUnion1.word = argUnion.words[1];
     wordUnion2.word = seedUnion.words[0];
 
         /* Add with carry's a bitch in C... */
@@ -192,6 +221,8 @@ static __single completelyReseed(__single arg)
     seedUnion.words[0] = wordUnion2.word;
     seedUnion.words[1] = wordUnion1.word;
     randomSeed = seedUnion.dword;  /* completely overwrite the seed. */
+
+printf("randomSeed == (%ld).\n", randomSeed);
 
     return(getNextGeneration());
 } /* completelyReseed */
@@ -214,7 +245,7 @@ __single _vbff_rnd(__single arg)
 
 __single _vbf_rnd(void)
 {
-    return(_vbf_rnd(1.0));
+    return(_vbff_rnd(1.0));
 } /* _vbf_rnd */
 
 
