@@ -94,7 +94,7 @@ void test__getStackPointer_recurse(void)
 } /* test__getStackPointer_recurse */
 
 
-void __triggerOnEvent_recurse(OnEventTypeEnum evType)
+void __triggerOnEvent_recurse(OnEventTypeEnum evType, boolean printErr)
 /*
  * This function calls itself RECURSION_COUNT times, to pile
  *  some data on the stack, then calls __triggerOnEvent(evType)...
@@ -104,10 +104,11 @@ void __triggerOnEvent_recurse(OnEventTypeEnum evType)
     if (recursive == RECURSION_COUNT)
         __triggerOnEvent(evType);
     else
-        __triggerOnEvent_recurse(evType);
+        __triggerOnEvent_recurse(evType, printErr);
 
-    printf("  - Event handler returns incorrectly.\n");
-} /* __runtimeError_recurse */
+    if (printErr)   /* if we fell here without a RESUME NEXT... */
+        printf("  - Event handler returns incorrectly.\n");
+} /* __triggerOnEvent_recurse */
 
 
 void test__getStackPointer()
@@ -176,7 +177,7 @@ void testOnEventGotoHandling(int runCount)
     __exitCriticalThreadSection();
 
     recursive = 0;
-    __triggerOnEvent_recurse(ONERROR);
+    __triggerOnEvent_recurse(ONERROR, true);
 
     goto missedHandler;
 
@@ -216,9 +217,15 @@ endTest:
             break;
         case 2:
             printf("  - Handler missed. Failed.\n");
+            printf("  - Other tests will give incorrect results.\n"
+                   "  - Must terminate testing.\n");
+            exit(1);
             break;
         default:
             printf("  - Confused! Failed.\n");
+            printf("  - Other tests will give incorrect results.\n"
+                   "  - Must terminate testing.\n");
+            exit(1);
             break;
     } /* switch */
 
@@ -228,9 +235,159 @@ endTest:
 } /* testOnEventGotoHandling */
 
 
-void testSimpleOnEventHandling(void)
+
+void testOnEventGotoRecurseHandling(int runCount)
 /*
- * Test simple "on event" handling of various types.
+ * This tests recursive ON [event] GOTO functionality. We set up an event
+ *  handler, trigger an onEvent, and inside the handler, trigger another
+ *  onEvent.
+ *
+ * This function checks the same things testOnEventsGotoHandling() does.
+ *
+ * This function should be called more than once (but should be called several
+ *  times, if you err on the side of caution), to verify that
+ *  __(de)registerOnEventHandler() is working correctly. If not correctly, then
+ *  correctly enough. testOnEventGotoStressing() is a more rigorous test of
+ *  event handler (de)registration, since it stacks handlers.
+ *
+ *    params : runCount == count of times this function has been executed.
+ *   returns : void.
+ */
+{
+    int testVar1 = TESTVAR_VALUE1;
+    int testVar2 = TESTVAR_VALUE2;
+    char testVar3[] = TESTVAR_VALUE3;
+    int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
+
+    printf("Testing recursive ON event GOTO handling (run #%d)...\n", runCount);
+
+    recursive = 0;
+
+    __enterCriticalThreadSection();
+    __getStackPointer(&_stack_ptr_);
+    __getBasePointer(&_base_ptr_);
+    __registerOnEventHandler(&&errHandler, &runCount + sizeof (runCount),
+                             _stack_ptr_, _base_ptr_, ONERROR);
+    __exitCriticalThreadSection();
+
+    __triggerOnEvent(ONERROR);  /* no recursion so we can use global var */
+    goto missedHandler;
+
+errHandler:
+    __markOnEventHandlerAddr;
+    if ((testVar1 != TESTVAR_VALUE1) || (testVar2 != TESTVAR_VALUE2) ||
+        (strcmp(testVar3, TESTVAR_VALUE3) != 0))
+    {
+        __getBasePointer(&_base_ptr_); 
+        __getStackPointer(&_stack_ptr_);
+        printf("  - (Iteration #%d) Base pointer is damaged.\n", recursive);
+        printf("  - EPB inside error handler is (%p)\n", _base_ptr_);
+        printf("  - ESP inside error handler is (%p)\n", _stack_ptr_);
+        printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
+                                 testVar1, TESTVAR_VALUE1);
+        printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
+                                 testVar2, TESTVAR_VALUE2);
+        printf("  - testVar3 is [%s], should be legible...\n", testVar3);
+        printf("  - landed is (0x%X)...\n", landed);
+        if (binaryDump("debugErrGoto.bin", _base_ptr_ - 100, 200) == true)
+            printf("  - (That's our supposed [ebp-100] to [ebp+100]...)\n");
+        printf("  - Stack will be FUBAR. Must terminate testing.\n");
+        exit(1);
+    } /* if */
+
+    landed = 1;
+    goto endTest;
+
+missedHandler:
+    landed = 2;
+    goto endTest;
+
+endTest:
+    switch (landed)
+    {
+        case 1:   /* good. trigger again. */
+            recursive++;
+            if (recursive <= RECURSION_COUNT)
+                __triggerOnEvent(ONERROR);
+            break;
+        case 2:
+            printf("  - (Iteration #%d) Handler missed. Failed.\n", recursive);
+            printf("  - Other tests will give incorrect results.\n"
+                   "  - Must terminate testing.\n");
+            exit(1);
+            break;
+        default:
+            printf("  - (Iteration #%d) Confused! Failed.\n", recursive);
+            printf("  - Other tests will give incorrect results.\n"
+                   "  - Must terminate testing.\n");
+            exit(1);
+            break;
+    } /* switch */
+
+    testVar3[0] = '\0';  /* stops compiler whining. */
+
+    __deregisterOnEventHandler(&runCount + sizeof (runCount), ONTIMER);
+} /* testOnEventGotoRecurseHandling */
+
+
+void testResumeNext(int runCount)
+/*
+ * Test RESUME NEXT command. We trigger an event, and see where control goes.
+ *
+ *  Run this multiple times, for the sake of the chaos factor.
+ */
+{
+    int testVar1 = TESTVAR_VALUE1;
+    int testVar2 = TESTVAR_VALUE2;
+    char testVar3[] = TESTVAR_VALUE3;
+
+    printf("Testing RESUME NEXT (run #%d)...\n", runCount);
+
+    __enterCriticalThreadSection();
+    __getStackPointer(&_stack_ptr_);
+    __getBasePointer(&_base_ptr_);
+    __registerOnEventHandler(&&resumeHere, &runCount + sizeof (runCount),
+                             _stack_ptr_, _base_ptr_, ONTIMER);
+    __exitCriticalThreadSection();
+
+    recursive = 0;
+    __triggerOnEvent_recurse(ONTIMER, false);
+
+    if ((testVar1 != TESTVAR_VALUE1) || (testVar2 != TESTVAR_VALUE2) ||
+        (strcmp(testVar3, TESTVAR_VALUE3) != 0))
+    {
+        __getBasePointer(&_base_ptr_); 
+        __getStackPointer(&_stack_ptr_);
+        printf("  - (Iteration #%d) Base pointer is damaged.\n", recursive);
+        printf("  - EPB inside error handler is (%p)\n", _base_ptr_);
+        printf("  - ESP inside error handler is (%p)\n", _stack_ptr_);
+        printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
+                                 testVar1, TESTVAR_VALUE1);
+        printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
+                                 testVar2, TESTVAR_VALUE2);
+        printf("  - testVar3 is [%s], should be legible...\n", testVar3);
+        if (binaryDump("debugErrGoto.bin", _base_ptr_ - 100, 200) == true)
+            printf("  - (That's our supposed [ebp-100] to [ebp+100]...)\n");
+        printf("  - Stack will be FUBAR. Must terminate testing.\n");
+        exit(1);
+    } /* if */
+
+    goto resumeSuccessful;
+
+resumeHere:
+    __markOnEventHandlerAddr;
+    __resumeNext();
+    printf(FAILED);
+
+resumeSuccessful:
+
+    __deregisterOnEventHandler(&runCount + sizeof (runCount), ONERROR);
+} /* testResumeNext */
+
+
+void testOnEventHandling(void)
+/*
+ * Test "on event" handling of various types.
  *
  *    params : void.
  *   returns : void.
@@ -240,12 +397,13 @@ void testSimpleOnEventHandling(void)
 
     for (i = 1; i <= 3; i++)
         testOnEventGotoHandling(i);
-} /* testOnErrorHandling */
 
+    for (i = 1; i <= 3; i++)
+        testOnEventGotoRecurseHandling(i);
 
-void testComplexOnEventHandling()
-{
-} /* testComplexOnEventHandling */
+    for (i = 1; i <= 3; i++)
+        testResumeNext(i);
+} /* testOnEventHandling */
 
 
 void testOnEvents(void)
@@ -259,8 +417,7 @@ void testOnEvents(void)
     printf("\n[TESTING ON EVENT HANDLING...]\n");
     test__getBasePointer();
     test__getStackPointer();
-    testSimpleOnEventHandling();
-    testComplexOnEventHandling();
+    testOnEventHandling();
 } /* testOnEvents */
 
 
