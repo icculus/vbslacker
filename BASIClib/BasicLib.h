@@ -20,6 +20,8 @@
 #include "ProcessFunctions.h"
 #include "EnvrFunctions.h"
 #include "RegistryFunctions.h"
+#include "RandomFunctions.h"
+#include "FileIOFunctions.h"
 
 #endif
 
