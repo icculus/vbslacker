@@ -11,7 +11,7 @@ LOADLIBS = -lstdc++
 
 # Build debug version
 debug : $(OBJS)
-	$(LINKER) $(LINKFLAGS) -o parser $(ANTLR_OBJS) $(LOADLIBS)
+	$(LINKER) $(LINKFLAGS) -o parser $(OBJS) $(ANTLR_OBJS) $(LOADLIBS)
 
 # Dependencies
 BasicLexer.o : BasicLexer.cpp BasicLexer.hpp
