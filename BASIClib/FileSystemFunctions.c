@@ -217,11 +217,12 @@ static inline __long killSingle(__byte *path, __byte *fileName)
  */
 {
     struct stat statInfo;
+    __byte fullFileName[strlen(path) + strlen(fileName) + 1];
     __long retVal = ERR_NO_ERROR;
 
-    *(fileName - 1) = __PATHCHAR;   /* make path complete again. */
+    sprintf(fullFileName, "%s%c%s", path, __PATHCHAR, fileName);
 
-    if (stat(path, &statInfo) == -1)
+    if (stat(fullFileName, &statInfo) == -1)
         retVal = __vbFileSystemErrors();
     else
     {
@@ -229,7 +230,7 @@ static inline __long killSingle(__byte *path, __byte *fileName)
             retVal = ERR_FILE_NOT_FOUND;
         else
         {
-            if (unlink(path) == -1)
+            if (unlink(fullFileName) == -1)
                 retVal = __vbFileSystemErrors();
         } /* else */
     } /* else */
@@ -257,7 +258,7 @@ void _vbpS_kill(PBasicString fileSpec)
     if (ignoreFilenameCase)
         __parsePathForInsensitiveMatches(ascizPath);
 
-    __parseDir(ascizPath, &dirInfo, &path, &fileName);
+    __parseDir(ascizPath, &dirInfo, &fileName, &path);
     if (dirInfo == NULL)
     {
         errorCode = ((errno == ENOENT) ? ERR_PATH_NOT_FOUND :
