@@ -13,6 +13,9 @@
 #include "DirectConsole.h"
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
+#define __xyToConsoleMatrix(x, y)  ((((columns * 2) * y) + (x * 2)) + 4)
+#define __consoleMatrixToX(pos) ((pos - 4) % (columns * 2))
+#define __consoleMatrixToY(pos) ((pos - 4) / (columns * 2))
 
     /* various console attributes... */
 static unsigned char x = 0;
@@ -29,11 +32,6 @@ static ThreadLock consoleLock;
 
 static int cons = -1;   /* file handle of /dev/vcsa? device... */
 static unsigned char curColor = 7;
-
-#define __xyToConsoleMatrix(x, y)  ((((columns * 2) * y) + (x * 2)) + 4)
-#define __consoleMatrixToX(pos) ((pos - 4) % (columns * 2))
-#define __consoleMatrixToY(pos) ((pos - 4) / (columns * 2))
-
 
 static void __setCursorXY(STATEPARAMS, unsigned char _x, unsigned char _y)
 /*
@@ -292,6 +290,7 @@ static void __cons_vbpS_print(STATEPARAMS, PBasicString pStr) {}
 static void __cons_vbp_cls(STATEPARAMS) {}
 static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord) {}
 static void __cons_printNewLine(STATEPARAMS) {}
+static void __setCursorXY(STATEPARAMS, int _x, int _y) {}
 #endif
 
 static void __cons_vbpii_viewPrint(STATEPARAMS, int top, int bottom)
