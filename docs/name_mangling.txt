@@ -29,6 +29,7 @@ These chars can be:
 'd' == "double BYVAL"
 's' == "string BYVAL" (*see note)
 'v' == "Variant BYVAL" (*see note)
+'r' == "Array BYVAL" (*see note)
 'a' == "Any variable BYVAL" (**see note)
 'B' == "boolean BYREF"
 'I' == "integer BYREF"
@@ -37,21 +38,25 @@ These chars can be:
 'D' == "double BYREF"
 'S' == "String BYREF" (*see note)
 'V' == "Variant BYREF" (*see note)
+'R' == "Array BYREF" (*see note)
 'O' == "OnOffStopType" (***see note)
 'N' == "Null argument" (****see note)
 '1' == "File mode" (*****see note)
 '2' == "Access mode" (*****see note)
 '3' == "Lock mode" (*****see note)
-'A' == "Array BYREF" (******see note)
+'n' == "n arguments" (******see note)
 
-*Strings and Variants are actually structures, so passing them by
-reference passes a pointer to the structure. Passing them by value
-requires the parser/compiler to insert a call to a function to produce a
-temporary copy of the data. You can see why we used 'S' and not 's' in
-the above example. Intrinsic data types passed byval and byref work just
-like their equivalents in C, and are typically passed by value in the
-average API call, even though BASIC-coded functions are BYREF by
-default.
+*Strings, Arrays, and Variants are actually structures, so passing them by
+reference (BYREF) passes a pointer to the structure. Passing them by value
+(BYVAL) requires the parser/compiler create an exact copy of the data, and
+pass a pointer to the clone of that data. Before return, the called function
+must clean up BYVAL structures like this. Intrinsics are just popped off the
+stack, and the called function does nothing with them. In fact, the way C
+works, the calling function doesn't pop the stack or arguments at all.
+You can see why we used 'S' and not 's' in the above example. Intrinsic data
+types passed BYVAL and BYREF work just like their equivalents in C, and are
+typically passed by value in the average API call, even though BASIC-coded
+functions are BYREF by default.
 
 **"Any" variable type is used for things like "pos(x)", where x is
 simply any filler. That's stupid, but that's BASIC. Whatever you pass
@@ -69,8 +74,32 @@ blank argument.
 
 *****These are for the OPEN calls. It's ugly. Sorry.
 
-******Arrays are always passed as a pointer to a C structure that stores
-not only the array, but other information about bounds, etc...
+******Functions that accept variable arguments, like CLOSE and ERASE, will be
+broken down into multiple calls by the parser/compiler:
+
+CLOSE 1, 5, 7
+
+becomes:
+
+vbpi_close(1);
+vbpi_close(5);
+vbpi_close(7);
+
+The identifier to signify that a given argument is repeated a variable amount
+of times is 'n'. Mathematically, 'n' is frequently used to specify iterations.
+So, CLOSE has two forms:
+
+void vbp_close(STATEPARAMS);                 /* close all files      */
+void vbpin_close(STATEPARAMS, int fileNum);  /* close specific files */
+
+The parser/compiler will figure out which function call is appropriate. If,
+in this case, there are arguments to a CLOSE statement, and each are castable
+to type (int), then the parser/compiler will generate as many calls to
+vbpin_close() as there are arguments to the BASIC equivalent. This is easier
+to implement cleanly than using C's variable argument facilities, probably
+faster in the long run, and less bug prone in both BASIClib and end-user
+compiled code.
+
 
 '$' chars, like "RTRIM$()", are encoded as "_DC_" (for "dollar
 character"), as you can see above. Other potential ones are "_NC_"
@@ -81,27 +110,7 @@ parser/compiler a more sane way than a giant conditional block to
 determine if a function exists, with a few exceptions, such as one of
 MID$()'s variants.
 
-Functions that accept variable arguments, like Print and close, will be
-broken down into multiple calls by the parser/compiler.:
-
-PRINT "Eat this " + "buttface"; "mamma said knock you out."
-
-Will (eventually) become :
-
-vbpS_print("Eat this buttface");
-vbpS_print("mamma said knock you out.");
-
-(note that the first one is made into one string before the print call.
-String literals would really be converted to BasicStrings.)
-
-CLOSE 1, 5, 7
-
-becomes:
-
-vbpi_close(1);
-vbpi_close(5);
-vbpi_close(7);
-
+Please refer to special_cases.txt for possible exceptions to these rules...
 
 /* end of name_mangling.txt ... */
 
