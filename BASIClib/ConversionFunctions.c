@@ -130,11 +130,11 @@ int __valEndOfNumberString(PBasicString pBasicStr)
     int max = pBasicStr->length;    /* loop control variable.             */
     int i;                          /* loop control variable.             */
     char *str = pBasicStr->data;    /* the actual string data.            */
-    char ch;                        /* for individual chars in string.    */
+    int ch;                         /* for individual chars in string.    */
 
     for (i = 0; (i < max) && (!foundEnd); i++)
     {
-        ch = str[i];
+        ch = (int) str[i];
         if (!isdigit(ch))
         {
             switch (ch)
@@ -187,12 +187,12 @@ double val(PBasicString pBasicStr)
     double retVal = 0.0;
     int strEndIndex = __valEndOfNumberString(pBasicStr);
     int decimalPlace = 1;
-    char ch;
+    int ch;
     int i;
 
     for (i = strEndIndex; i >= 0; i--)
     {
-        ch = pBasicStr->data[i];
+        ch = (int) pBasicStr->data[i];
         if (isdigit(ch))
         {
             retVal += ((ch - '0') * decimalPlace);
