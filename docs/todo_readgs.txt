@@ -1,0 +1,8 @@
+parser
+   -"unreferenced main" error when bulding right now.
+   -error/exception handling (better than default)
+   -makefile for win32
+   -makefile for ANTLR should build a single .o file.
+   -ANTLR generated code tends to generate a lot of useless warnings.  This
+    needs to be fixed...either by #pragma, or other.
+   -get it working.
