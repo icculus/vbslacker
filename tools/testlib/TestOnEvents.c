@@ -169,12 +169,12 @@ void testOnEventGotoHandling(int runCount)
 
     printf("Testing ON event GOTO handling (run #%d)...\n", runCount);
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
     __registerOnEventHandler(&&errHandler, &runCount + sizeof (runCount),
                              _stack_ptr_, _base_ptr_, ONERROR);
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&registerLock);
 
     recursive = 0;
     __triggerOnEvent_recurse(ONERROR, true);
@@ -263,12 +263,13 @@ void testOnEventGotoRecurseHandling(int runCount)
 
     recursive = 0;
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
     __registerOnEventHandler(&&errHandler, &runCount + sizeof (runCount),
                              _stack_ptr_, _base_ptr_, ONERROR);
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&registerLock);
+
 
     __triggerOnEvent(ONERROR);  /* no recursion so we can use global var */
     goto missedHandler;
@@ -343,12 +344,12 @@ void testResumeNext(int runCount)
 
     printf("Testing RESUME NEXT (run #%d)...\n", runCount);
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
     __registerOnEventHandler(&&resumeHere, &runCount + sizeof (runCount),
                              _stack_ptr_, _base_ptr_, ONTIMER);
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&registerLock);
 
     recursive = 0;
     __triggerOnEvent_recurse(ONTIMER, false);
