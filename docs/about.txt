@@ -1,0 +1,11 @@
+
+
+VBslacker 0.0.1
+
+Designed with tender loving care by Ryan C. Gordon and Gregory S Read.
+
+This only (possibly) works on ELF-based i386 Linux at this point.
+ If it breaks, you get to keep both SHINY pieces!
+
+
+ 
