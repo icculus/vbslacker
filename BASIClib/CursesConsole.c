@@ -294,6 +294,12 @@ static void __curs_vbp_locate(void)
 } /* __curs_vbp_locate */
 
 
+static void __curs_playSound(__integer frequency, __single duration)
+{
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+} /* __curs_playSound */
+
+
 static void __curs_vbp_beep(void)
 {
     beep();     /* fun, huh? */
@@ -330,6 +336,7 @@ __boolean __initCursesConsole(void)
         __deinitConsoleDriver = __curs_deinitConsoleDriver;
         __printNewLine = __curs_printNewLine;
         __printNChars = __curs_printNChars;
+        __playSound = __curs_playSound;
         _vbpii_viewPrint = __curs_vbpii_viewPrint;
         _vbp_viewPrint = __curs_vbp_viewPrint;
         _vbp_cls = __curs_vbp_cls;
