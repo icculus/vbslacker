@@ -280,6 +280,8 @@ PBasicString _vbSl_oct_DC_(__long x)
 
 PBasicString _vbS_mki_DC_(__integer num)
 {
+    #warning this clearly is not right.
+    return(NULL);
 } /* _vbS_mki_DC_ */
 
 
