@@ -89,6 +89,10 @@ static void __curs_printNewLine(void)
  *   returns : void.
  */
 {
+    __obtainThreadLock(&consoleLock);
+    waddch(cons, '\n');
+    wrefresh(cons);
+    __releaseThreadLock(&consoleLock);
 } /* __curs_printNewLine */
 
 
