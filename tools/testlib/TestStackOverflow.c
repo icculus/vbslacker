@@ -3,7 +3,6 @@
 
 void stackThis(void)
 {
-    printf("woo.\n");
     stackThis();
 } /* stackThis */
 
