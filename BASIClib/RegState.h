@@ -26,21 +26,34 @@
 #define STATEARGS __stIP, __stNextIP, __stBP, __stSP
 #define NULLSTATEARGS NULL, NULL, NULL, NULL
 
-/* !!! Make __setResumeStack and __setResumeInstructs assembly? */
+
+#if (ARCHITECTURE == "i386")
+
+/* God, inline assembly is SCARY lookin' in gcc, isn't it? */
 
 /*
- *  __setResumeStack fills in the current base pointer and stack
- *   to the current STATEPARAMS...
+ *  Get the stack pointer, and store it in *retVal.
  */
-#define __setResumeStack __getBasePointer(&__stBP); \
-                         __getStackPointer(&__stSP);
+#define __getStackPointer(retVal) __asm__ __volatile__ ("movl %%esp, %0\n\t" \
+                                                        : "=q" (*retVal) )
 
 /*
- *  __setResumeInstructs fills in the current instruction pointer and the
- *   "next" instruction pointer to the current STATEPARAMS...
+ *  Get the base pointer, and store it in *retVal.
  */
-#define __setResumeInstructs(ptr1, ptr2)  __stIP = ptr1; \
-                                          __stNextIP = ptr2;
+#define __getBasePointer(retVal) __asm__ __volatile__ ("movl %%ebp, %0\n\t" \
+                                                        : "=q" (*retVal) )
+/*
+ * Reset compiler assumptions about optimizations. By telling gcc we fucked
+ *  with memory, it believes we've "clobbered" all the registers, and will
+ *  reload anything stored in them.
+ */
+#define __resetAssumptions __asm__ __volatile__ ("\n\t" \
+                                                 : /* no output */ \
+                                                 : /* no input */  \
+                                                 : "memory" );
+
+
+
 
 #define PUSHNULLSTATEARGS   "pushl   $0\n\t" \
                             "pushl   $0\n\t" \
@@ -48,8 +61,29 @@
                             "pushl   $0\n\t"
 #define STATEARGSSIZESTR    "16"
 
-#endif
-#endif
+#else
+
+#error No RegState ASM written for this platform, yet...
+
+#endif /* ARCHITECTURE == i386 */
+
+
+/*
+ *  __setResumeStack fills in the current base pointer and stack
+ *   to the current STATEPARAMS...
+ */
+#define __setStateStack  __getBasePointer(&__stBP); \
+                         __getStackPointer(&__stSP);
+
+/*
+ *  __setResumeInstructs fills in the current instruction pointer and the
+ *   "next" instruction pointer to the current STATEPARAMS...
+ */
+#define __setStateInstructs(ptr1, ptr2)  __stIP = ptr1; \
+                                         __stNextIP = ptr2;
+
+#endif /* defined _INCLUDE_REGSTATE_H_ */
+#endif /* defined _INCLUDE_STDBASIC_H_ */
 
 /* end of RegState.h ... */
 
