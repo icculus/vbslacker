@@ -62,25 +62,24 @@ static void __curs_deinitConsoleHandler(STATEPARAMS)
 } /* __curs_deinitConsole */
 
 
-static void __curs_vbpS_print(STATEPARAMS, PBasicString pStr)
+static void __curs_printNChars(STATEPARAMS, char *str, int n)
 /*
- * Write a string to the printable window, scrolling if needed, and
- *  moving the cursor to the new position.
+ * Write (n) chars at (str) to the printable window, scrolling if needed, 
+ *  and moving the cursor to the new position.
  *
- *   params : pStr == BASIC string to write.
+ *   params : str == string to write.
+ *            n == char count to write.
  *  returns : void.
  */
 {
     int i;
-    int max = pStr->length;
-    char *data = pStr->data;
 
     __obtainThreadLock(STATEARGS, &consoleLock);
-    for (i = 0; i < max; i++)
-        waddch(cons, data[i]);
+    for (i = 0; i < n; i++)
+        waddch(cons, str[i]);
     wrefresh(cons);
     __releaseThreadLock(STATEARGS, &consoleLock);
-} /* __curs_vbpS_print */
+} /* __curs_printNChars */
 
 
 static void __curs_printNewLine(STATEPARAMS)
@@ -262,7 +261,7 @@ boolean __initCursesConsole(STATEPARAMS)
         __getConsoleHandlerName = __curs_getConsoleHandlerName;
         __deinitConsoleHandler = __curs_deinitConsoleHandler;
         __printNewLine = __curs_printNewLine;
-        vbpS_print = __curs_vbpS_print;
+        __printNChars = __curs_printNChars;
         vbpii_viewPrint = __curs_vbpii_viewPrint;
         vbp_viewPrint = __curs_vbp_viewPrint;
         vbp_cls = __curs_vbp_cls;
@@ -277,7 +276,7 @@ boolean __initCursesConsole(STATEPARAMS)
     return(retVal);
 } /* __initCursesConsole */
 
-#endif
+#endif  /* defined WIN32 */
 
 /* end of CursesConsole.c ... */
 

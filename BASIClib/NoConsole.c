@@ -11,7 +11,7 @@
 
 static void __nocons_deinitConsoleHandler(STATEPARAMS) {}
 
-static void __nocons_vbpS_print(STATEPARAMS, PBasicString x)
+static void __nocons_printNChars(STATEPARAMS, char *str, int n)
 {
     __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpS_print */
@@ -92,7 +92,7 @@ boolean __initNoConsole(STATEPARAMS)
         __getConsoleHandlerName = __nocons_getConsoleHandlerName;
         __deinitConsoleHandler = __nocons_deinitConsoleHandler;
         __printNewLine = __nocons_printNewLine;
-        vbpS_print = __nocons_vbpS_print;
+        __printNChars = __nocons_printNChars;
         vbpii_viewPrint = __nocons_vbpii_viewPrint;
         vbp_viewPrint = __nocons_vbp_viewPrint;
         vbp_cls = __nocons_vbp_cls;
