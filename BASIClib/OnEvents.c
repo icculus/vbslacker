@@ -32,18 +32,28 @@ typedef HandlerVector *PHandlerVector;
 void __callOnEventHandler(POnEventHandler pHandler);
 void __resumeNextHandler(void);
 
+
     /*
-     * These should be thread safe, since they are only used within
-     * The bounds of critical sections.
+     * module scope thread lock.
      */
+static ThreadLock lock;
+
+
+    /*
+     * These should be thread safe, as long as registerLock is obtained
+     *  before any accessing.
+     */
+ThreadLock registerLock;
 void *_stack_ptr_ = NULL;
 void *_base_ptr_ = NULL;
+
 
     /*
      * This is used in __initThreadOnEvents(), to determine whether we need
      *  more memory allocated to handle new threads.
      */
 static int threadCount = 0;
+
 
     /*
      * This is the array of structures that contain info about all
@@ -95,6 +105,34 @@ int *basePtrIndexes = NULL;
 POnEventTypeEnum lastTriggeredOnEventType = NULL;
 
 
+void __initOnEvents(void)
+/*
+ * This is called once at program startup.
+ *  We use this to create our thread locks.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+    __createThreadLock(&registerLock);
+    __createThreadLock(&lock);
+} /* __initOnEvents */
+
+
+void __deinitOnEvents(void)
+/*
+ * This is called once at program termination.
+ *  We use this to destroy our thread locks.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+    __destroyThreadLock(&registerLock);
+    __destroyThreadLock(&lock);
+} /* __deinitOnEvents */
+
+
 void __initThreadOnEvents(int tidx)
 /*
  * This makes sure space exists in the thread-protected arrays for the
@@ -108,7 +146,7 @@ void __initThreadOnEvents(int tidx)
     int currentThreadCount;
     unsigned int i;
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&lock);
 
     currentThreadCount = __getHighestThreadIndex() + 1;
     if (threadCount != currentThreadCount)
@@ -124,7 +162,7 @@ void __initThreadOnEvents(int tidx)
                                      threadCount * sizeof (POnEventTypeEnum));
     } /* if */
 
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&lock);
 
     table = __memAlloc(sizeof (HandlerVector) * (OnEventTypeEnum) TOTAL);
     pTables[tidx] = table;
@@ -171,9 +209,9 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
     PHandlerVector evVect;
     int tidx = __getCurrentThreadIndex();
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&lock);
     evVect = &pTables[tidx][evType];
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&lock);
 
     if (evVect->count > 0)
         retVal = evVect->handlers[evVect->count - 1];
@@ -191,12 +229,12 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  * Ideally, any module that contains a call to this function should
  *  do something like this:
  *
- *   __enterCriticalThreadSection();
+ *   __obtainThreadLock(&registerLock);
  *   __getStackPointer(&_stack_ptr_);
  *   __getBasePointer(&_base_ptr);
  *   __registerOnEventHandler(&&handlerLabel, &lastArg + sizeof(lastArg),
  *                            _stack_ptr_, _base_ptr_, ONERROR);
- *   __exitCriticalThreadSection();
+ *   __releaseThreadLock(&registerLock);
  *
  *
  * _stack_ptr_ should be a (void *) declared at the module level, if needed.
@@ -239,9 +277,9 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
     PHandlerVector evVect;
     int tidx = __getCurrentThreadIndex();
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&lock);
     evVect = &pTables[tidx][evType];
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&lock);
 
     if ((evVect->count <= 0) ||    /* setup new handler? */
         (evVect->handlers[evVect->count - 1]->stackStart != stackStart))
@@ -287,9 +325,9 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
     int tidx = __getCurrentThreadIndex();    
     PHandlerVector evVect;
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&lock);
     evVect = &pTables[tidx][evType];
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&lock);
 
     if (evVect->count > 0)
     {
@@ -319,11 +357,11 @@ void **__calcBasePtrStorage(void)
     void **theStack;
     void **retVal;
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&lock);
     theStack = basePtrStacks[tidx];
     bpIndex = basePtrIndexes[tidx];
     retVal = &theStack[bpIndex];
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&lock);
 
     return(retVal);
 } /* __calcBasePtrStorage */
@@ -343,13 +381,13 @@ void __triggerOnEvent(OnEventTypeEnum evType)
     POnEventHandler pHandler = __getOnEventHandler(evType);
     int tidx = __getCurrentThreadIndex();
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&lock);
     basePtrIndexes[tidx]++;
     basePtrStacks[tidx] = __memRealloc(basePtrStacks[tidx],
                                       (basePtrIndexes[tidx] + 1) *
                                          sizeof (void *));
     lastTriggeredOnEventType[tidx] = evType;
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&lock);
 
     __callOnEventHandler(pHandler);     /* initialize miracle mode... */
 } /* __triggerOnEvent */
@@ -361,9 +399,9 @@ void __resumeNext(void)
     int tidx = __getCurrentThreadIndex();
     OnEventTypeEnum evType;
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&lock);
     evType = lastTriggeredOnEventType[tidx];
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&lock);
 
     pHandler = __getOnEventHandler(evType);
 
