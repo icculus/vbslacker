@@ -12,9 +12,13 @@
 
 void __initThreads(void);
 void __deinitThreads(void);
-int __getThreadCount(void);
-int __getCurrentThreadIndex(void);
-int __getHighestThreadIndex(void);
+void __terminateCurrentThread(void);
+void __terminateThread(int tidx);
+void __waitForThreadToDie(int tidx);
+int  __spinThread(void *(*_fn)(void *), void *_args);
+int  __getThreadCount(void);
+int  __getHighestThreadIndex(void);
+int  __getCurrentThreadIndex(void);
 void __threadTimeslice(void);
 void __createThreadLock(PThreadLock pThreadLock);
 void __destroyThreadLock(PThreadLock pThreadLock);
