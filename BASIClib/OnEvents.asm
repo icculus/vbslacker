@@ -53,7 +53,9 @@ extern basePtrIndexes;
 ;
 
 extern __getCurrentThreadIndex;
-
+extern __enterCriticalThreadSection;
+extern __exitCriticalThreadSection;
+extern __calcBasePtrStorage;
 
 ;
 ; Here's the procedure itself. Let's do the nasty...
@@ -146,11 +148,15 @@ __callOnEventHandler:                   ; proc
             ;  by this procedure for the current thread. So we find where it's
             ;  stored, and alter the value...
 
-        mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
         call    __getCurrentThreadIndex ; Get current thread index.
         mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
+
+        call    __enterCriticalThreadSection
+        mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
         mul     eax,ebx                 ; make it into offset in array.
         add     esi,eax                 ; esi now points to our element.
+        call    __exitCriticalThreadSection
+
         mov     eax,[esi]               ; get value pointed to by esi.
         dec     eax                     ; decrement it.
         mov     dword [esi],eax         ; store it back in addr esi points to.
@@ -174,45 +180,6 @@ __callOnEventHandler:                   ; proc
         mov     esp,ecx                 ; adjust stack for return call...
         ret                             ;  ...and pray for the best.
 ;__callOnEventHandler    endp
-
-
-
-
-;
-; Figure out where we belong in the basePtrStacks arrays.
-;  see comments at top of the file.
-;
-;   params : none.
-;  returns : address of storage space in eax.
-
-__calcBasePtrStorage:                   ; proc
-        push    ebx                     ; save registers...
-        push    edx
-        push    edi
-        push    esi
-
-        call    __getCurrentThreadIndex ; Thread index returned in EAX.
-        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
-        mul     eax,ebx                 ; Get offset to this thread's array.
-
-            ; Find array for this thread's base pointers.
-        mov     esi,[basePtrStacks]     ; get thread-specific arrays.
-        add     esi,eax                 ; Get ptr to this thread's array.
-        mov     edi,[esi]               ; Move ptr at [esi] to edi.
-
-            ; Get index in thread specific array of current pointer space.
-        mov     esi,[basePtrIndexes]    ; Get thread-specific arrays.
-        add     esi,eax                 ; Get ptr to this thread's index.
-        mov     eax,[esi]               ; Get index of bp space into eax.
-
-        add     eax,edi                 ; Make edi point to the bp space.
-
-        pop     esi                     ; Restore registers...
-        pop     edi
-        pop     edx
-        pop     ebx
-        ret                             ; Return.
-;__ calcBasePtrStorage   endp
 
 
 ; end of OnEvents.asm ...
