@@ -5,6 +5,7 @@
  *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>
 #include <termios.h>
 #include <ctype.h>
 #include <string.h>
@@ -13,10 +14,19 @@
 #include "ConsoleFunctions.h"
 #include "DirectConsole.h"
 
+#ifdef LINUX   /* Completely non-portable Linux-specific support. */
+#   include <signal.h>
+#   include <sys/ioctl.h>
+#   include <sys/vt.h>
+#   include <sys/kd.h>
+#   include <sys/param.h>
+#endif
 
-#define ASCII_CR  13
-#define ASCII_NL  10
-#define ASCII_TAB 9
+
+#define ASCII_BEEP 7
+#define ASCII_CR   13
+#define ASCII_NL   10
+#define ASCII_TAB  9
 
 #define __xyToConsoleMatrix(x, y)  (((y) * ((columns + 1) * 2)) + ((x) * 2) + 4)
 #define __consoleMatrixToX(pos)    (((pos - 4) / 2) % (columns + 1))
@@ -32,9 +42,14 @@ static __integer winBottom = 0;
 
 static ThreadLock consoleLock;
 
+
+
 #ifdef LINUX   /* Completely non-portable Linux-specific support. */
 
-static int cons = -1;   /* file handle of /dev/vcsa? device... */
+#define DEVNAME_VCSA "/dev/vcsa"
+
+static int cons = -1;        /* file handle of /dev/vcsa? device... */
+static int ttyHandle = -1;   /* file handle of /dev/tty for beeps.  */
 static unsigned char curColor = 7;
 static struct termios termStuff;
 static tcflag_t termAttr;
@@ -92,7 +107,7 @@ static void __scrollConsole(void)
 } /* __scrollConsole */
 
 
-static __boolean __setupInput(char *tty)
+static __boolean __setupInput(int vtNum)
 {
     if (tcgetattr(STDOUT_FILENO, &termStuff) == -1)
         return(false);
@@ -108,13 +123,12 @@ static __boolean __setupInput(char *tty)
 } /* __setupInput */
 
 
-static __boolean __setupOutput(char *tty)
+static __boolean __setupOutput(int vtNum)
 {
-    char consDev[strlen(tty) + 20];
+    char consDev[strlen(DEVNAME_VCSA) + 20];
     unsigned char br[4];
 
-    strcpy(consDev, "/dev/vcsa");
-    strcat(consDev, tty + 8);       /* "/dev/tty" is 8 chars ... */
+    sprintf(consDev, "%s%d", DEVNAME_VCSA, vtNum);
 
     cons = open(consDev, O_RDWR);
     if (cons != -1)
@@ -141,12 +155,41 @@ static __boolean __setupOutput(char *tty)
 } /* __setupOutput */
 
 
-static __boolean __setupIO(char *tty)
+static int getVirtualConsoleHandle(void)
+{
+    struct vt_mode vtMode;
+
+    ttyHandle = open("/dev/tty", O_RDWR);
+    if (ttyHandle > 0)
+    {
+            /* this ioctl() verifies that this is really a VC... */
+        if (ioctl(ttyHandle, VT_GETMODE, &vtMode) < 0)
+        {
+            close(ttyHandle);
+            ttyHandle = -1;
+        } /* if */
+    } /* if */
+
+    return(ttyHandle);
+} /* getVirtualConsoleHandle */
+
+
+static int getVirtualConsoleNumber(int ttyFileHandle)
+{
+    struct vt_stat vtState;
+
+    ioctl(ttyFileHandle, VT_GETSTATE, &vtState);
+    return(vtState.v_active);
+} /* getVirtualConsoleNumber */
+
+
+static __boolean __setupIO(int vtNum)
 {
     __boolean retVal = false;
 
-    if ((__setupInput(tty) == true) && (__setupOutput(tty) == true))
+    if ((__setupInput(vtNum) == true) && (__setupOutput(vtNum) == true))
         retVal = true;
+
     return(retVal);
 } /* __setupIO */
 
@@ -160,13 +203,23 @@ static __boolean __dcon_openConsole(void)
  *   returns : false on error, true on success.
  */
 {
-    char *tty = ttyname(STDOUT_FILENO);
     __boolean retVal = false;
+    int vtNum;
 
-    if (tty != NULL)
+    if (getVirtualConsoleHandle() > 0)
     {
-        if ( (strncmp("/dev/tty", tty, 8) == 0) && (isdigit(tty[8])) )
-            retVal = __setupIO(tty);
+        vtNum = getVirtualConsoleNumber(ttyHandle);
+        retVal = __setupIO(vtNum);
+        if (retVal == false)
+        {
+            if (ttyHandle != -1)
+                close(ttyHandle);
+
+            if (cons != -1)
+                close(cons);
+
+            cons = ttyHandle = -1;
+        } /* if */
     } /* if */
 
     return(retVal);
@@ -198,13 +251,49 @@ static void __dcon_deinitConsoleDriver(void)
         } /* if */
         __setCursorXY(0, y + 1);
         close(cons);
+        cons = -1;
 #warning comment.
         termStuff.c_lflag = termAttr;
         tcsetattr(STDOUT_FILENO, TCSANOW, &termStuff);
         __releaseThreadLock(&consoleLock);
         __destroyThreadLock(&consoleLock);
     } /* if */
+
+    if (ttyHandle != -1)
+    {
+        close(ttyHandle);
+        ttyHandle = -1;
+    } /* if */
 } /* __dcon_deinitConsole */
+
+
+static void __dcon_playSound(__integer frequency, __single duration)
+{
+        /*
+         * Original BASIC specs want (duration) in Intel clock ticks.
+         *  There are 18.2 clock ticks per second on Intel chips.
+         */
+    double seconds = ((double) duration) / ((double) 18.2);
+    int hundredths = ((int) (seconds * 100.0));
+    unsigned int ticks = hundredths * HZ / 100;
+
+        /* Verify legal values for kernel... */
+    if (ticks > 0xffff)
+        ticks = 0xffff;
+
+        /* check validity of ticks, too... */
+    if ((hundredths > 0) && (ticks == 0))
+        ticks = 1;
+
+    if (ticks > 0)
+        ioctl(ttyHandle, KDMKTONE, (((1193180 / frequency) << 16) | ticks));
+} /* __dcon_vbpif_sound */
+
+
+static void __dcon_vbp_beep(void)
+{
+    __dcon_playSound(750, 12); /* !!! test. */
+} /* __dcon_vbp_beep */
 
 
 static void __dcon_printNChars(__byte *str, __long n)
@@ -229,6 +318,10 @@ static void __dcon_printNChars(__byte *str, __long n)
         lseek(cons, __xyToConsoleMatrix(x, y), SEEK_SET);
         switch (str[i])
         {
+            case ASCII_BEEP:
+                __dcon_vbp_beep();
+                break;
+
             case ASCII_CR:
                 if ((i + 1 < n) && (str[i] == ASCII_NL))
                     i++;
@@ -344,12 +437,6 @@ static void __dcon_vbpiii_color(__integer fore, __integer back, __integer bord)
 //    __dcon_vbpii_color(fore, back);
 } /* __dcon_vbpiii_color */
 
-
-static void __dcon_vbp_beep(void)
-{
-    #warning direct console needs to beep.
-} /* __dcon_vbp_beep */
-
 #endif
 
 
@@ -361,7 +448,8 @@ static void __dcon_vbp_cls(void) {}
 static void __dcon_vbpiii_color(__integer fore, __integer back, __integer bord) {}
 static void __dcon_printNewLine(void) {}
 static void __setCursorXY(__integer _x, __integer _y) {}
-static void __dcon_vbp_beep(void);
+static void __dcon_vbp_beep(void) {}
+static void __dcon_playSound(__integer frequency, __single duration) {}
 #endif
 
 
@@ -523,6 +611,7 @@ __boolean __initDirectConsole(void)
         __getConsoleDriverName = __dcon_getConsoleDriverName;
         __printNewLine = __dcon_printNewLine;
         __printNChars = __dcon_printNChars;
+        __playSound = __dcon_playSound;
         _vbpii_viewPrint = __dcon_vbpii_viewPrint;
         _vbp_viewPrint = __dcon_vbp_viewPrint;
         _vbp_cls = __dcon_vbp_cls;
