@@ -9,7 +9,7 @@ export REVISIONVER = 1
 export WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
 export OBJS = BasicString.o ConversionFunctions.o Initialize.o \
               ErrorFunctions.o MathFunctions.o MemoryManager.o Threads.o \
-              TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
+              TimeDateFunctions.o \
               StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
               ConsoleFunctions.o ProcessFunctions.o FileSystemFunctions.o \
               Variant.o BasicError.o NoConsole.o DirectConsole.o \
@@ -22,9 +22,9 @@ about:
 	@cat ../docs/about.txt
 
 lines:
-	@linecount *.c *.h Make*
+	@linecount $(wildcard *.c) $(wildcard *.h) $(wildcard Makefile*)
 
-clean : 
+clean:
 	rm -f $(wildcard *core)
 	rm -f $(wildcard *.o)
 	rm -f $(wildcard *.exe)
@@ -32,10 +32,10 @@ clean :
 	rm -f $(wildcard *.so*)
 	rm -f $(wildcard *.a)
 
-linux : Makefile.linux
+linux: Makefile.linux
 	@$(MAKE) -f Makefile.linux all
 
-win32 : Makefile.win32
+win32: Makefile.win32
 	@$(MAKE) -f Makefile.win32 all
 
 # end of Makefile ...

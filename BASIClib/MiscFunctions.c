@@ -9,7 +9,7 @@
 void _vbp_clear(void)
 /*
  * There's no way in hell we're supporting this. Microsoft docs
- *  says that if it's used anywhere but the mainline, it throws
+ *  say that if it's used anywhere but the mainline, it throws
  *  an ILLEGAL FUNCTION CALL, so we'll just throw that anyhow.
  *  Later VBs don't even HAVE this call. Sheesh.
  *

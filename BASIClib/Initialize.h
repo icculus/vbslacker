@@ -24,9 +24,11 @@ extern "C" {
 #define INITFLAG_DISABLE_VARIANTS      4
 #define INITFLAG_DISABLE_CONSOLE       8
 #define INITFLAG_UNIX_FILE_SYSTEM      16
+#define INITFLAG_ENABLE_GUIFRONTEND    32
 
     /* function prototypes ... */
-void __initBasicLib(void *base, __long flags, int argc, char **argv);
+char *__getUserAppDir(void);
+void __initBasicLib(__long flags, int argc, char **argv, char **envp);
 void __deinitBasicLib(void);
 __long __getInitFlags();
 void __shellOutNotification();

@@ -13,6 +13,7 @@
 #include "ConsoleFunctions.h"
 #include "DirectConsole.h"
 
+
 #define ASCII_CR  13
 #define ASCII_NL  10
 #define ASCII_TAB 9
@@ -150,7 +151,7 @@ static __boolean __setupIO(char *tty)
 } /* __setupIO */
 
 
-static __boolean __cons_openConsole(void)
+static __boolean __dcon_openConsole(void)
 /*
  * Open the virtual console for read/write, if at a virtual console, and
  *  the kernel will permit it.
@@ -169,10 +170,10 @@ static __boolean __cons_openConsole(void)
     } /* if */
 
     return(retVal);
-} /* __cons_openConsole */
+} /* __dcon_openConsole */
 
 
-static void __cons_deinitConsoleHandler(void)
+static void __dcon_deinitConsoleDriver(void)
 /*
  * Move the cursor to the start of the next line, and close the console
  *  device.
@@ -203,10 +204,10 @@ static void __cons_deinitConsoleHandler(void)
         __releaseThreadLock(&consoleLock);
         __destroyThreadLock(&consoleLock);
     } /* if */
-} /* __cons_deinitConsole */
+} /* __dcon_deinitConsole */
 
 
-static void __cons_printNChars(__byte *str, __long n)
+static void __dcon_printNChars(__byte *str, __long n)
 /*
  * Write (n) characters at pos (str) to the printable window,
  *  scrolling if needed, and moving the cursor to the new position.
@@ -276,7 +277,7 @@ static void __cons_printNChars(__byte *str, __long n)
 } /* cons_printNChars */
 
 
-static void __cons_printNewLine(void)
+static void __dcon_printNewLine(void)
 /*
  * Move the cursor down to the start of the next line. Scroll if necessary.
  *
@@ -297,10 +298,10 @@ static void __cons_printNewLine(void)
     __setCursorXY(x, y);
 
     __releaseThreadLock(&consoleLock);
-} /* __cons_printNewLine */
+} /* __dcon_printNewLine */
 
 
-static void __cons_vbp_cls(void)
+static void __dcon_vbp_cls(void)
 /*
  * Clear the current printable window. The window will be blanked of
  *  characters, and set to the background color. The cursor is moved to
@@ -326,10 +327,10 @@ static void __cons_vbp_cls(void)
     __setCursorXY(__consoleMatrixToX(winTop),
                    __consoleMatrixToY(winTop));
     __releaseThreadLock(&consoleLock);
-} /* __cons_vbp_cls */
+} /* __dcon_vbp_cls */
 
 
-static void __cons_vbpiii_color(__integer fore, __integer back, __integer bord)
+static void __dcon_vbpiii_color(__integer fore, __integer back, __integer bord)
 /*
  * Set a new printing color.
  *
@@ -340,24 +341,31 @@ static void __cons_vbpiii_color(__integer fore, __integer back, __integer bord)
  */
 {
     __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); //!!!
-//    __cons_vbpii_color(fore, back);
-} /* __cons_vbpiii_color */
+//    __dcon_vbpii_color(fore, back);
+} /* __dcon_vbpiii_color */
+
+
+static void __dcon_vbp_beep(void)
+{
+    #warning direct console needs to beep.
+} /* __dcon_vbp_beep */
 
 #endif
 
 
 #ifdef WIN32   /* stubs for now for win32. */
-static int  __cons_openConsole(void) { return(-1); }
-static void __cons_deinitConsoleHandler(void) {}
-static void __cons_printNChars(char *str, int n) {}
-static void __cons_vbp_cls(void) {}
-static void __cons_vbpiii_color(__integer fore, __integer back, __integer bord) {}
-static void __cons_printNewLine(void) {}
+static int  __dcon_openConsole(void) { return(-1); }
+static void __dcon_deinitConsoleDriver(void) {}
+static void __dcon_printNChars(char *str, int n) {}
+static void __dcon_vbp_cls(void) {}
+static void __dcon_vbpiii_color(__integer fore, __integer back, __integer bord) {}
+static void __dcon_printNewLine(void) {}
 static void __setCursorXY(__integer _x, __integer _y) {}
+static void __dcon_vbp_beep(void);
 #endif
 
 
-static void __cons_vbpii_viewPrint(__integer top, __integer bottom)
+static void __dcon_vbpii_viewPrint(__integer top, __integer bottom)
 /*
  * Set console lines (top) to (bottom) as the printable window.
  *
@@ -379,10 +387,10 @@ static void __cons_vbpii_viewPrint(__integer top, __integer bottom)
         __setCursorXY(0, top);
         __releaseThreadLock(&consoleLock);
     } /* else */
-} /* __cons_vbpii_viewPrint */
+} /* __dcon_vbpii_viewPrint */
 
 
-static void __cons_vbp_viewPrint(void)
+static void __dcon_vbp_viewPrint(void)
 /*
  * Set the whole console window printable.
  *
@@ -395,10 +403,10 @@ static void __cons_vbp_viewPrint(void)
     winBottom = __xyToConsoleMatrix(columns, lines);
     __setCursorXY(0, 0);
     __releaseThreadLock(&consoleLock);
-} /* __cons_vbp_viewPrint */
+} /* __dcon_vbp_viewPrint */
 
 
-static __integer __cons_vbi_csrline(void)
+static __integer __dcon_vbi_csrline(void)
 /*
  * Return current cursor row.
  *
@@ -407,10 +415,10 @@ static __integer __cons_vbi_csrline(void)
  */
 {
     return(y);
-} /* __cons_vbi_csrline */
+} /* __dcon_vbi_csrline */
 
 
-static  __integer __cons_vbia_pos(void *pVar)
+static  __integer __dcon_vbia_pos(void *pVar)
 /*
  * Return current cursor column.
  *
@@ -419,20 +427,20 @@ static  __integer __cons_vbia_pos(void *pVar)
  */
 {
     return(x);
-} /* __cons_vbia_pos */
+} /* __dcon_vbia_pos */
 
 
-static void __cons_vbpil_color(__integer fore, __long feh)
+static void __dcon_vbpil_color(__integer fore, __long feh)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
  */
 {
     __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-} /* __cons_vbpiii_color */
+} /* __dcon_vbpiii_color */
 
 
-static void __cons_vbpi_color(__integer fore)
+static void __dcon_vbpi_color(__integer fore)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
@@ -442,10 +450,10 @@ static void __cons_vbpi_color(__integer fore)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
         curColor = fore;  /* !!! */
-} /* __cons_vbpi_color */
+} /* __dcon_vbpi_color */
 
 
-static void __cons_vbpii_locate(__integer newY, __integer newX)
+static void __dcon_vbpii_locate(__integer newY, __integer newX)
 {
     newY--;
     newX--;
@@ -454,10 +462,10 @@ static void __cons_vbpii_locate(__integer newY, __integer newX)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
         __setCursorXY(newX, newY);
-} /* __cons_vbpii_locate */
+} /* __dcon_vbpii_locate */
 
 
-static void __cons_vbpNi_locate(__integer newX)
+static void __dcon_vbpNi_locate(__integer newX)
 {
     newX--;
 
@@ -465,10 +473,10 @@ static void __cons_vbpNi_locate(__integer newX)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
         __setCursorXY(newX, y);
-} /* __cons_vbpNi_locate */
+} /* __dcon_vbpNi_locate */
 
 
-static void __cons_vbpiN_locate(__integer newY)
+static void __dcon_vbpiN_locate(__integer newY)
 {
     newY--;
 
@@ -476,16 +484,16 @@ static void __cons_vbpiN_locate(__integer newY)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
         __setCursorXY(x, newY);
-} /* __cons_vbpiN_locate */
+} /* __dcon_vbpiN_locate */
 
 
-static void __cons_vbp_locate(void)
+static void __dcon_vbp_locate(void)
 {
     /* do nothing. */
-} /* __cons_vbp_locate */
+} /* __dcon_vbp_locate */
 
 
-static void __cons_getConsoleHandlerName(__byte *buffer, __integer size)
+static void __dcon_getConsoleDriverName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -496,7 +504,7 @@ static void __cons_getConsoleHandlerName(__byte *buffer, __integer size)
  */
 {
     strncpy(buffer, "DirectConsole", size);
-} /* __cons_getConsoleHandlerName */
+} /* __dcon_getConsoleDriverName */
 
 
 __boolean __initDirectConsole(void)
@@ -507,26 +515,27 @@ __boolean __initDirectConsole(void)
  *  returns : boolean true if initialized, false on error.
  */
 {
-    __boolean retVal = __cons_openConsole();
+    __boolean retVal = __dcon_openConsole();
 
     if (retVal == true)
     {
-        __deinitConsoleHandler = __cons_deinitConsoleHandler;
-        __getConsoleHandlerName = __cons_getConsoleHandlerName;
-        __printNewLine = __cons_printNewLine;
-        __printNChars = __cons_printNChars;
-        _vbpii_viewPrint = __cons_vbpii_viewPrint;
-        _vbp_viewPrint = __cons_vbp_viewPrint;
-        _vbp_cls = __cons_vbp_cls;
-        _vbi_csrline = __cons_vbi_csrline;
-        _vbia_pos = __cons_vbia_pos;
-        _vbpiii_color = __cons_vbpiii_color;
-        _vbpil_color = __cons_vbpil_color;
-        _vbpi_color = __cons_vbpi_color;
-        _vbpii_locate = __cons_vbpii_locate;
-        _vbpNi_locate = __cons_vbpNi_locate;
-        _vbpiN_locate = __cons_vbpiN_locate;
-        _vbp_locate = __cons_vbp_locate;
+        __deinitConsoleDriver = __dcon_deinitConsoleDriver;
+        __getConsoleDriverName = __dcon_getConsoleDriverName;
+        __printNewLine = __dcon_printNewLine;
+        __printNChars = __dcon_printNChars;
+        _vbpii_viewPrint = __dcon_vbpii_viewPrint;
+        _vbp_viewPrint = __dcon_vbp_viewPrint;
+        _vbp_cls = __dcon_vbp_cls;
+        _vbi_csrline = __dcon_vbi_csrline;
+        _vbia_pos = __dcon_vbia_pos;
+        _vbpiii_color = __dcon_vbpiii_color;
+        _vbpil_color = __dcon_vbpil_color;
+        _vbpi_color = __dcon_vbpi_color;
+        _vbpii_locate = __dcon_vbpii_locate;
+        _vbpNi_locate = __dcon_vbpNi_locate;
+        _vbpiN_locate = __dcon_vbpiN_locate;
+        _vbp_locate = __dcon_vbp_locate;
+        _vbp_beep = __dcon_vbp_beep;
     } /* if */
 
     return(retVal);

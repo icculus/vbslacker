@@ -13,6 +13,9 @@
 extern "C" {
 #endif
 
+void __initRegistryFunctions(void);
+void __deinitRegistryFunctions(void);
+
 void _vbpSS_deletesetting(PBasicString appName, PBasicString section);
 void _vbpSSS_deletesetting(PBasicString appName,
                            PBasicString section,

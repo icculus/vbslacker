@@ -17,6 +17,7 @@
 #define _INCLUDE_STDBASIC_H_
 
 #include "Platform.h"
+#include "BasicEnvironment.h"
 #include "Assembler.h"
 #include "MemoryManager.h"
 #include "Language.h"
@@ -26,7 +27,6 @@
 #include "Threads.h"
 #include "Initialize.h"
 #include "BasicArray.h"
-#include "BasicFileStream.h"
 #include "SignalHandlers.h"
 #include "Gosub.h"
 

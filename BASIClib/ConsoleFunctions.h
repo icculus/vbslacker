@@ -13,8 +13,8 @@
 extern "C" {
 #endif
 
-extern void (*__getConsoleHandlerName)(__byte *buf, __integer size);
-extern void (*__deinitConsoleHandler)(void);
+extern void (*__getConsoleDriverName)(__byte *buf, __integer size);
+extern void (*__deinitConsoleDriver)(void);
 extern void (*__printNewLine)(void);
 extern void (*__printNChars)(__byte *str, __long n);
 extern void (*_vbpii_viewPrint)(__integer top, __integer bottom);
@@ -29,6 +29,7 @@ extern void (*_vbpii_locate)(__integer newY, __integer newX);
 extern void (*_vbpNi_locate)(__integer newX);
 extern void (*_vbpiN_locate)(__integer newY);
 extern void (*_vbp_locate)(void);
+extern void (*_vbp_beep)(void);
 
 
 void __initConsoleFunctions(void);

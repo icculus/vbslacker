@@ -4,6 +4,7 @@
  *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdlib.h>      /* need NULL definition... */
 #include "Gosub.h"
 
 void __prepareGosub(void *ret, __PGosubState state)

@@ -18,14 +18,14 @@
 #       define _INCLUDING_LOCAL_ASM_CODE_
 
 #       if (defined __GNUC__)
-#           if (defined I386)
+#           if (defined __I386)
 #               include "Asm_I386_GNU.h"
 #           else
 #               define ___NOASM___
 #           endif
 
 #       elif (defined __MSVC__)
-#           if (defined I386)
+#           if (defined __I386)
 #               include "Asm_I386_MSVC.h"
 #           else
 #               define ___NOASM___

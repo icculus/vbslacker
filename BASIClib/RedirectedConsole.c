@@ -11,9 +11,9 @@
 #include "RedirectedConsole.h"
 
 
-static void __redir_deinitConsoleHandler(void)
+static void __redir_deinitConsoleDriver(void)
 /*
- * Deinitialize this console handler. In this case, just bump the
+ * Deinitialize this console driver. In this case, just bump the
  *  cursor down to the start of the next line...
  *
  *    params : void.
@@ -172,10 +172,15 @@ static void __redir_vbp_locate(void)
 } /* __redir_vbp_locate */
 
 
-static void __redir_getConsoleHandlerName(__byte *buffer, __integer size)
+static void __redir_vbp_beep(void)
+{
+} /* __redir_vbp_beep */
+
+
+static void __redir_getConsoleDriverName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
- *  handler to a buffer.
+ *  driver to a buffer.
  *
  *      params : buffer == allocated buffer to copy name to.
  *               size   == maximum bytes to copy to buffer.
@@ -183,7 +188,7 @@ static void __redir_getConsoleHandlerName(__byte *buffer, __integer size)
  */
 {
     strncpy(buffer, "RedirectedConsole", size);
-} /* __redir_getConsoleHandlerName */
+} /* __redir_getConsoleDriverName */
 
 
 __boolean __initRedirectedConsole(void)
@@ -215,8 +220,8 @@ void __forceRedirectedConsole(void)
  *    returns : void.
  */
 {
-    __getConsoleHandlerName = __redir_getConsoleHandlerName;
-    __deinitConsoleHandler = __redir_deinitConsoleHandler;
+    __getConsoleDriverName = __redir_getConsoleDriverName;
+    __deinitConsoleDriver = __redir_deinitConsoleDriver;
     __printNewLine = __redir_printNewLine;
     __printNChars = __redir_printNChars;
     _vbpii_viewPrint = __redir_vbpii_viewPrint;
@@ -231,6 +236,7 @@ void __forceRedirectedConsole(void)
     _vbpNi_locate = __redir_vbpNi_locate;
     _vbpiN_locate = __redir_vbpiN_locate;
     _vbp_locate = __redir_vbp_locate;
+    _vbp_beep = __redir_vbp_beep;
 } /* __forceRedirectedConsole */
 
 /* end of RedirectedConsole.c ... */
