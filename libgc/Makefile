@@ -8,7 +8,7 @@
 #	 c++ interface to gc.a
 # cord/de - builds dumb editor based on cords.
 ABI_FLAG= 
-CC=cc $(ABI_FLAG)
+CC=gcc $(ABI_FLAG)
 HOSTCC=$(CC)
 CXX=g++ $(ABI_FLAG)
 AS=as $(ABI_FLAG)
