@@ -61,19 +61,6 @@ extern __calcBasePtrStorage
 ; Here's the procedure itself. Let's do the nasty...
 ;
 
-; !!! lose this. !!!
-extern spacer
-extern printf
-extern printText
-extern printTabs
-
-callText   db   '__callOnEventHandler()...',0Ah,0h
-survived   db   'Survived error handler. Cleaning up...',0Ah,0h
-origEBP    db   'Original EBP == (%p)',0Ah,0h
-
-; !!! lose this. !!!
-
-
 global __callOnEventHandler
 
 ; This procedure copies the stack from event handling procedure to top
@@ -96,25 +83,6 @@ global __callOnEventHandler
 ;    returns : any return value from BASIC routine in EAX.
 
 __callOnEventHandler:                   ; proc
-
-             ; !!! Lose this
-        pushad
-        mov     eax,callText
-        push    eax
-        mov     eax,[spacer]
-        push    eax
-        call    printText
-        add     esp,8
-        popad
-        
-        pushad
-        mov     eax,[spacer]
-        inc     eax
-        mov     dword [spacer],eax
-        popad
-            ; !!! Lose this
-
-
             ; Due to all our stack voodoo, there's no need to go through
             ;  a few "standard" assembly procedure details, like pushing
             ;  the original base pointer. Therefore, all arguments will be
@@ -153,24 +121,6 @@ __callOnEventHandler:                   ; proc
 @endstackcopy:
 
         mov     eax,[ebx + 16]          ; Store ebx->basePtr in eax.
-
-            ; !!! lose this.
-        pushad
-        mov     ecx,[spacer]
-        push    ecx
-        call    printTabs
-        add     esp,4
-        popad
-
-        pushad
-        push    eax
-        mov     eax,origEBP
-        push    eax
-        call    printf
-        add     esp,8
-        popad
-            ; !!! lose this.
-
         dec     esi                     ; point esi to end of copied stack.
         sub     esi,esp                 ; Calculate offset between two stacks.
         add     eax,esi                 ;  ...add it to original base pointer...
@@ -186,23 +136,6 @@ __callOnEventHandler:                   ; proc
         jmp     [ebx]                   ;  ...jump blindly into event handler...
 
 @returnloc:                             ;  ...and (maybe) land right here.
-
-            ; !!! lose this.
-        pushad
-        mov     ecx,[spacer]
-        push    ecx
-        call    printTabs
-        add     esp,4
-        popad
-
-        pushad
-        mov     eax,survived
-        push    eax
-        call    printf
-        add     esp,4
-        popad
-            ; !!! lose this.
-
 
         push    ebp                     ; Save all important registers.
         push    edi
@@ -245,22 +178,6 @@ __callOnEventHandler:                   ; proc
         pop     esi
         pop     edi
         pop     ebp
-
-             ; !!! Lose this
-        pushad
-        mov     eax,[spacer]
-        dec     eax
-        mov     dword [spacer],eax
-
-        mov     eax,callText
-        push    eax
-        mov     eax,[spacer]
-        push    eax
-        call    printText
-        add     esp,8
-        popad        
-            ; !!! Lose this
-
 
         mov     esp,ecx                 ; adjust stack for return call...
         ret                             ;  ...and pray for the best.
