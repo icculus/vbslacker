@@ -90,6 +90,20 @@ char *__getUserAppDir(void)
 } /* __getUserAppDir */
 
 
+__boolean __initializationComplete(void)
+/*
+ * Inform whether BASIClib initialization is complete. If this returns false,
+ *  assume nothing but the standard C library has been initialized
+ *  fully. Avoid BASIClib calls.
+ *
+ *      params : void.
+ *     returns : (true) if BASIClib is good to go, (false) otherwise.
+ */
+{
+    return(initialized);
+} /* __initializationComplete */
+
+
 void __initBasicLib(__long flags, int argc, char **argv, char **envp)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
@@ -132,6 +146,7 @@ void __deinitBasicLib(void)
     if (initialized == true)
     {
         initFlags = INITFLAG_NOT_INITIALIZED;
+        initialized = false;
         __deinitFileSystemFunctions();
         __deinitRegistryFunctions();
         __deinitEnvrFunctions();
@@ -139,7 +154,6 @@ void __deinitBasicLib(void)
         __deinitGUIFrontEnd();
         __deinitConsoleFunctions();
         __deinitBasicError();
-        initialized = false;
     } /* if */
 } /* __deinitBasicLib */
 
