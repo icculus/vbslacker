@@ -20,12 +20,16 @@ extern "C" {
 void __initFileSystemFunctions(void);
 void __deinitFileSystemFunctions(void);
 void __initThreadFileSystemFunctions(__integer tidx);
+void __deinitThreadFileSystemFunctions(__integer tidx);
 
 void _vbpS_kill(PBasicString fileName);
 void _vbpS_mkdir(PBasicString dirStr);
 void _vbpS_rmdir(PBasicString dirStr);
 void _vbpSS_name(PBasicString oldName, PBasicString newName);
 void _vbpSS_filecopy(PBasicString src, PBasicString dest);
+void _vbpS_chdir(PBasicString newDir);
+PBasicString _vbSS_curdir_DC_(PBasicString drive);
+PBasicString _vbS_curdir_DC_(void);
 
 #ifdef __cplusplus
 }
