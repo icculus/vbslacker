@@ -13,14 +13,17 @@
 static boolean inGraphicsState = false;
 
 /* variable function pointers... */
-void (*__vbpS_print)(STATEPARAMS, PBasicString x) = NULL;
-void (*__vbpii_viewPrint)(STATEPARAMS, int top, int bottom) = NULL;
-void (*__vbp_viewPrint)(STATEPARAMS) = NULL;
-void (*__vbp_cls)(STATEPARAMS) = NULL;
-int  (*__vbi_csrline)(STATEPARAMS) = NULL;
-int  (*__vbiA_pos)(STATEPARAMS, void *pVar) = NULL;
-void (*__vbpiii_color)(STATEPARAMS, int fore, int back, int bord) = NULL;
-void (*__deinitConsole)(STATEPARAMS);
+void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size);
+void (*__deinitConsoleHandler)(STATEPARAMS);
+void (*vbpS_print)(STATEPARAMS, PBasicString x) = NULL;
+void (*vbpii_viewPrint)(STATEPARAMS, int top, int bottom) = NULL;
+void (*vbp_viewPrint)(STATEPARAMS) = NULL;
+void (*vbp_cls)(STATEPARAMS) = NULL;
+int  (*vbi_csrline)(STATEPARAMS) = NULL;
+int  (*vbiA_pos)(STATEPARAMS, void *pVar) = NULL;
+void (*vbpiii_color)(STATEPARAMS, int fore, int back, int bord) = NULL;
+void (*vbpil_color)(STATEPARAMS, int fore, long palette) = NULL;
+void (*vbpi_color)(STATEPARAMS, int fore) = NULL;
 
 
 void __initConsoleFunctions(STATEPARAMS)
@@ -44,16 +47,17 @@ void __initConsoleFunctions(STATEPARAMS)
 
 void __deinitConsoleFunctions(STATEPARAMS)
 {
-    __deinitConsole(STATEARGS);   /* call handler-specific de-init. */
+    __deinitConsoleHandler(STATEARGS);   /* call handler-specific de-init. */
 
-    __vbpS_print = NULL;        /* blank all the func pointers out... */
-    __vbpii_viewPrint = NULL;
-    __vbp_viewPrint = NULL;
-    __vbp_cls = NULL;
-    __vbi_csrline = NULL;
-    __vbiA_pos = NULL;
-    __vbpiii_color = NULL;
-    __deinitConsole = NULL;
+    __getConsoleHandlerName = NULL;  /* blank all the func pointers out... */
+    __deinitConsoleHandler = NULL;
+    vbpS_print = NULL;        
+    vbpii_viewPrint = NULL;
+    vbp_viewPrint = NULL;
+    vbp_cls = NULL;
+    vbi_csrline = NULL;
+    vbiA_pos = NULL;
+    vbpiii_color = NULL;
 } /* __deinitConsoleFunctions */
 
 

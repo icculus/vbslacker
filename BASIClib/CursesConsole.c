@@ -26,7 +26,7 @@ static int __curs_openConsole(STATEPARAMS)
 } /* __curs_openConsole */
 
 
-static void __curs_deinitConsole(STATEPARAMS)
+static void __curs_deinitConsoleHandler(STATEPARAMS)
 {
     endwin();
 } /* __curs_deinitConsole */
@@ -131,10 +131,28 @@ static int __curs_vbiA_pos(STATEPARAMS, void *pVar)
 } /* vbiA_pos */
 
 
-vbpiii_color(STATEPARAMS, int foreground, int background, int border)
+static void __curs_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
 {
-    wcolor_set(cons,
-} /* vbpiii_color */
+    wcolor_set(cons, !!!
+} /* __curs_vbpiii_color */
+
+
+static void __curs_vbpil_color(STATEPARAMS, int fore, long feh)
+{
+    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+} /* __curs_vbpiii_color */
+
+
+static void __curs_vbpi_color(STATEPARAMS, int fore)
+{
+    __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+} /* __curs_vbpiii_color */
+
+
+static void __curs_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+{
+    strncpy(buffer, "CursesConsole", size);
+} /* __curs_getConsoleHandlerName */
 
 
 boolean __initCursesConsole(STATEPARAMS)
@@ -149,14 +167,17 @@ boolean __initCursesConsole(STATEPARAMS)
 
     if (__curs_openConsole(STATEARGS) != -1)
     {
-        __deinitConsole = __curs_deinitConsole;
-        __vbpS_print = __curs_vbpS_print;
-        __vbpii_viewPrint = __curs_vbpii_viewPrint;
-        __vbp_viewPrint = __curs_vbpii_viewPrint;
-        __vbp_cls = __curs_vbp_cls;
-        __vbi_csrline = __curs_vbi_csrline;
-        __vbiA_pos = __curs_vbiA_pos;
-        __vbpiii_color = __curs_vbpiii_color;
+        __getConsoleHandlerName = __cons_getConsoleHandlerName;
+        __deinitConsoleHandler = __curs_deinitConsoleHandler;
+        vbpS_print = __curs_vbpS_print;
+        vbpii_viewPrint = __curs_vbpii_viewPrint;
+        vbp_viewPrint = __curs_vbpii_viewPrint;
+        vbp_cls = __curs_vbp_cls;
+        vbi_csrline = __curs_vbi_csrline;
+        vbiA_pos = __curs_vbiA_pos;
+        vbpiii_color = __curs_vbpiii_color;
+        vbpiii_color = __curs_vbpil_color;
+        vbpiii_color = __curs_vbpi_color;
         retVal = true;
     } /* if */
 } /* __initCursesConsole */
