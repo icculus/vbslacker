@@ -34,9 +34,32 @@ int vbi_erl(STATEPARAMS)
     return(0);
 } /* vbi_erl */
 
-/* erdev */
-/* erdev$ */
 
+int vbi_erdev(STATEPARAMS)
+/*
+ * Very DOS and hardware-specific remnant of old BASICs. Suppose to
+ *  return the last device error number reported from DOS. We don't do this.
+ *
+ *     params : void.
+ *    returns : always (0).
+ */
+{
+    return(0);
+} /* vbi_erdev */
+
+
+PBasicString vbS_erdev_DC_(STATEPARAMS)
+/*
+ * Very DOS and hardware-specific remnant of old BASICs. Suppose to
+ *  return the name of the last device to generate a critical error
+ *  number reported from DOS. We don't do this.
+ *
+ *     params : void.
+ *    returns : always a empty BASIC string ("").
+ */
+{
+    return(__createString(STATEARGS, "", false));
+} /* vbS_erdev_DC_ */
 
 /* end of ErrorFunctions.c ... */
 
