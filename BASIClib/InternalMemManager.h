@@ -4,11 +4,16 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifndef _INCLUDE_STDBASIC_H_
+
+#include "StdBasic.h"
+
+#else
+
 #ifndef _INCLUDE_INTERNALMEMMANAGER_H_
 #define _INCLUDE_INTERNALMEMMANAGER_H_
 
 #include <stdlib.h>
-#include "RegState.h"
 
 void __initInternalMemManager(STATEPARAMS);
 void __deinitInternalMemManager(STATEPARAMS);
@@ -29,6 +34,7 @@ void __memReleaseAllBoxcars(STATEPARAMS);
 void __memReleaseBoxcarsBelow(STATEPARAMS, unsigned long boxcarId);
 void __memReleaseBoxcarsAbove(STATEPARAMS, unsigned long boxcarId);
 
+#endif
 #endif
 
 /* end of InternalMemManager.h ... */

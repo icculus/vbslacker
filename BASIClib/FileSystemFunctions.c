@@ -12,11 +12,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include <fcntrl.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include "ErrorFunctions.h"
-#include "Boolean.h"
+#include "FileSystemFunctions.h"
 
 
 boolean __fileExists(STATEPARAMS, char *fileName)
@@ -66,6 +65,9 @@ int __fileSystemErrors(STATEPARAMS)
  *   returns : One of the ERR_* constants defined in "ErrorFunctions.h" ...
  */
 {
+
+#warning __fileSystemErrors() is not accurate.
+
     int errorType;
 
     switch (errno)
@@ -78,7 +80,7 @@ int __fileSystemErrors(STATEPARAMS)
         case EPERM:
         case EISDIR:
         case EROFS:
-            errorType = ERR_ACCESS_DENIED;
+            errorType = ERR_PERMISSION_DENIED;
             break;
         case ENOENT:
         case ENOTDIR:
@@ -103,7 +105,7 @@ void vbpS_kill(STATEPARAMS, PBasicString fileName)
 
     if (remove(ascizFileName) == -1)   /* -1 == error. */
     {
-        errorType == __fileSystemErrors(STATEARGS);
+        errorType = __fileSystemErrors(STATEARGS);
         __runtimeError(STATEARGS, errorType);
     } /* if */
 
@@ -118,7 +120,7 @@ void vbpS_mkdir(STATEPARAMS, PBasicString dirStr)
 
     if (mkdir(ascizDirName, S_IRWXU) == -1)
     {
-        errorType == __fileSystemErrors(STATEARGS);
+        errorType = __fileSystemErrors(STATEARGS);
         __runtimeError(STATEARGS, errorType);
     } /* if */
 
@@ -133,7 +135,7 @@ void vbpS_rmdir(STATEPARAMS, PBasicString dirStr)
 
     if (rmdir(ascizDirName) == -1)
     {
-        errorType == __fileSystemErrors(STATEARGS);
+        errorType = __fileSystemErrors(STATEARGS);
         __runtimeError(STATEARGS, errorType);
     } /* if */
 
@@ -149,11 +151,12 @@ void vbpSS_name(STATEPARAMS, PBasicString oldName, PBasicString newName)
 
     if (rename(ascizOldName, ascizNewName) == -1)
     {
-        errorType == __fileSystemErrors(STATEARGS);
+        errorType = __fileSystemErrors(STATEARGS);
         __runtimeError(STATEARGS, errorType);
     } /* if */
 
-    __memFree(STATEARGS, ascizDirName);
+    __memFree(STATEARGS, ascizOldName);
+    __memFree(STATEARGS, ascizNewName);
 } /* vbpSS_name */
 
 
@@ -165,15 +168,19 @@ void vbp_files(STATEPARAMS)
 
     dp = opendir ("./");
     if (dp == NULL)
-        __runtimeError(STATEPARAMS, ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
     else
     {
         /* !!! spacing won't be right. */
-        while (ep = readdir(dp))
+        while ((ep = readdir(dp)))
         {
             pStr = __createString(STATEARGS, ep->d_name, true);
+
+/*
             vbpS_print(STATEARGS, pStr);
             vbpS_print(STATEARGS, pSpaces);
+*/
+
             __freeString(STATEARGS, pStr);
         } /* while */
         closedir(dp);

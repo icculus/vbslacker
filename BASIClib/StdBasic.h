@@ -20,6 +20,15 @@
 #include "Boolean.h"
 #include "BasicString.h"
 #include "Variant.h"
+#include "OnOffStopType.h"
+#include "InternalMemManager.h"
+#include "BasicError.h"
+#include "Threads.h"
+#include "Initialize.h"
+#include "BasicArray.h"
+#include "BasicFileStream.h"
+#include "SignalHandlers.h"
+#include "OnEvents.h"
 
 #endif
 

@@ -7,9 +7,9 @@
  */
 
 #include <string.h>
+#include <memory.h>
 #include <ctype.h>
-#include "BasicString.h"
-#include "ErrorFunctions.h"
+#include "StringFunctions.h"
 
 
 PBasicString vbSSi_right_DC_(STATEPARAMS, PBasicString pStr, int count)
@@ -204,13 +204,86 @@ PBasicString vbSi_space_DC_(STATEPARAMS, int length)
     return(retVal);
 } /* vbSi_space_DC_ */
 
+
+int vbiiSS_instr(STATEPARAMS, int start, PBasicString str1, PBasicString str2)
+/*
+ * Search a string for the first occurrence of a substring.
+ *
+ *    params : start == char position (option base 1) to start search.
+ *             str1 == String to search for (str2).
+ *             str2 == String to find in (str1).
+ *   returns : index of first char of (str2) in (str1), (0) if not found.
+ */
+{
+    int retVal = 0;
+    char *ascizStr1;
+    char *ascizStr2;
+    char *rc;
+
+    if (start <= 0)
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    else
+    {
+        if (start <= str1->length)
+        {
+            start--;   /* make option base 0. */
+            ascizStr1 = __basicStringToAsciz(STATEARGS, str1);
+            ascizStr2 = __basicStringToAsciz(STATEARGS, str2);
+            rc = strstr(ascizStr1 + start, ascizStr2);
+
+            if (rc != NULL)
+                retVal = ((rc - ascizStr1) + 1);
+
+            __memFree(STATEARGS, ascizStr1);
+            __memFree(STATEARGS, ascizStr2);
+        } /* if */
+    } /* else */
+
+    return(retVal);
+} /* vbiiSS_instr */
+
+
+int vbiSS_instr(STATEPARAMS, PBasicString str1, PBasicString str2)
+/*
+ * Search a string for the first occurrence of a substring, starting
+ *  the search at position #1 of (str1).
+ *
+ *    params : str1 == String to search for (str2).
+ *             str2 == String to find in (str1).
+ *   returns : index of first char of (str2) in (str1), (0) if not found.
+ */
+{
+    return(vbiiSS_instr(STATEARGS, 1, str1, str2));
+} /* vbiSS_instr */
+
+
+
+PBasicString vbSii_string_DC_(STATEPARAMS, int rep, int ch)
+{
+    PBasicString retVal = __allocString(STATEARGS, rep, false);
+    memset(retVal->data, ch, rep);
+    return(retVal);
+} /* vbSii_string_DC_ */
+
+
+PBasicString vbSiS_string_DC_(STATEPARAMS, int rep, PBasicString strCh)
+{
+    PBasicString retVal = NULL;
+
+    if (strCh->length == 0)
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+    else
+        retVal = vbSii_string_DC_(STATEARGS, rep, (int) strCh->data[0]);
+
+    return(retVal);
+} /* vbSiS_string_DC_ */
+
+
 /* !!! still need: */
 /* mid$ */
 /* mid$ = */
-/* instr */
 /* LSET */
 /* rset */
-/* string$ */
 
 /* end of StringFunctions.c ... */
 

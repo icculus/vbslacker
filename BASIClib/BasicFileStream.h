@@ -4,6 +4,12 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifndef _INCLUDE_STDBASIC_H_
+
+#include "StdBasic.h"
+
+#else
+
 #ifndef _INCLUDE_BASICFILESTREAM_H_
 #define _INCLUDE_BASICFILESTREAM_H_
 
@@ -33,6 +39,7 @@ void __initBasicFileStream(STATEPARAMS);
 boolean __invalidFileNumber(STATEPARAMS, short fileNumber);
 __PBasicFileStream __createFileStream(STATEPARAMS, short fileNumber);
 
+#endif
 #endif
 
 /* end of BasicFileStream.h ... */

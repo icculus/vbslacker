@@ -4,10 +4,14 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifndef _INCLUDE_STDBASIC_H_
+
+#include "StdBasic.h"
+
+#else
 
 #ifndef _INCLUDE_VARIANT_H_
 #define _INCLUDE_VARIANT_H_
-
 
 /*
  * Variant data types, for Variant.type field ...
@@ -43,6 +47,14 @@ typedef struct
 
 typedef Variant *PVariant;
 
+/* !!! need __intrinsicToVariant() calls, too. */
+int __variantToInt(STATEPARAMS, PVariant var);
+long __variantToLong(STATEPARAMS, PVariant var);
+float __variantToFloat(STATEPARAMS, PVariant var);
+double __variantToDouble(STATEPARAMS, PVariant var);
+PBasicString __variantToString(STATEPARAMS, PVariant pVar, boolean byRef);
+
+#endif
 #endif
 
 /* end of Variant.h ... */

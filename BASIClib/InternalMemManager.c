@@ -6,8 +6,6 @@
 
 #include <stdlib.h>
 #include "InternalMemManager.h"
-#include "ErrorFunctions.h"
-#include "Threads.h"
 
 typedef struct _Boxcar
 {

@@ -7,7 +7,7 @@
 #ifndef _INCLUDE_LOWLEVELFUNCTIONS_H_
 #define _INCLUDE_LOWLEVELFUNCTIONS_H_
 
-#include "RegState.h"
+#include "StdBasic.h"
 
 int vbil_peek(STATEPARAMS, long addr);
 void vbpli_poke(STATEPARAMS, long addr, int newVal);

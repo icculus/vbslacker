@@ -10,11 +10,6 @@
 
 #include <stdlib.h>
 #include "OnEvents.h"
-#include "Initialize.h"
-#include "ErrorFunctions.h"
-#include "InternalMemManager.h"
-#include "Threads.h"
-#include "Boolean.h"
 
 
 #ifdef WIN32
@@ -24,8 +19,6 @@
     #define CLEANUPPROC "__cleanupOnEventHandler"
     #define FREEPROC    "free"
 #endif
-
-#warning is ERR_INTERNAL_ERROR good for malloc() fails in OnEvents?
 
 
     /*
@@ -60,7 +53,7 @@ typedef OnEventsState *POnEventsState;
     /*
      * module scope thread lock.
      */
-ThreadLock onEventsLock;
+static ThreadLock onEventsLock;
 
     /*
      * This is used in __initThreadOnEvents(), to determine whether we need
@@ -79,6 +72,10 @@ static POnEventsState *ppState = NULL;
 #ifdef DEBUG
 
 static inline boolean binaryDump(char *fileName, void *data, int size)
+/*
+ * This function dumps (size) bytes starting at (data) to the file
+ *  (fileName).
+ */
 {
     FILE *binStream = fopen(fileName, "wb");
     boolean retVal = false;
@@ -149,6 +146,11 @@ POnEventsState __getOnEventsState(STATEPARAMS)
 
 
 unsigned long __getOnEventsRecursionCount(STATEPARAMS)
+/*
+ * This is mostly for testlib to determine if OnEvents is buggy.
+ *  This returns a number signifying how many OnEvent handlers are
+ *  still executing for the current thread.
+ */
 {
     return(__getOnEventsState(STATEARGS)->ptrCount);
 } /* __getOnEventsRecursionCount */
@@ -253,7 +255,10 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
  *  do something like this:
  *
  *   __setResumeStack;
+ *   __setResumeInstructs(&&l0, &&l1);
+ *   l0:
  *   __registerOnEventHandler(STATEARGS, &&handlerLabel, ONERROR);
+ *   l1:
  *
  * __setResumeStack is a macro that simply fills the current base and stack
  *  pointers into STATEPARAMS. We need this to be inlined, and done before 
@@ -261,8 +266,11 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
  *  parser/compiler inserts this macro at the beginning of each function, so
  *  the state should be cool for this call at any time.
  *
+ * __setResumeInstructs is a macro that sets the addresses that will be
+ *  jumped to for RESUME 0 and RESUME NEXT commands.
+ *
  * handlerAddr is the goto label we'll be blindly jumping to to handle the
- *  the runtime error.
+ *  the runtime error. NULL is like ON ERROR GOTO 0.
  *
  * evType just guarantees that we don't call a timer handler for a runtime
  *  error, etc...
@@ -291,8 +299,8 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
     if ((__stBP == NULL) || (__stSP == NULL))
         __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
 
+#warning get your damned skymiles code out of here...
     /* !!! delta skymiles: 2268730674 */
-    /* !!! mom's : 215-881-5341 */
 
         /* determine if we should replace a currently registered handler. */
     for (i = pState->handlerCount - 1; (i >= 0) && (getOut == false); i--)
@@ -332,6 +340,7 @@ void __deregisterAllOnEventHandlers(STATEPARAMS)
 /*
  * This function does the same thing as __deregisterOnEventHandlers(), but
  *  considers all OnEvent handlers irrelevant, thus removing them all.
+ *  Careful with this one.
  *
  *     params : void.
  *    returns : void.
@@ -380,7 +389,7 @@ void __deregisterOnEventHandlers(STATEPARAMS)
 
     if (ppHandler != NULL)
         pState->handlers = ppHandler;
-} /* __deregisterOnEventHandler */
+} /* __deregisterOnEventHandlers */
 
 
 void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType)
@@ -400,29 +409,29 @@ void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType)
 void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
                       OnEventTypeEnum evType)
 /*
- * !!! comment.
+ * Call this to make the code flow jump into an OnEvent handler.
+ *
  *    params : pHandler == OnEvent handler to call.
  *   returns : probably won't return directly.
  */
 {
-
-#warning __triggerOnEvent() BADLY needs commenting!
-
     unsigned long size;
     void *rc;
     POnEventHandlerPtrs ptrs;
     POnEventsState pState = __getOnEventsState(STATEARGS);
 
-    if (pHandler->handlerAddr == NULL)
+    if (pHandler->handlerAddr == NULL)  /* On event goto 0? */
         return;
 
+        /* record keeping: allocate space for another set of pointers... */
     pState->ptrCount++;
-    pState->ptrs = realloc(pState->ptrs, 
+    pState->ptrs = realloc(pState->ptrs,
                              pState->ptrCount * sizeof (OnEventHandlerPtrs));
     if (pState->ptrs == NULL)
         __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
     else
     {
+            /* fill in pointers... */
         ptrs = &pState->ptrs[pState->ptrCount - 1];
         ptrs->evType = evType;
         __getBasePointer(&ptrs->basePtr);
@@ -508,11 +517,14 @@ void *__cleanupOnEventHandler(STATEPARAMS)
 
 
 void __doResume(STATEPARAMS, unsigned int retAddrIndex)
-#warning RESUME functions BADLY need commenting!
 /*
- *  !!! comment.
+ * Basic's RESUME command. If RESUME support hasn't been disabled,
+ *  and everything goes correctly, this will make the code flow jump
+ *  to the address of the event-triggering statement, or the next
+ *  statement after the event.
  *
- *
+ *     params : retAddrIndex == if 0, RESUME 0, if 1, RESUME NEXT.
+ *    returns : Should never return, as code jumps elsewhere.
  */
 {
     POnEventsState pState = __getOnEventsState(STATEARGS);
@@ -584,15 +596,28 @@ void __doResume(STATEPARAMS, unsigned int retAddrIndex)
 
 
 void __resumeNext(STATEPARAMS)
+/*
+ * Jump code to line AFTER the one that cause event to be triggered.
+ *
+ *    params : void.
+ *   returns : Should never return, as code jumps elsewhere.
+ */
 {
     __doResume(STATEARGS, 1);
 } /* __resumeNext */
 
 
 void __resumeZero(STATEPARAMS)
+/*
+ * Jump code to line that cause event to be triggered.
+ *
+ *    params : void.
+ *   returns : Should never return, as code jumps elsewhere.
+ */
 {
     __doResume(STATEARGS, 0);
 } /* __resumeNext */
+
 
 /* end of OnEvents.c ... */
 

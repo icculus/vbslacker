@@ -7,9 +7,7 @@
 #ifndef _INCLUDE_FILESYSTEMFUNCTIONS_H_
 #define _INCLUDE_FILESYSTEMFUNCTIONS_H_
 
-#include "BasicString.h"
-#include "RegState.h"
-#include "Boolean.h"
+#include "StdBasic.h"
 
 boolean __fileExists(STATEPARAMS, char *fileName);
 void vbpS_kill(STATEPARAMS, PBasicString fileName);

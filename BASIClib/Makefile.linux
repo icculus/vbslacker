@@ -8,7 +8,8 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ErrorFunctions.o MathFunctions.o InternalMemManager.o Threads.o \
        TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
        StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
-       ConsoleFunctions.o PenFunctions.o
+       ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
+       FileSystemFunctions.o Variant.o BasicError.o
 
 CC = gcc
 LINKER = gcc
@@ -92,5 +93,19 @@ ConsoleFunctions.o : ConsoleFunctions.c ConsoleFunctions.h Threads.h \
 PenFunctions.o : PenFunctions.c PenFunctions.h ErrorFunctions.h
 	$(CC) $(COPTIONS) PenFunctions.o PenFunctions.c
 
-# end of Makefile ...
+ProcessFunctions.o : ProcessFunctions.c ProcessFunctions.h \
+                     Initialize.h BasicString.h 
+	$(CC) $(COPTIONS) ProcessFunctions.o ProcessFunctions.c
+
+FileSystemFunctions.o : FileSystemFunctions.c FileSystemFunctions.h \
+                        Boolean.h
+	$(CC) $(COPTIONS) FileSystemFunctions.o FileSystemFunctions.c
+
+Variant.o : Variant.c Variant.h Boolean.h
+	$(CC) $(COPTIONS) Variant.o Variant.c
+
+BasicError.o : BasicError.c BasicError.h
+	$(CC) $(COPTIONS) BasicError.o BasicError.c
+
+# end of Makefile.linux ...
 
