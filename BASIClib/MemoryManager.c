@@ -6,8 +6,50 @@
 
 #include <stdlib.h>
 #include <malloc.h>
+#include <ctype.h>
 #include "gc.h"
 #include "MemoryManager.h"
+
+#define VBSTARTHEAP  "VBSTARTHEAP"
+
+
+static void increaseDefaultHeap(void)
+{
+    char *env = getenv(VBSTARTHEAP);
+    char *increaseByChar = NULL;
+    __long heapIncrease = 0;
+
+    if (env != NULL)
+    {
+        heapIncrease = atoi(env);
+        increaseByChar = env + strlen(env) - 1;
+
+        switch (tolower(*increaseByChar))
+        {
+            case 'k':
+                heapIncrease *= 1024;
+                break;
+
+            case 'm':
+                heapIncrease *= 1024 * 1024;
+                break;
+
+            case 'g':
+                heapIncrease *= 1024 * 1024 * 1024;
+                break;
+        } /* switch */
+
+        if (heapIncrease > 0)
+        {
+                /* !!! should this be fatal? */
+            if (GC_expand_hp(heapIncrease) == 0) /* 0 == failed */
+                __runtimeError(ERR_OUT_OF_MEMORY);
+        } /* if */
+    } /* if */
+} // increaseDefaultHeap
+
+
+// jillian@giftedandtalented.org
 
 
 void __initMemoryManager(void)
@@ -21,6 +63,7 @@ void __initMemoryManager(void)
     GC_INIT();
     GC_max_retries = 1;
     __memEnableGarbageCollector(true);
+    increaseDefaultHeap();
 } /* __initMemoryManager */
 
 
