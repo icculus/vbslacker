@@ -51,6 +51,32 @@ void ***basePtrStacks = NULL;
 int *basePtrIndexes = NULL;
 
 
+
+#ifdef DEBUG
+
+/* !!! lose this. */ 
+
+#include <stdio.h>
+
+int spacer = 0;
+void printTabs(int spaces)
+{
+    int i;
+    int max = spaces * 4;
+
+    for (i = 0; i < max; i++)
+        printf(" ");
+}    
+
+void printText(int spaces, char *text)
+{
+    printTabs(spaces);
+    printf("%s", text);
+}
+
+#endif
+
+
 void __initThreadOnEvents(int tidx)
 /*
  * This makes sure space exists in the thread-protected arrays for the
@@ -63,6 +89,9 @@ void __initThreadOnEvents(int tidx)
     PHandlerVector table;
     int currentThreadCount;
     int i;
+
+    printText(spacer++, "__initThreadsOnEvents(");
+    printf("%d)...\n", tidx);
 
     __enterCriticalThreadSection();
 
@@ -89,7 +118,8 @@ void __initThreadOnEvents(int tidx)
     } /* for */
 
     basePtrStacks[tidx] = NULL;
-    basePtrIndexes[tidx] = 0;
+    basePtrIndexes[tidx] = -1;
+    printText(--spacer, "__initThreadsOnEvent()...\n");
 } /* __initThreadOnEvents */
 
 
@@ -104,11 +134,16 @@ void __deinitThreadOnEvents(int tidx)
     PHandlerVector table;    
     int i;
 
+    printText(spacer++, "__deinitThreadsOnEvents(");
+    printf("%d)...\n", tidx);
+
     for (i = 0; i < (OnEventTypeEnum) TOTAL; i++)
         __memFree(table[i].handlers);
 
     __memFree(table);
     __memFree(basePtrStacks[tidx]);
+
+    printText(--spacer, "__deinitThreadsOnEvent()...\n");
 } /* __deinitThreadOnEvents */
 
 
@@ -125,12 +160,19 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
     PHandlerVector evVect;
     int tidx = __getCurrentThreadIndex();
 
+    printText(spacer++, "__getOnEventHandler(");
+    printf("%d)...\n", (int) evType);
+
+
     __enterCriticalThreadSection();
     evVect = &pTables[tidx][evType];
     __exitCriticalThreadSection();
 
     if (evVect->count > 0)
         retVal = evVect->handlers[evVect->count - 1];
+
+    printText(--spacer, "__getOnEventHandler()...\n");
+
 
     return(retVal);
 } /* __getOnEventHandler */
@@ -203,6 +245,9 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
     PHandlerVector evVect;
     int tidx = __getCurrentThreadIndex();
 
+    printText(spacer++, "__registerOnEventHandler()...\n");
+
+
     __enterCriticalThreadSection();
     evVect = &pTables[tidx][evType];
     __exitCriticalThreadSection();
@@ -231,6 +276,7 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
     pHandler->stackEnd = stackEnd;
     pHandler->origReturnAddr = origReturnAddr;
     pHandler->basePtr = basePtr;
+    printText(--spacer, "__registerOnEventHandler()...\n");
 } /* __registerOnEventHandler */
 
 
@@ -252,6 +298,7 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
     int tidx = __getCurrentThreadIndex();    
     PHandlerVector evVect;
 
+    printText(spacer++, "__deregisterOnEventHandler()...\n");
 
         /* !!! can we separate this into another function? */
     __enterCriticalThreadSection();
@@ -269,6 +316,7 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
                                              (sizeof (POnEventHandler)));
         } /* if */
     } /* if */
+    printText(--spacer, "__deregisterOnEventHandler()...\n");
 } /* __deregisterOnEventHandler */
 
 
@@ -282,12 +330,25 @@ void **__calcBasePtrStorage(void)
  */
 {
     int tidx = __getCurrentThreadIndex();
+    int bpIndex;
+    void **theStack;
     void **retVal;
 
+    printText(spacer++, "__calcBasePtrStorage()...\n");
+
     __enterCriticalThreadSection();
-    retVal = basePtrStacks[tidx] + basePtrIndexes[tidx];
+    theStack = basePtrStacks[tidx];
+    bpIndex = basePtrIndexes[tidx];
+    retVal = &theStack[bpIndex];
     __exitCriticalThreadSection();
 
+    printText(spacer, "tidx == (");
+    printf("%d)    index == (%d)\n", tidx, basePtrIndexes[tidx]);
+
+    printText(spacer, "retVal = (");
+    printf("%p)\n", retVal);
+
+    printText(--spacer, "__calcBasePtrStorage()...\n");
     return(retVal);
 } /* __calcBasePtrStorage */
 
@@ -306,13 +367,17 @@ void __triggerOnEvent(OnEventTypeEnum evType)
     POnEventHandler pHandler = __getOnEventHandler(evType);
     int tidx = __getCurrentThreadIndex();
 
+    printText(spacer++, "__triggerOnEvent()...\n");
+
     __enterCriticalThreadSection();
     basePtrIndexes[tidx]++;
     basePtrStacks[tidx] = __memRealloc(basePtrStacks[tidx],
-                                      basePtrIndexes[tidx] * sizeof (void *));
+                                      (basePtrIndexes[tidx] + 1) *
+                                         sizeof (void *));
     __exitCriticalThreadSection();
 
     __callOnEventHandler(pHandler);
+    printText(--spacer, "__triggerOnEvent()...\n");
 } /* __triggerOnEvent */
 
 
