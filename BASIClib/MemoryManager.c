@@ -4,6 +4,7 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <string.h>
 #include <stdlib.h>
 #include "MemoryManager.h"
 
@@ -13,14 +14,31 @@
     /*
      * ABOVESTACK is a comparison operator based on which
      *  direction the stack grows on a given platform...
+     * STACKINCREMENT is a unary operator that describes the
+     *  way a pointer must be incremented to go towards the
+     *  the top of the stack.
      */
 #if (STACK_DIRECTION == -1)
 #    define ABOVESTACK <=
+#    define STACKINCREMENT --
 #else
 #    define ABOVESTACK >=
+#    define STACKINCREMENT ++
 #endif
 
-#define SLACKCOLLECT "SLACKCOLLECT"
+    /*
+     * SLACKCOLLECT is the name of the environment variable
+     *  that defines the max pointer freeing count for partial boxcar
+     *  releases.
+     */
+#define SLACKCOLLECT     "SLACKCOLLECT"
+
+    /*
+     * ALLOCFLOODLEVEL is the count of allocated pointers before a
+     *  boxcar flood is suspected.
+     */
+#define ALLOCFLOODLEVEL  30
+
 
 typedef struct _Boxcar
 {
@@ -29,6 +47,7 @@ typedef struct _Boxcar
     void **ptrs;
     struct _Boxcar *next;
     struct _Boxcar *prev;
+    unsigned int overflowCount;
 } Boxcar;
 
 typedef Boxcar *PBoxcar;
@@ -36,7 +55,7 @@ typedef Boxcar *PBoxcar;
 
 static int collectionMax = 20;       /* override by env. var... */
 static PBoxcar *trains = NULL;
-static ThreadLock trainLock = NULL;
+static ThreadLock trainLock;
 
 
 static void __memReleaseAllBoxcars(STATEPARAMS);
@@ -252,11 +271,8 @@ static PBoxcar __retrieveBoxcar(STATEPARAMS)
     if (retVal == NULL)     /* Create a new boxcar? */
     {
         PBoxcar retVal = __memAlloc(STATEARGS, sizeof (Boxcar));
+        memset(retVal, '\0', sizeof (Boxcar));
         retVal->id = __stBP;   /* part of STATEPARAMS ... */
-        retVal->totalPtrs = 0;
-        retVal->ptrs = NULL;
-        retVal->next = NULL;
-        retVal->prev = NULL;
     } /* if */
 
     if (retVal != firstCar)
@@ -278,6 +294,74 @@ static PBoxcar __retrieveBoxcar(STATEPARAMS)
 } /* __retrieveBoxcar */
 
 
+static void __scanForLocalGarbage(STATEPARAMS, PBoxcar pCar)
+/*
+ * This is a VERY simple, conservative garbage collector. Basically,
+ *  it'll scan the stack from (pCar->id) (the base pointer of (pCar)'s
+ *  associated function) to the current base pointer. This should be
+ *  any local variables (and some other minor stack noise) in a given
+ *  function. If no reference to a given pointer in (pCar) is found,
+ *  we consider it garbage, and collect it.
+ *
+
+
+    !!! limit this search?
+
+
+ *    params : pCar == boxcar to use for scan.
+ *   returns : void.
+ */
+{
+    void *stackLoc;   /* current scan point on stack */
+    void *basePtr;    /* current base pointer.       */
+    int i;
+
+    __getBasePointer(&basePtr);
+
+    for (stackLoc = pCar->id; basePtr ABOVESTACK stackLoc; stackLoc++)
+    {
+        for (i = 0; i < pCar->totalPtrs; i++)
+        {
+            if ( pCar->ptrs[i] == *((void **) stackLoc) )
+            {
+
+            } /* if */
+        } /* for */
+    } /* for */
+} /* __scanForLocalGarbage */
+
+
+static void __incrementBoxcarPointers(STATEPARAMS, PBoxcar pCar)
+/*
+ * Increment the pointer counters for a boxcar. If the overflow
+ *  count passes ALLOCFLOODLEVEL, run the collector (yikes) on a
+ *  bit of the stack.
+ *
+ *     params : pCar == Boxcar to increment.
+ *    returns : void.
+ */
+{
+    pCar->totalPtrs++;
+    pCar->overflowCount++;
+    if (pCar->overflowCount > ALLOCFLOODLEVEL)
+        __scanForLocalGarbage(STATEARGS, pCar);
+} /* __incrementBoxcarPointers */
+
+
+static void __decrementBoxcarPointers(STATEPARAMS, PBoxcar pCar)
+/*
+ * Decrement the pointer counters for a boxcar. This is split off
+ *  into a function to coincide with __incrementBoxcarPointers().
+ *
+ *     params : pCar == Boxcar to decrement.
+ *    returns : void.
+ */
+{
+    pCar->totalPtrs--;
+    pCar->overflowCount--;
+} /* __decrementBoxcarPointers */
+
+
 void *__memAllocInBoxcar(STATEPARAMS, size_t byteCount)
 /*
  * Allocate a block of memory, and record the pointer in a boxcar. This
@@ -297,7 +381,8 @@ void *__memAllocInBoxcar(STATEPARAMS, size_t byteCount)
                               (pCar->totalPtrs + 1) * sizeof (void *));
 
     retVal = pCar->ptrs[pCar->totalPtrs] = __memAlloc(STATEARGS, byteCount);
-    pCar->totalPtrs++;
+
+    __incrementBoxcarPointers(STATEARGS, pCar);
 
     return(retVal);
 } /* __memAllocInBoxcar */
