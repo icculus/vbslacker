@@ -277,11 +277,26 @@ void _vbpS_kill(PBasicString fileSpec)
 } /* _vbpS_kill */
 
 
-static __boolean checkReadOnly(struct dirent *pDir)
+static inline __boolean checkReadOnly(struct dirent *pDir)
 {
 #warning write checkReadOnly()!  (How?)
     return(false);
 } /* checkReadOnly */
+
+
+static inline __boolean checkHidden(struct dirent *pDir)
+{
+    __boolean retVal = false;
+
+#   if (defined UNIX)
+        if (pDir->d_name[0] == '.')
+            retVal = true;
+#   else
+#       warning write me!
+#   endif
+
+    return(retVal);
+} /* checkHidden */
 
 
 static __boolean checkDirAttrs(struct dirent *pDir, ThreadDirInfo *tdi)
@@ -314,6 +329,14 @@ static __boolean checkDirAttrs(struct dirent *pDir, ThreadDirInfo *tdi)
             if (checkReadOnly(pDir) == false)
                 retVal = false;
         } /* if */
+
+        if (tdi->attributes & vbHidden)
+        {
+            if (checkHidden(pDir) == false)
+                retVal = false;
+        } /* if */
+
+            /* !!! check volume, system, archive... */
     } /* if */
 
     return(retVal);
@@ -544,7 +567,7 @@ void _vbpSS_name(PBasicString src, PBasicString dest)
     __long errorCode = ERR_NO_ERROR;
     struct stat statInfo;
 
-#warning should filecopy()ed files remove the original in NAME? */
+#warning should filecopy()ed files remove the original in NAME?
 
     if (ignoreFilenameCase)  /* match case on whole path except filename. */
     {
