@@ -1,5 +1,8 @@
 ; Intel 80386 ASM routines for ON EVENT GOTO support in BASIClib.
 ;
+; Ryan is NOT an Assembly guru. Nothing here is guaranteed to be "correct",
+;  "clean," or even "well thought out" code.
+;
 ;    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
 
                               
@@ -20,59 +23,68 @@ global __callOnEventHandler
 ;              (This will be [ebp + 8] when we set up the base ptr.)
 ;    returns : any return value from BASIC routine in EAX.
 
-__callOnEventHandler:                   ; proc near
+__callOnEventHandler:                   ; proc
         push    ebp                     ; Save calling function's base ptr.
         mov     ebp,esp                 ; Move stack ptr to base ptr.
+        sub     esp,4                   ; Allocate local variables...
 
         push    esi                     ; Save registers...
         push    edi
         push    ebx
 
-        mov     ebx,[ebp + 8]           ; Store POnEventHandler in EBX.
-        mov     edi,[ebx]               ; Store handlerAddr in EDI.
-        mov     edx,[ebx + 8]           ; Store stackEnd in EDX.
-        mov     esi,[ebx + 12]          ; Store origReturnAddr in ESI.
-        mov     ebx,[ebx + 4]           ; Store stackStart in EBX.
+        mov     ebx,[ebp + 8]           ; Store POnEventHandler in ebx.
 
-        mov     dword [esi],@returnloc        ; patch return address on stack.
+        mov     ecx,[ebx + 4]           ; Store ebx->stackStart in ecx.
+        mov     eax,[ebx + 8]           ; Store ebx->stackEnd in eax.
+        sub     ecx,eax                 ;  ...subtract to get stack size - 1...
+        inc     ecx                     ;  ...so add one.
 
-        mov     esi,ebx                 ; Put stack start in ESI.
-        mov     ebx,esp                 ; Copy stack pointer to EBX.
+        mov     esi,[ebx + 12]          ; Store ebx->origReturnAddr in ESI.
+        mov     eax,[esi]               ; Get value pointed to by esi...
+        mov     dword [ebp - 4],eax     ;  ...and save it to local variable...
+                                        ;  ...this is where we'll return to.
 
-        std                             ; decrement on LODSB...
+        mov     dword [esi],@returnloc  ; patch return address on stack.
+
+        mov     esi,[ebx + 4]           ; Put stack start in esi.
+        mov     edi,esp                 ; Copy stack pointer to edi.
+
+        sub     esp,ecx                 ; Bump esp for copy space...
+        std                             ; set lodsb/stosb to decrement pointers.
+                                        ;  ...remember stack goes downward.
 @stackcopy:                             ; loop to move stack...
-        cmp     edx,esi                 ; have we hit the end?
-        ja      @endstackcopy           ; then stop.
-        lodsb                           ; Put byte in AL, decrement ESI.
-        mov     [ebx],cl    ; copy a byte.
-        dec     esp                     ; point to next byte...
-        dec     ebx                     ;   ...remember stack goes downward.
-        jmp     @stackcopy              ; do it again.
+        lodsb                           ; al = *((char *) esi); esi--;
+        stosb                           ; *((char *) edi) = al; edi--;
+        loop    @stackcopy              ; ecx--;  if (ecx != 0) goto @stackcopy;
 @endstackcopy:
 
-;
-; EAX handlerAddr ... overwritten by callee with retVal.
-; EBX copy of base ptr ... preserved by callee.
-; ECX not used
-; EDX
-; ESI
-; EDI
-; ESP
-; EBP
-;
+        mov     eax,[ebx + 16]          ; Store ebx->basePtr in eax.
+        dec     esi                     ; point esi to end of copied stack.
+        sub     esi,esp                 ; Calculate offset between two stacks.
+        add     eax,esi                 ;  ...add it to original base pointer...
+        mov     ebp,eax                 ;  ...to fake ebp for handler.
 
-        mov     ebx,ebp                 ; Save copy of base pointer.
-        mov     ebp,esp                 ; Fake the base ptr for handler.
-        jmp     [edi]                   ; execute BASIC error handler.
-                                        ;  retVal is in EAX.
-@returnloc:
+            ; Execute BASIC error handler. Any return value is stored in
+            ;  edx:eax (for 64-bit values, less register space is used for
+            ;  smaller values.) When the code returns to @returnloc (remember
+            ;  we patched the stack?), esp will be wherever it was before
+            ;  we subtracted it before @stackcopy, and we can backtrack from
+            ;  there. ebp will have the base pointer of the function that
+            ;  called the function containing the error handler. Assume all
+            ;  other registers to be clobbered. Whew.
 
-        mov     ebp,ebx                 ; Move base pointer back.
+        mov     edi,[ebx]               ; Store ebx->handlerAddr in edi...
+        jmp     [edi]                   ;  ...jump blindly into it...
+
+@returnloc:                             ;  ...and (maybe) land right here.
+
+        ; !!! do something.
 
         pop     ebx                     ; Restore registers...
         pop     edi
         pop     esi
 
+        add     esp,4                   ; Remove local variables.
         mov     esp,ebp                 ; Restore original stack pointer.
         pop     ebp                     ; Restore calling function's base ptr.
         ret                             ; Return.
