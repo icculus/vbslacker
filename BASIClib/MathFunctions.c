@@ -8,7 +8,7 @@
 #include "MathFunctions.h"
 
 
-int round(double x)
+int __round(double x)
 /*
  * Round (x) to the nearest whole number.
  *
