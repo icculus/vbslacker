@@ -1,5 +1,5 @@
 /*
- * Declares needed for GOSUB and RETURN support in BASIClib.
+ * Functions needed for GOSUB and RETURN support in BASIClib.
  *
  *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
@@ -13,8 +13,7 @@ void __prepareGosub(void *ret, __PGosubState state)
  *  "Gosub.h"), in a procedure that uses the __GOSUBSUPPORT macro in its
  *  initialization section.
  *
- *      params : addr == address that code will jump to for GOSUB.
- *               ret  == Address of next line of BASIC code.
+ *      params : ret  == Address of next line of BASIC code.
  *               state == ptr to __gosub structure, created by __GOSUBSUPPORT.
  *     returns : void.
  */
