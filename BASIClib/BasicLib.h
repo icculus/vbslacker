@@ -17,7 +17,6 @@
 #include "FileIOFunctions.h"
 #include "FileSystemFunctions.h"
 #include "ConsoleFunctions.h"
-#include "PenFunctions.h"
 #include "StringFunctions.h"
 #include "ProcessFunctions.h"
 #include "EnvrFunctions.h"
