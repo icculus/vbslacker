@@ -37,7 +37,7 @@ PBasicString __createString(char *asciz, boolean fixedLength)
  * Create a BASIC string from a ASCII zero-terminated "C" string.
  *
  *    params : asciz == ASCII null-terminated string.
- *             fixedLength == should length be modifiable?
+ *             fixedLength == should length be unmodifiable?
  *   returns : Newly allocated BASIC string.
  */
 {
