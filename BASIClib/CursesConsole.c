@@ -4,6 +4,14 @@
  *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifdef WIN32   /* cygwin doesn't come with ncurses; won't compile for me. */
+
+#warning WIN32 has no curses support, yet!
+#include "ConsoleFunctions.h"
+boolean __initCursesConsole(STATEPARAMS) { return(false); }
+
+#else
+
 #include <string.h>
 #include <curses.h>
 #include "ConsoleFunctions.h"
@@ -268,6 +276,8 @@ boolean __initCursesConsole(STATEPARAMS)
 
     return(retVal);
 } /* __initCursesConsole */
+
+#endif
 
 /* end of CursesConsole.c ... */
 
