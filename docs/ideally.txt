@@ -1,4 +1,6 @@
 
+NOTE THAT THIS FILE IS OUT OF DATE. --ryan.
+
 IDEALLY we'll want a conversion to look like this:
 
 (Remember that BASIC is NOT case sensitive, even though historically Microsoft's
