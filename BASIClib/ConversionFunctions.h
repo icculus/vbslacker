@@ -15,11 +15,11 @@
 #define csng(var) ((float) var)
 
 int vbiS_asc(STATEPARAMS, PBasicString pBasicStr);
-PBasicString vbSd_chr_DC_(STATEPARAMS, double asciiValue);
+PBasicString vbSi_chr_DC_(STATEPARAMS, int asciiValue);
 PBasicString vbSd_str_DC_(STATEPARAMS, double numeric);
 double vbdS_val(STATEPARAMS, PBasicString pBasicStr);
-PBasicString vbSd_hex_DC_(STATEPARAMS, double x);
-PBasicString vbSd_oct_DC_(STATEPARAMS, double x);
+PBasicString vbSl_hex_DC_(STATEPARAMS, long x);
+PBasicString vbSl_oct_DC_(STATEPARAMS, long x);
 
 #endif
 
