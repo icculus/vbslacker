@@ -21,6 +21,9 @@
 #include "TimeDateFunctions.h"
 #include "Threads.h"
 #include "LowLevel.h"
+#include "FileIOFunctions.h"
+#include "BasicFileStream.h"
+#include "Console.h"
 
 #endif
 
