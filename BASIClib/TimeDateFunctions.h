@@ -15,7 +15,6 @@ extern "C" {
 
 void __initTimeDateFunctions(void);
 float vbf_timer(void);
-void vbpO_timer(OnOffStopType setting);
 PBasicString vbS_time_DC_(void);
 void vbpS_time_DC_(PBasicString newTimeStr);
 PBasicString vbS_date_DC_(void);
