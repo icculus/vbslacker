@@ -15,7 +15,7 @@ export OBJS = BasicString.o ConversionFunctions.o Initialize.o \
               Variant.o BasicError.o NoConsole.o DirectConsole.o \
               RedirectedConsole.o CursesConsole.o EnvrFunctions.o Gosub.o \
               MiscFunctions.o ArrayFunctions.o GUIFrontEnd.o \
-              RegistryFunctions.o Language.o
+              RegistryFunctions.o Language.o DynamicLoader.o
 
 
 about:

@@ -127,5 +127,8 @@ BasicFileSystem.o : BasicFileSystem.c BasicFileSystem.h
 Language.o : Language.c Language.h
 	$(CC) $(COPTIONS) Language.o Language.c
 
+DynamicLoader.o : DynamicLoader.c DynamicLoader.h
+	$(CC) $(COPTIONS) DynamicLoader.o DynamicLoader.c
+
 # end of Makefile.linux ...
 
