@@ -84,7 +84,7 @@ extern "C" {
         #ifndef UNIX
             #define UNIX
         #endif
-        #define __I386
+        #define __vbArch_I386
         #define __ARCHITECTURE      "i386"
         #define __FUNCNAME_PREPEND  ""
         #define __STACK_DIRECTION   -1
@@ -107,9 +107,32 @@ extern "C" {
         #ifndef UNIX
             #define UNIX
         #endif
-        #define __I386
+        #define __vbArch_I386
         #define __ARCHITECTURE      "i386"
         #define __FUNCNAME_PREPEND  "_"
+        #define __STACK_DIRECTION   -1
+        #define __EOL_STRING        "\n"
+        #define __PATHCHAR          '/'
+        #define __CURRENTDIRSTR     "."
+        #define __CURRENTDIRCHAR     '.'
+        #define __NODRIVELETTERS
+        typedef short __boolean;
+        typedef unsigned char __byte;
+        typedef short  __integer;
+        typedef long   __long;
+        typedef float  __single;
+        typedef double __double;
+
+    #elif defined LINUXELF_PPC
+        #ifndef LINUX
+            #define LINUX
+        #endif
+        #ifndef UNIX
+            #define UNIX
+        #endif
+        #define __vbArch_PPC
+        #define __ARCHITECTURE      "ppc"
+        #define __FUNCNAME_PREPEND  ""
         #define __STACK_DIRECTION   -1
         #define __EOL_STRING        "\n"
         #define __PATHCHAR          '/'
@@ -127,7 +150,7 @@ extern "C" {
         #ifndef WIN32
             #define WIN32
         #endif
-        #define __I386
+        #define __vbArch_I386
         #define __ARCHITECTURE      "i386"
         #define __FUNCNAME_PREPEND  "_"
         #define __STACK_DIRECTION   -1
@@ -150,6 +173,7 @@ extern "C" {
         #error No valid platform has been defined.
         #error Please use one of the following with the commandline/Makefile:
         #error  -DLINUXELF_I386
+        #error  -DLINUXELF_PPC
         #error  -DWIN32_I386
 
     #endif /* defined platform */
