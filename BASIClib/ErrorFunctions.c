@@ -7,8 +7,19 @@
 #include <stdio.h>
 #include "ErrorFunctions.h"
 #include "OnEvents.h"
+#include "Threads.h"
 
+/*
+ * We keep an extra copy of the BASIC error number around. Both are set
+ *  equally in case of an error, but otherwise, "__basicErrno" is
+ *  ignored. This allows internal BASIClib routines to reset the errno to
+ *  NO_ERROR, call something, and test for error, all without altering
+ *  the errno that is accessable by outside programs.
+ */
 int basicErrno = (RuntimeErrEnum) NO_ERROR;
+int __basicErrno = (RuntimeErrEnum) NO_ERROR;
+
+
 void __defaultRuntimeErrorHandler(void)
 {
     printf("\n\nUnhandled runtime error: %d\n\n", (int) basicErrno);
@@ -20,13 +31,13 @@ void __runtimeError(RuntimeErrEnum errorNum)
 {
     POnEventHandler pHandler;
 
-    basicErrno = errorNum;
+    basicErrno = __basicErrno = errorNum;
 
     pHandler = __getOnEventHandler(ONERROR);
     if (pHandler == NULL)
         __defaultRuntimeErrorHandler();
     else
-        __callOnEventHandler(pHandler);
+        __triggerOnEvent(ONERROR);
 } /* __runtimeError */
 
 

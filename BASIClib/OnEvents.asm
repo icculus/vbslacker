@@ -1,11 +1,64 @@
-; Intel 80386 ASM routines for ON EVENT GOTO support in BASIClib.
-;
-; Ryan is NOT an Assembly guru. Nothing here is guaranteed to be "correct",
-;  "clean," or even "well thought out" code.
-;
-;    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+;/*
+; * Intel 80386 ASM routines for ON EVENT GOTO support in BASIClib.
+; *
+; * Ryan is NOT an Assembly guru. Nothing here is guaranteed to be
+; * "correct",
+; *  "clean," or even "well thought out" code.
+; *
+; * Under i386, ELF-based Linux, we used NASM to assemble this code into
+; *  an object file that we can link into BASIClib. I only know enough
+; *  about assembly to be confused when writing in AT&T syntax, so GAS was
+; *  out of the question. A good command line for assembling is this:
+; *
+; *     nasm -o OnEventsAsm.o -f elf OnEvents.asm
+; *
+; * Enjoy.
+; *
+; *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+; */
 
-                              
+
+
+;
+; When we execute the error handler, we lose the contents of every
+;  register. Most importantly, we lose the base pointer (EBP), which
+;  tells us where our parameters and local data can be found on the stack.
+;
+; The only way to keep a reference to anything in that case is to have it
+;  in a global variable, since we always know the location of it. So we keep
+;  a (void **) global var, called basePtrStacks, in OnEvents.c. This variable
+;  is an array of base pointers, since event handling can stack in a
+;  recursive manner. The C code, before calling the event handler,
+;  makes sure there's enough room in the array to handle another base
+;  pointer, and then calls this assembly code. Before executing the
+;  error handler, this assembly procedure will save it's base pointer at the
+;  index specified by basePtrIndexes. After the handler, we have to start from
+;  scratch, so we retrieve our base pointer from where we saved it, feeling
+;  for our digital asshole with both hands and these global variables.
+;  Once returned to a sane state, we decrement basePtrIndexes, so that the
+;  space used by the stack of base pointers can begin to shrink.
+;
+; ...of course, this is complicated by thread-protecting our data. :)
+;  basePtrStacks is actually a (void ***), so we have something roughly
+;  equivalent to basePtrStacks[__getCurrentThreadIndex()] \
+;                             [basePtrIndexes[__getCurrentThreadIndex()];
+;
+; Ugh.
+
+extern basePtrStacks;
+extern basePtrIndexes;
+
+;
+; Other external stuff...
+;
+
+extern __getCurrentThreadIndex;
+
+
+;
+; Here's the procedure itself. Let's do the nasty...
+;
+
 global __callOnEventHandler
 
 ; This procedure copies the stack from event handling procedure to top
@@ -17,20 +70,20 @@ global __callOnEventHandler
 ;  the copied stack so the return address will be in this procedure. This
 ;  allows us to clean up and return the stack to its normal state. Also,
 ;  This allows us to "skip" any functions called between the handler's
-;  procedure and where the event was triggered.
+;  procedure and where the event was triggered, so their stack space isn't
+;  overwritten. We need to protect that data in case of a RESUME NEXT.
+;
+; This doesn't preserve any registers, since we are going to be hopping
+;  down the stack to previous procedures that want THEIR preserved
+;  registers returned. That is taken care of by other code.
 ;
 ;     params : POnEventHandler of handler to call at [esp + 4].
 ;              (This will be [ebp + 8] when we set up the base ptr.)
 ;    returns : any return value from BASIC routine in EAX.
 
 __callOnEventHandler:                   ; proc
-        push    ebp                     ; Save calling function's base ptr.
         mov     ebp,esp                 ; Move stack ptr to base ptr.
         sub     esp,4                   ; Allocate local variables...
-
-        push    esi                     ; Save registers...
-        push    edi
-        push    ebx
 
         mov     ebx,[ebp + 8]           ; Store POnEventHandler in ebx.
 
@@ -50,13 +103,16 @@ __callOnEventHandler:                   ; proc
         mov     edi,esp                 ; Copy stack pointer to edi.
 
         sub     esp,ecx                 ; Bump esp for copy space...
-        std                             ; set lodsb/stosb to decrement pointers.
+        std                             ; make lodsb/stosb decrement pointers.
                                         ;  ...remember stack goes downward.
 @stackcopy:                             ; loop to move stack...
         lodsb                           ; al = *((char *) esi); esi--;
         stosb                           ; *((char *) edi) = al; edi--;
-        loop    @stackcopy              ; ecx--;  if (ecx != 0) goto @stackcopy;
+        loop    @stackcopy              ; ecx--; if (ecx != 0) goto @stackcopy;
 @endstackcopy:
+
+        call    __calcBasePtrStorage    ; Return value is in edi.
+        mov     dword [eax],ebp         ; Save base pointer.
 
         mov     eax,[ebx + 16]          ; Store ebx->basePtr in eax.
         dec     esi                     ; point esi to end of copied stack.
@@ -67,29 +123,97 @@ __callOnEventHandler:                   ; proc
             ; Execute BASIC error handler. Any return value is stored in
             ;  edx:eax (for 64-bit values, less register space is used for
             ;  smaller values.) When the code returns to @returnloc (remember
-            ;  we patched the stack?), esp will be wherever it was before
-            ;  we subtracted it before @stackcopy, and we can backtrack from
-            ;  there. ebp will have the base pointer of the function that
-            ;  called the function containing the error handler. Assume all
-            ;  other registers to be clobbered. Whew.
+            ;  we patched the stack?), assume all registers to be clobbered,
+            ;  Yet, we need to preserve all of them for the calling
+            ;  function. Whew.
 
         mov     edi,[ebx]               ; Store ebx->handlerAddr in edi...
         jmp     [edi]                   ;  ...jump blindly into it...
 
 @returnloc:                             ;  ...and (maybe) land right here.
 
-        ; !!! do something.
+        push    ebp                     ; Save all important registers.
+        push    edi
+        push    esi
+        push    ebx
+        push    edx
+        push    eax
 
-        pop     ebx                     ; Restore registers...
-        pop     edi
+        call    __calcBasePtrStorage    ; Get pointer to our original ebp.
+        mov     ebp,[eax]               ; Move it back into ebp.
+
+            ; We need to decrement the count of base pointers stored up
+            ;  by this procedure for the current thread. So we find where it's
+            ;  stored, and alter the value...
+
+        mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
+        call    __getCurrentThreadIndex ; Get current thread index.
+        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
+        mul     eax,ebx                 ; make it into offset in array.
+        add     esi,eax                 ; esi now points to our element.
+        mov     eax,[esi]               ; get value pointed to by esi.
+        dec     eax                     ; decrement it.
+        mov     dword [esi],eax         ; store it back in addr esi points to.
+
+        mov     ebx,[ebp + 8]           ; Get POnEventHandler ptr again.
+
+        mov     esi,[ebx + 12]          ; Store ebx->OrigReturnAddr in esi.
+        mov     eax,[ebp - 4]           ; Get original value of retaddr in eax.
+        mov     dword [esi],eax         ; Repatch stack with original value.
+
+        add     esi,4                   ; origReturnAddr + 4 is esp for ret...
+        mov     ecx,esi                 ;  ...and save it in ecx...
+
+        pop     eax                     ; Restore all important registers.
+        pop     edx
+        pop     ebx
         pop     esi
+        pop     edi
+        pop     ebp
 
-        add     esp,4                   ; Remove local variables.
-        mov     esp,ebp                 ; Restore original stack pointer.
-        pop     ebp                     ; Restore calling function's base ptr.
-        ret                             ; Return.
+        mov     esp,ecx                 ; adjust stack for return call...
+        ret                             ;  ...and pray for the best.
 ;__callOnEventHandler    endp
 
-; end of OnEvents.asm ...
 
+
+
+;
+; Figure out where we belong in the basePtrStacks arrays.
+;  see comments at top of the file.
+;
+;   params : none.
+;  returns : address of storage space in eax.
+
+__calcBasePtrStorage:                   ; proc
+        push    ebx                     ; save registers...
+        push    edx
+        push    edi
+        push    esi
+
+        call    __getCurrentThreadIndex ; Thread index returned in EAX.
+        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
+        mul     eax,ebx                 ; Get offset to this thread's array.
+
+            ; Find array for this thread's base pointers.
+        mov     esi,[basePtrStacks]     ; get thread-specific arrays.
+        add     esi,eax                 ; Get ptr to this thread's array.
+        mov     edi,[esi]               ; Move ptr at [esi] to edi.
+
+            ; Get index in thread specific array of current pointer space.
+        mov     esi,[basePtrIndexes]    ; Get thread-specific arrays.
+        add     esi,eax                 ; Get ptr to this thread's index.
+        mov     eax,[esi]               ; Get index of bp space into eax.
+
+        add     eax,edi                 ; Make edi point to the bp space.
+
+        pop     esi                     ; Restore registers...
+        pop     edi
+        pop     edx
+        pop     ebx
+        ret                             ; Return.
+;__ calcBasePtrStorage   endp
+
+
+; end of OnEvents.asm ...
 

@@ -6,6 +6,7 @@
 
 #include "OnEvents.h"
 #include "InternalMemManager.h"
+#include "Threads.h"
 
     /* internal structure for keeping track of registered event handlers... */
 typedef struct
@@ -17,11 +18,27 @@ typedef struct
 typedef HandlerVector *PHandlerVector;
 
 
+    /* Assembly procedure prototype. */
+void __callOnEventHandler(POnEventHandler pHandler);
+
+
+    /*
+     * These should be thread safe, since they are only used within
+     * The bounds of critical sections.
+     */
+void *_label_addr_ = NULL;
 void *_stack_ptr_ = NULL;
 void *_base_ptr_ = NULL;
 
-    /* !!! these will need an extra dimension if we start multithreading... */
+
+    /* !!! this will need an extra dimension if we start multithreading... */
 static HandlerVector table[(OnEventTypeEnum) TOTAL];
+
+
+    /* These have an extra dimension for thread-proofing. */
+void volatile ***basePtrStacks = NULL;
+int volatile *basePtrIndexes = NULL;
+
 
 
 void __initOnEvents(void)
@@ -70,11 +87,13 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  * Ideally, any module that contains a call to this function should
  *  do something like this:
  *
+ *   __enterCriticalThreadSection();
  *   __getStackPointer(&_stack_ptr_);
  *   __getBasePointer(&_base_ptr);
  *   __registerOnEventHandler(handlerLabel, &lastArg + sizeof(lastArg),
  *                            _stack_ptr_, &firstArg - sizeof(void *),
  *                            _base_ptr_, ONERROR);
+ *   __exitCriticalThreadSection();
  *
  *
  * _stack_ptr_ should be a (void *) declared at the module level, if needed.
@@ -121,7 +140,7 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  *
  *     returns : void.
  */
-{   
+{
     POnEventHandler pHandler = NULL;
     HandlerVector evVect = table[evType];
 
@@ -163,7 +182,7 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
  *
  *      params : *stackStart == pointer passed as stackStart parameter in
  *                              __registerOnEventHandler().
- *               evType      == Event type, for organizational purposes. 
+ *               evType      == Event type, for organizational purposes.
  *     returns : void.
  */
 {
@@ -183,6 +202,26 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
 } /* __deregisterOnEventHandler */
 
 
-/* end of OnEvents.c ... */
+void triggerOnEvent(OnEventTypeEnum evType)
+/*
+ * This functions sets up a globally accessable buffer for the ASM routine
+ *  (which it can access when the stack state is FUBAR), and calls the
+ *  routine.
+ *
+ *    params : evType == Event type to handler.
+ *   returns : should never return directly, due to stack voodoo.
+ */
+{
+    POnEventHandler pHandler = __getOnEventHandler(evType);
+    int tidx = __getCurrentThreadIndex();
 
+    basePtrIndexes[tidx]++;
+    basePtrStacks[tidx] = __memRealloc(basePtrStacks[tidx],
+                                      basePtrIndexes[tidx] * sizeof (void *));
+
+    __callOnEventHandler(pHandler);
+} /* triggerOnEvent */
+
+
+/* end of OnEvents.c ... */
 
