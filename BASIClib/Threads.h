@@ -23,6 +23,12 @@
 #           error  otherwise, the C library is NOT thread-safe!
 #       endif /* _REENTRANT */
 
+#       if ((defined LINUX) && (!defined LINUX_THREADS))
+#           error LINUX_THREADS not defined!
+#           error Please put -DLINUX_THREADS on the command line.
+#           error  otherwise, the Garbage Collection code is NOT thread-safe!
+#       endif /* LINUX_THREADS */
+
 #       ifdef SINGLE_THREADED
             typedef unsigned long ThreadLock;
             typedef ThreadLock *PThreadLock;

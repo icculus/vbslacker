@@ -31,7 +31,7 @@ void __initBasicLib(void *base, __long flags, int argc, char **argv)
         __initEnvrFunctions(argc, argv);
         __initTimeDateFunctions();
         __initBasicFileStream();
-
+        __initGUIFrontEnd();
         __initThreads();    /* Make sure this is last init call. */
 
         atexit(__deinitBasicLib);
@@ -51,6 +51,7 @@ void __deinitBasicLib(void)
         initFlags = INITFLAG_NOT_INITIALIZED;
         __deinitEnvrFunctions();
         __deinitThreads();
+        __deinitGUIFrontEnd();
         __deinitConsoleFunctions();
         __deinitBasicError();
         __deinitMemoryManager();

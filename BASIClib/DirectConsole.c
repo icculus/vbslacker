@@ -339,6 +339,8 @@ static void __cons_vbpiii_color(__integer fore, __integer back, __integer bord)
  *   returns : void.
  */
 {
+    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); //!!!
+//    __cons_vbpii_color(fore, back);
 } /* __cons_vbpiii_color */
 
 #endif
@@ -436,7 +438,10 @@ static void __cons_vbpi_color(__integer fore)
  *  runtime error.
  */
 {
-    __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    if ((fore < 0) || (fore > 15))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    else
+        curColor = fore;  /* !!! */
 } /* __cons_vbpi_color */
 
 

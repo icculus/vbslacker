@@ -12,7 +12,8 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o \
        StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
        ConsoleFunctions.o ProcessFunctions.o FileSystemFunctions.o \
        Variant.o BasicError.o NoConsole.o DirectConsole.o RedirectedConsole.o \
-       CursesConsole.o EnvrFunctions.o Gosub.o MiscFunctions.o ArrayFunctions.o
+       CursesConsole.o EnvrFunctions.o Gosub.o MiscFunctions.o \
+       ArrayFunctions.o GUIFrontEnd.o
 
 CC = gcc
 LINKER = gcc
@@ -124,6 +125,9 @@ EnvrFunctions.o : EnvrFunctions.c EnvrFunctions.h
 
 ArrayFunctions.o : ArrayFunctions.c ArrayFunctions.h
 	$(CC) $(COPTIONS) ArrayFunctions.o ArrayFunctions.c
+
+GUIFrontEnd.o : GUIFrontEnd.c GUIFrontEnd.h
+	$(CC) $(COPTIONS) GUIFrontEnd.o GUIFrontEnd.c
 
 # end of Makefile.linux ...
 
