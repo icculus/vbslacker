@@ -8,7 +8,7 @@
 #include "MathFunctions.h"
 
 
-double vbdd_abs(double x)
+__double _vbdd_abs(__double x)
 /*
  * Returns the absolute value of a numeric.
  *
@@ -17,10 +17,10 @@ double vbdd_abs(double x)
  */
 {
     return((x < 0) ? -x : x);
-} /* vbdd_abs */
+} /* _vbdd_abs */
 
 
-double vbdd_sqr(double x)
+__double _vbdd_sqr(__double x)
 /*
  * Returns the square root of a numeric.
  *
@@ -32,54 +32,54 @@ double vbdd_sqr(double x)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 
     return(sqrt(x));
-} /* vbdd_sqr */
+} /* _vbdd_sqr */
 
 
-double vbdd_atn(double x)
+__double _vbdd_atn(__double x)
 {
     return(atan(x));
-} /* vbdd_atn */
+} /* _vbdd_atn */
 
 
-double vbdd_sin(double x)
+__double _vbdd_sin(__double x)
 {
     return(sin(x));
-} /* vbdd_sin */
+} /* _vbdd_sin */
 
 
-double vbdd_cos(double x)
+__double _vbdd_cos(__double x)
 {
     return(cos(x));
-} /* vbdd_cos */
+} /* _vbdd_cos */
 
 
-double vbdd_tan(double x)
+__double _vbdd_tan(__double x)
 {
     return(tan(x));
-} /* vbdd_tan */
+} /* _vbdd_tan */
 
 
-double vbdd_exp(double x)
+__double _vbdd_exp(__double x)
 {
     return(pow(2.718282, 2.0));
-} /* vbddd_exp */
+} /* _vbddd_exp */
 
 
-double vbdd_log(double x)
+__double _vbdd_log(__double x)
 {
     if (x <= 0)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     return(log(x));
-} /* vbdd_log */
+} /* _vbdd_log */
 
 
-long vbld_fix(double x)
+__long _vbld_fix(__double x)
 {
-    return((long) x);
-} /* vbld_fix */
+    return((__long) x);
+} /* _vbld_fix */
 
 
-long vbld_int(double x)
+__long _vbld_int(__double x)
 /*
  * Return (next largest integer <= (x)).
  *
@@ -87,25 +87,25 @@ long vbld_int(double x)
  *   returns : x rounded to the next lowest long.
  */
 {
-    long retVal;
+    __long retVal;
 
     if (x < 0.0)
     {
-        if ( (x - ((long) x)) == 0.0 )   /* already whole number? */
-            retVal = (long) x;
+        if ( (x - ((__long) x)) == 0.0 )   /* already whole number? */
+            retVal = (__long) x;
         else
-            retVal = (long) (x - 1.0);
+            retVal = (__long) (x - 1.0);
     } /* if */
     else
-        retVal = (long) x;
+        retVal = (__long) x;
 
     return(retVal);
-} /* vbld_int */
+} /* _vbld_int */
 
 
-int vbid_sgn(double x)
+__integer _vbid_sgn(__double x)
 {
-    int retVal;
+    __integer retVal;
 
     if (x == 0.0)
         retVal = 0;
@@ -115,7 +115,7 @@ int vbid_sgn(double x)
         retVal = 1;
 
     return(retVal);
-} /* vbid_sgn */
+} /* _vbid_sgn */
 
 /* end of MathFunctions.c ... */
 

@@ -24,6 +24,7 @@ static void __crashHandler(int sig)
  */
 {
     #warning write __crashHandler() !!!
+    printf("__crashHandler() called...\n");
     exit(0);        /* ...and bail. */
 } /* __crashHandler */
 
@@ -41,6 +42,8 @@ static void __sigintHandler(int sig)
  * SIGINT is generated when CTRL-C is hit.
  */
 {
+    __printAsciz("__sigintHandler() called...");
+    __printNewLine();
     exit(0);  /* This makes sure __deinitBasicLib() is called. */
 } /* __sigintHandler */
 

@@ -13,25 +13,25 @@
 extern "C" {
 #endif
 
-extern void (*__getConsoleHandlerName)(char *buf, int size);
+extern void (*__getConsoleHandlerName)(__byte *buf, __integer size);
 extern void (*__deinitConsoleHandler)(void);
 extern void (*__printNewLine)(void);
-extern void (*__printNChars)(char *str, int n);
-extern void (*vbpii_viewPrint)(int top, int bottom);
-extern void (*vbp_viewPrint)(void);
-extern void (*vbp_cls)(void);
-extern int  (*vbi_csrline)(void);
-extern int  (*vbia_pos)(void *pVar);
-extern void (*vbpiii_color)(int fore, int back, int bord);
-extern void (*vbpil_color)(int fore, long palette);
-extern void (*vbpi_color)(int fore);
+extern void (*__printNChars)(__byte *str, __long n);
+extern void (*_vbpii_viewPrint)(__integer top, __integer bottom);
+extern void (*_vbp_viewPrint)(void);
+extern void (*_vbp_cls)(void);
+extern __integer (*_vbi_csrline)(void);
+extern __integer (*_vbia_pos)(void *pVar);
+extern void (*_vbpiii_color)(__integer fore, __integer back, __integer bord);
+extern void (*_vbpil_color)(__integer fore, __long palette);
+extern void (*_vbpi_color)(__integer fore);
 
 void __initConsoleFunctions(void);
 void __deinitConsoleFunctions(void);
 
-void vbpV_print(PVariant pVar);
-void vbpS_print(PBasicString str);
-void __printAsciz(char *str);
+void _vbpV_print(PVariant pVar);
+void _vbpS_print(PBasicString str);
+void __printAsciz(__byte *str);
 
 #ifdef __cplusplus
 }

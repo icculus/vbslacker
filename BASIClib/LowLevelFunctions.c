@@ -23,15 +23,15 @@
 static __boolean portAccess = false;
 
 
-int _vbil_peek(long addr)
+__integer _vbil_peek(__long addr)
 {
-    return(*((char *) addr));
+    return(*((__byte *) addr));
 } /* _vbil_peek */
 
 
-void _vbpli_poke(long addr, int newVal)
+void _vbpli_poke(__long addr, __integer newVal)
 {
-    *((char *) addr) = (char) newVal;
+    *((__byte *) addr) = (__byte) newVal;
 } /* _vbpli_poke */
 
 
@@ -54,30 +54,30 @@ static void __requestPortAccess(void)
 } /* __requestPortAccess */
 
 
-int _vbil_inp(long ioport)
+__integer _vbil_inp(__long ioport)
 {
     __requestPortAccess();
-    return((int) inb(ioport));
+    return((__integer) inb(ioport));
 } /* _vbil_inp */
 
 
-void _vbpli_out(long ioport, int byte)
+void _vbpli_out(__long ioport, __integer outByte)
 {
     __requestPortAccess();
-    outb((char) byte, ioport);
+    outb((char) outByte, ioport);
 } /* _vbpli_out */
 
 
-PBasicString _vbSi_ioctl_DC_(int devFileNum)
+PBasicString _vbSi_ioctl_DC_(__integer devFileNum)
 {
     return(__createString("", false));
 } /* _vbSi_ioctl_DC_ */
 
 
-void _vbpiS_ioctl(int devFileNum, PBasicString ctlStr) {}
+void _vbpiS_ioctl(__integer devFileNum, PBasicString ctlStr) {}
 
 
-long _vblA_varptr(void *myVar)
+__long _vblA_varptr(void *myVar)
 {
     return((long) myVar);
 } /* _vblA_varptr */
@@ -92,7 +92,7 @@ PBasicString _vbSA_varptr_DC_(void *myVar)
 } /* _vbSA_varptr_DC_ */
 
 
-long _vblA_varseg(void *myVar)
+__long _vblA_varseg(void *myVar)
 {
     return(0);   /* no segments in 32-bit architecture. */
 } /* _vblA_varseg */

@@ -9,7 +9,7 @@
 #include "ProcessFunctions.h"
 
 
-void vbpS_shell(PBasicString shCmd)
+void _vbpS_shell(PBasicString shCmd)
 /*
  * Spawn a shell, and give it (shCmd) as a command line. This can be
  *  used to execute other programs, or use internal shell commands.
@@ -31,10 +31,10 @@ void vbpS_shell(PBasicString shCmd)
     system(cmd);
     __shellRetNotification();
     __memFree(cmd);
-} /* vbpS_shell */
+} /* _vbpS_shell */
 
 
-void vbp_end(void)
+void _vbp_end(void)
 /*
  * Terminate the program.
  *
@@ -43,10 +43,10 @@ void vbp_end(void)
  */
 {
     exit(0);
-} /* vbp_end */
+} /* _vbp_end */
 
 
-void vbp_sleep(void)
+void _vbp_sleep(void)
 /*
  * Make program (ALL THREADS) sleep (yield) until an
  *  OnEvent occurs, or A KEY IS PRESSED. Yikes.
@@ -58,10 +58,10 @@ void vbp_sleep(void)
  */
 {
 #warning vbp_sleep() is a stub!
-} /* vbp_sleep */
+} /* _vbp_sleep */
 
 
-void vbpl_sleep(long napTime)
+void _vbpl_sleep(__long napTime)
 /*
  * Make current thread sleep (yield) for (napTime) seconds.
  *
@@ -81,7 +81,7 @@ void vbpl_sleep(long napTime)
     double dNapTime = (double) napTime;
 
     if (napTime == 0)           /* delegate this to no-arg version ... */
-        vbp_sleep();
+        _vbp_sleep();
     else
     {
         if (time(&startTime) == -1)     /* calendar time unavailable ?! */
@@ -96,7 +96,7 @@ void vbpl_sleep(long napTime)
             } while (difftime(currentTime, startTime) < dNapTime);
         } /* else */
     } /* else */
-} /* vbpl_sleep */
+} /* _vbpl_sleep */
 
 /* end of ProcessFunctions.c ... */
 

@@ -13,11 +13,11 @@
 extern "C" {
 #endif
 
-int vbi_err(void);
-void vbpi_error(int newErr);
-int vbi_erl(void);
-int vbi_erdev(void);
-PBasicString vbS_erdev_DC_(void);
+__long _vbl_err(void);
+void _vbpl_error(__long newErr);
+__integer _vbi_erl(void);
+__integer _vbi_erdev(void);
+PBasicString _vbS_erdev_DC_(void);
 
 #ifdef __cplusplus
 }

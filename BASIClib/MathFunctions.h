@@ -13,17 +13,17 @@
 extern "C" {
 #endif
 
-double vbdd_abs(double x);
-double vbdd_sqr(double x);
-double vbdd_atn(double x);
-double vbdd_sin(double x);
-double vbdd_cos(double x);
-double vbdd_tan(double x);
-double vbdd_exp(double x);
-double vbdd_log(double x);
-long vbld_fix(double x);
-long vbld_int(double x);
-int vbid_sgn(double x);
+__double _vbdd_abs(__double x);
+__double _vbdd_sqr(__double x);
+__double _vbdd_atn(__double x);
+__double _vbdd_sin(__double x);
+__double _vbdd_cos(__double x);
+__double _vbdd_tan(__double x);
+__double _vbdd_exp(__double x);
+__double _vbdd_log(__double x);
+__long _vbld_fix(__double x);
+__long _vbld_int(__double x);
+__integer _vbid_sgn(__double x);
 
 #ifdef __cplusplus
 }

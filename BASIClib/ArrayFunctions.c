@@ -30,7 +30,7 @@ static void __arrayEraseDynamic(__PBasicArray array)
 } /* __arrayEraseDynamic */
 
 
-void vbpAn_erase(__PBasicArray array)
+void _vbpAn_erase(__PBasicArray array)
 /*
  * BASIC's ERASE command: If specified array is static, set all
  *  elements in array to zero (or equivalent). If specified array
@@ -47,7 +47,7 @@ void vbpAn_erase(__PBasicArray array)
 } /* vbpAn_erase */
 
 
-static __PBasicArray __getArrayDimension(__PBasicArray array, int dimension)
+static __PBasicArray __getArrayDimension(__PBasicArray array, __long dimension)
 /*
  * This function will return the vector that represents the
  *  (dimension) dimension of (array).
@@ -57,7 +57,7 @@ static __PBasicArray __getArrayDimension(__PBasicArray array, int dimension)
  *   returns : see above.
  */
 {
-    int currentDim;
+    __long currentDim;
 
     if (dimension < 1)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
@@ -76,16 +76,16 @@ static __PBasicArray __getArrayDimension(__PBasicArray array, int dimension)
 } /* __getArrayDimension */
 
 
-int vbiAi_lbound(__PBasicArray array, int dimension)
+__long _vblAl_lbound(__PBasicArray array, __long dimension)
 {
     return(__getArrayDimension(array, dimension)->lBound);
-} /* vbiAi_lbound */
+} /* _vbiAl_lbound */
 
 
-int vbiAi_ubound(__PBasicArray array, int dimension)
+__long _vblAl_ubound(__PBasicArray array, __long dimension)
 {
     return(__getArrayDimension(array, dimension)->uBound);
-} /* vbiAi_ubound */
+} /* _vbiAl_ubound */
 
 
 /* dim */

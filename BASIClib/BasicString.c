@@ -9,7 +9,7 @@
 
 #define __min(x, y) ((x) < (y) ? (x) : (y))
 
-PBasicString __allocString(int length, __boolean isFixed)
+PBasicString __allocString(__long length, __boolean isFixed)
 /*
  * Build a string, but don't initialize the data.
  *
@@ -29,7 +29,7 @@ PBasicString __allocString(int length, __boolean isFixed)
 } /* __allocString */
 
 
-PBasicString __createString(char *asciz, __boolean fixedLength)
+PBasicString __createString(__byte *asciz, __boolean fixedLength)
 /*
  * Create a BASIC string from a ASCII zero-terminated "C" string.
  *
@@ -38,7 +38,7 @@ PBasicString __createString(char *asciz, __boolean fixedLength)
  *   returns : Newly allocated BASIC string.
  */
 {
-    int length = strlen(asciz);
+    __long length = (__long) strlen(asciz);
     PBasicString retVal = __allocString(length, fixedLength);
 
     memcpy(retVal->data, asciz, length);
@@ -46,7 +46,7 @@ PBasicString __createString(char *asciz, __boolean fixedLength)
 } /* __createString */
 
 
-PBasicString __constString(char *asciz)
+PBasicString __constString(__byte *asciz)
 /*
  * This builds a new BASIC string, but rather than copy the string data
  *  over, it just copies the pointer. You have to be careful never to
@@ -63,7 +63,7 @@ PBasicString __constString(char *asciz)
     PBasicString retVal = __memAlloc(sizeof (BasicString));
 
     retVal->data = asciz;
-    retVal->length = strlen(asciz);
+    retVal->length = (__long) strlen(asciz);
     retVal->fixedLength = true;
 
     return(retVal);
@@ -109,7 +109,7 @@ PBasicString __assignString(PBasicString to, PBasicString from)
  *   returns : copy of (pStrToAssign), newly allocated.
  */
 {
-    int copyCount;
+    __long copyCount;
     __boolean isFixedLength;
     PBasicString retVal;
 
@@ -153,7 +153,7 @@ PBasicString __catString(PBasicString str1, PBasicString str2)
  */
 {
     PBasicString retVal = NULL;
-    int newLength;
+    __long newLength;
 
     if ((str1 == NULL) || (str2 == NULL))
         __runtimeError(ERR_INTERNAL_ERROR);
@@ -170,7 +170,7 @@ PBasicString __catString(PBasicString str1, PBasicString str2)
 } /* __catString */
 
 
-char *__basicStringToAsciz(PBasicString pStr)
+__byte *__basicStringToAsciz(PBasicString pStr)
 /*
  * Copy the data of a BasicString to a C-style ASCIZ (ASCII-Zero
  *  terminated) string. 

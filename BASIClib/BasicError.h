@@ -101,15 +101,15 @@ typedef __OnErrorHandler *__POnErrorHandler;
 
 void __initBasicError(void);
 void __deinitBasicError(void);
-void __initThreadBasicError(int tidx);
+void __initThreadBasicError(__integer tidx);
 
 __boolean __isOnErrorThreadStateNULL(void);
-void __fatalRuntimeError(int errorNum);
-void __runtimeError(int errorNum);
+void __runtimeError(__long errorNum);
+void __fatalRuntimeError(__long errorNum);
 void __registerOnErrorHandler(__POnErrorHandler pHandler);
 void __deregisterOnErrorHandler(__POnErrorHandler pHandler);
 void __prepareResume(__POnErrorHandler pHandler);
-int __getBasicErrno(void);
+__long __getBasicErrno(void);
 
 #define __ONERRORVARS      __OnErrorHandler __onError = {NULL,  \
                                                          NULL,  \

@@ -79,7 +79,7 @@ void __initTimeDateFunctions(void)
 } /* __initTimeDateFunctions */
 
 
-float vbf_timer(void)
+__single _vbf_timer(void)
 /*
  * Returns the number of seconds elasped since midnight, with two
  *  decimal places worth of precision.
@@ -102,10 +102,10 @@ float vbf_timer(void)
 
     retVal += ((currentTime.tv_usec % 100) / 100); /* Add 2 decimal places. */
     return(retVal);
-} /* vbf_timer */
+} /* _vbf_timer */
 
 
-static PBasicString __makeTimeDateString(int size, char *fmt)
+static PBasicString __makeTimeDateString(__long size, __byte *fmt)
 /*
  * This called by the function versions of TIME$ and DATE$, since they
  *  require the exact same logic, with some different parameters.
@@ -118,12 +118,15 @@ static PBasicString __makeTimeDateString(int size, char *fmt)
  */
 {
     PBasicString retVal = NULL;
-    char buffer[size + 1];          /* plus one for NULL terminator. */
+    __byte buffer[size + 1];          /* plus one for NULL terminator. */
     int rc;
     struct tm *brokenTime = __getBrokenTime();
 
     rc = strftime(buffer, sizeof (buffer), fmt, brokenTime);
 
+#warning !!! check __makeTimeDateString()...
+
+    /* !!! == ? !!! */
     if ((unsigned int) rc == sizeof (buffer))  /* not enough space? */
         __runtimeError(ERR_INTERNAL_ERROR);
     else
@@ -134,7 +137,7 @@ static PBasicString __makeTimeDateString(int size, char *fmt)
 
 
 
-PBasicString vbS_time_DC_(void)
+PBasicString _vbS_time_DC_(void)
 /*
  * Returns a BASIC string containing the current system time in the format
  *  "HH:MM:SS" (8 bytes) ... The time is returned in 24-hour format.
@@ -144,16 +147,16 @@ PBasicString vbS_time_DC_(void)
  */
 {
     return(__makeTimeDateString(8, "%H:%M:%S"));
-} /* vbS_time_DC_ */
+} /* _vbS_time_DC_ */
 
 
-void vbpS_time_DC_(PBasicString newTimeStr)
+void _vbpS_time_DC_(PBasicString newTimeStr)
 {
     /* !!! compare to proc_date_DC_()... */
-} /* vbpS_time_DC_ */
+} /* _vbpS_time_DC_ */
 
 
-PBasicString vbS_date_DC_(void)
+PBasicString _vbS_date_DC_(void)
 /*
  * Return a BASIC string containing current date in the
  *  format "MM-DD-YYYY" (10 bytes).
@@ -163,10 +166,12 @@ PBasicString vbS_date_DC_(void)
  */
 {
     return(__makeTimeDateString(10, "%m-%d-%C%y"));
-} /* vbS_date_DC_ */
+} /* _vbS_date_DC_ */
 
 
-static __boolean __checkDateBounds(int month, int day, int year)
+static __boolean __checkDateBounds(__integer month,
+                                   __integer day,
+                                   __integer year)
 /*
  * Verify that specified numbers are valid for setting through BASIC's
  *  DATE$ function. The bounds appear to be:
@@ -182,7 +187,7 @@ static __boolean __checkDateBounds(int month, int day, int year)
  */
 {
     __boolean retVal = true;
-    int maxDays;
+    __integer maxDays;
 
     if ((year < 1980) || (year > 2099))
         retVal = false;
@@ -204,7 +209,7 @@ static __boolean __checkDateBounds(int month, int day, int year)
 
 
 
-static __boolean __prepareDateString(char *str)
+static __boolean __prepareDateString(__byte *str)
 /*
  * Check a date string for initial validity. This will check that characters
  *  are acceptable, but won't determine if numbers are in range.
@@ -213,11 +218,11 @@ static __boolean __prepareDateString(char *str)
  *    returns : boolean true is data is in correct format, false otherwise.
  */
 {
-    int i;
-    int sepCount = 0;
-    char separator = '\0';
+    __integer i;
+    __integer sepCount = 0;
+    __byte separator = '\0';
     __boolean retVal = true;
-    int max = strlen(str);
+    __long max = strlen(str);
 
     for (i = 0; (i < max) && (retVal == true); i++)
     {
@@ -243,7 +248,8 @@ static __boolean __prepareDateString(char *str)
 
 
 
-static __boolean __setSystemDate(int month, int day, int year, int *pErrVal)
+static __boolean __setSystemDate(__integer month, __integer day,
+                                 __integer year,  __long *pErrVal)
 /*
  * Set system clock to new date.
  *
@@ -285,7 +291,7 @@ static __boolean __setSystemDate(int month, int day, int year, int *pErrVal)
 } /* __setSystemDate */
 
 
-void vbpS_date_DC_(PBasicString newDateStr)
+void _vbpS_date_DC_(PBasicString newDateStr)
 /*
  * Set the system date. This throws a BASIC runtime error if the process
  *  doesn't have rights to change the system clock. DOS and Windows versions
@@ -302,12 +308,12 @@ void vbpS_date_DC_(PBasicString newDateStr)
  *  returns : void.
  */
 {
-    int month;
-    int day;
-    int year;
+    __integer month;
+    __integer day;
+    __integer year;
     char str[newDateStr->length + 1];
     char *next;
-    int errVal;
+    __long errVal;
 
     memcpy(str, newDateStr->data, newDateStr->length);
     str[newDateStr->length] = '\0';
@@ -329,7 +335,7 @@ void vbpS_date_DC_(PBasicString newDateStr)
         else if (__setSystemDate(month, day, year, &errVal) == false)
             __runtimeError(errVal);
     } /* else */
-} /* vbpS_date_DC_ */
+} /* _vbpS_date_DC_ */
 
 
 

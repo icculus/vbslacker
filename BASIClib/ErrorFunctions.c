@@ -9,7 +9,7 @@
 #include "ErrorFunctions.h"
 
 
-int vbi_err(void)
+__long _vbl_err(void)
 /*
  * Find out last thrown error number.
  *
@@ -18,10 +18,10 @@ int vbi_err(void)
  */
 {
     return(__getBasicErrno());
-} /* vbi_err */
+} /* _vbi_err */
 
 
-void vbpi_error(int errorNum)
+void _vbpl_error(__long errorNum)
 /*
  * Throw a runtime error. (errorNum) must be between 1 and 255, per
  *  Qbasic specifications, so the error thrown will change to
@@ -36,10 +36,10 @@ void vbpi_error(int errorNum)
     if ((errorNum < 1) || (errorNum > 255))
         errorNum = ERR_ILLEGAL_FUNCTION_CALL;
     __runtimeError(errorNum);
-} /* vbpi_error */
+} /* _vbpi_error */
 
 
-int vbi_erl(void)
+__integer _vbi_erl(void)
 /*
  * In QBasic, returns line number of latest error. According to
  *  Microsoft's documentation, line labels are not returned, and
@@ -47,12 +47,13 @@ int vbi_erl(void)
  *  was basically retarded to begin with, but for the sake of
  *  having it, we provide a stub that always returns zero.
  */
+/* !!! does vb6 support this? */
 {
     return(0);
-} /* vbi_erl */
+} /* _vbi_erl */
 
 
-int vbi_erdev(void)
+__integer _vbi_erdev(void)
 /*
  * Very DOS and hardware-specific remnant of old BASICs. Suppose to
  *  return the last device error number reported from DOS. We don't do this.
@@ -62,10 +63,10 @@ int vbi_erdev(void)
  */
 {
     return(0);
-} /* vbi_erdev */
+} /* _vbi_erdev */
 
 
-PBasicString vbS_erdev_DC_(void)
+PBasicString _vbS_erdev_DC_(void)
 /*
  * Very DOS and hardware-specific remnant of old BASICs. Suppose to
  *  return the name of the last device to generate a critical error
@@ -76,7 +77,7 @@ PBasicString vbS_erdev_DC_(void)
  */
 {
     return(__createString("", false));
-} /* vbS_erdev_DC_ */
+} /* _vbS_erdev_DC_ */
 
 /* end of ErrorFunctions.c ... */
 

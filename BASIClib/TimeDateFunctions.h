@@ -14,11 +14,11 @@ extern "C" {
 #endif
 
 void __initTimeDateFunctions(void);
-float vbf_timer(void);
-PBasicString vbS_time_DC_(void);
-void vbpS_time_DC_(PBasicString newTimeStr);
-PBasicString vbS_date_DC_(void);
-void vbpS_date_DC_(PBasicString newDateStr);
+__single _vbf_timer(void);
+PBasicString _vbS_time_DC_(void);
+void _vbpS_time_DC_(PBasicString newTimeStr);
+PBasicString _vbS_date_DC_(void);
+void _vbpS_date_DC_(PBasicString newDateStr);
 
 #ifdef __cplusplus
 }

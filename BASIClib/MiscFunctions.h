@@ -13,8 +13,8 @@
 extern "C" {
 #endif
 
-void vbp_clear(void);
-void vbpNNl_clear(__long stackSize);
+void _vbp_clear(void);
+void _vbpNNl_clear(__long stackSize);
 
 #ifdef __cplusplus
 }

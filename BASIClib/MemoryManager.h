@@ -21,12 +21,12 @@ extern "C" {
 
 void __initMemoryManager(void *programFrame, void *globalData);
 void __deinitMemoryManager(void);
-void __initThreadMemoryManager(int tidx);
-void __deinitThreadMemoryManager(int tidx);
-void *__memAlloc(size_t amount);
-void *__memRealloc(void *oldPtr, size_t amount);
-void *__memAllocNoPtrs(size_t amount);
-void *__memReallocNoPtrs(void *oldPtr, size_t amount);
+void __initThreadMemoryManager(__integer tidx);
+void __deinitThreadMemoryManager(__integer tidx);
+void *__memAlloc(__long amount);
+void *__memRealloc(void *oldPtr, __long amount);
+void *__memAllocNoPtrs(__long amount);
+void *__memReallocNoPtrs(void *oldPtr, __long amount);
 void __memFree(void *ptr);
 void __memDoPartialCollect(void);
 void __memDoFullCollect(void);

@@ -19,11 +19,11 @@ extern "C" {
 
 typedef struct
 {
-    void *data;                 /* Points to C array of variant structs. */
-    long lBound;                /* Start of index range.            */
-    long uBound;                /* End of index range.              */
-    __boolean multiDimensional; /* An array of arrays?              */
-    __boolean isStatic;         /* true == static, false == dynamic */
+    void *data;                   /* Points to C array of variant structs. */
+    __long lBound;                /* Start of index range.            */
+    __long uBound;                /* End of index range.              */
+    __boolean multiDimensional;   /* An array of arrays?              */
+    __boolean isStatic;           /* true == static, false == dynamic */
 } __BasicArray;
 
 typedef __BasicArray *__PBasicArray;

@@ -48,12 +48,12 @@
             typedef pthread_mutex_t *PThreadLock;
 
             void __terminateCurrentThread_f(void);
-            void __terminateThread_f(int tidx);
-            void __waitForThreadToDie_f(int tidx);
-            int __spinThread_f(void (*_fn)(void *x), void *_args);
-            int  __getThreadCount_f(void);
-            int  __getHighestThreadIndex_f(void);
-            int  __getCurrentThreadIndex_f(void);
+            void __terminateThread_f(__integer tidx);
+            void __waitForThreadToDie_f(__integer tidx);
+            __integer __spinThread_f(void (*_fn)(void *x), void *_args);
+            __integer __getThreadCount_f(void);
+            __integer __getHighestThreadIndex_f(void);
+            __integer __getCurrentThreadIndex_f(void);
             void __threadTimeslice_f(void);
             void __createThreadLock_f(PThreadLock pThreadLock);
             void __destroyThreadLock_f(PThreadLock pThreadLock);

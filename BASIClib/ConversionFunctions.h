@@ -13,13 +13,13 @@
 extern "C" {
 #endif
 
-int vbiS_asc(PBasicString pBasicStr);
-PBasicString vbSi_chr_DC_(int asciiValue);
-PBasicString vbSd_str_DC_(double numeric);
-double vbdS_val(PBasicString pBasicStr);
-PBasicString vbSl_hex_DC_(long x);
-PBasicString vbSl_oct_DC_(long x);
-PBasicString vbS_mki_DC_(int num);
+__integer _vbiS_asc(PBasicString pBasicStr);
+PBasicString _vbSi_chr_DC_(__integer asciiValue);
+PBasicString _vbSd_str_DC_(__double numeric);
+__double _vbdS_val(PBasicString pBasicStr);
+PBasicString _vbSl_hex_DC_(__long x);
+PBasicString _vbSl_oct_DC_(__long x);
+PBasicString _vbS_mki_DC_(__integer num);
 
 #ifdef __cplusplus
 }

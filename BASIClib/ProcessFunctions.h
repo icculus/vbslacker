@@ -13,13 +13,13 @@
 extern "C" {
 #endif
 
-void vbpS_shell(PBasicString shCmd);
-void vbp_end(void);
-void vbp_sleep(void);
-void vbpl_sleep(long napTime);
+void _vbpS_shell(PBasicString shCmd);
+void _vbp_end(void);
+void _vbp_sleep(void);
+void _vbpl_sleep(__long napTime);
 
-#define vbp_system vbp_end
-#define vbp_stop   vbp_end
+#define _vbp_system _vbp_end
+#define _vbp_stop   _vbp_end
 
 #ifdef __cplusplus
 }

@@ -10,12 +10,12 @@
 #include "BasicError.h"
 
 
-static int *basicErrno = NULL;
+static __long *basicErrno = NULL;
 
     /*
      * These are the strings for ERROR$()...
      */
-static char *errStrings[MAX_ERRS];
+static __byte *errStrings[MAX_ERRS];
 
     /*
      * module-scope ThreadLock.
@@ -60,7 +60,7 @@ void __deinitBasicError(void)
 } /* __deinitBasicError */
 
 
-void __initThreadBasicError(int tidx)
+void __initThreadBasicError(__integer tidx)
 /*
  * This makes sure space exists in the thread-protected arrays for the
  *  current thread index. This is called whenever a new thread is created.
@@ -71,7 +71,7 @@ void __initThreadBasicError(int tidx)
  *     returns : void, but all the tables could get realloc()ed.
  */
 {
-    int maxThreads = __getHighestThreadIndex + 1;
+    __integer maxThreads = __getHighestThreadIndex + 1;
 
     __obtainThreadLock(&basicErrorLock);
     onErrorThreadStates = realloc(onErrorThreadStates,
@@ -100,7 +100,7 @@ void __initThreadBasicError(int tidx)
  */
 
 
-int __getBasicErrno(void)
+__long __getBasicErrno(void)
 /*
  * Return the current BASIC error number for the current thread.
  *
@@ -360,7 +360,8 @@ static void __defaultRuntimeErrorHandler(void)
 #warning Do something about __defaultRuntimeErrorHandler()!
 {
     int bErr = __getBasicErrno();
-    char *errStr = ((bErr > MAX_ERRS) ? STR_UNKNOWN_ERR : errStrings[bErr]);
+    char *errStr = ( (bErr > MAX_ERRS) ?
+                      STR_UNKNOWN_ERR : ((char *) errStrings[bErr]) );
 
     if (errStr == NULL)
         errStr = STR_UNKNOWN_ERR;
@@ -372,7 +373,7 @@ static void __defaultRuntimeErrorHandler(void)
 } /* __defaultRuntimeErrorHandler */
 
 
-void __fatalRuntimeError(int errorNum)
+void __fatalRuntimeError(__long errorNum)
 /*
  * Call this instead of __runtimeError() if you want to throw an
  *  unrecoverable error. Even ERR_NO_ERROR is fatal here.
@@ -386,7 +387,7 @@ void __fatalRuntimeError(int errorNum)
 } /* __fatalRuntimeError */
 
 
-void __runtimeError(int errorNum)
+void __runtimeError(__long errorNum)
 /*
  * This is the backend of the BASIC ERROR statement, and what BASIClib
  *  calls internally to throw non-fatal runtime errors. The appropriately

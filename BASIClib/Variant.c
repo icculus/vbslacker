@@ -25,9 +25,9 @@ void __freeVariant(PVariant var)
 } /* __freeVariant */
 
 
-int __variantToInt(PVariant var)
+__integer __variantToInt(PVariant var)
 {
-    int retVal = 0;
+    __integer retVal = 0;
 
     switch (var->type)
     {
@@ -35,13 +35,13 @@ int __variantToInt(PVariant var)
             retVal = var->data._integer;
             break;
         case LONG:
-            retVal = (int) var->data._long;
+            retVal = (__integer) var->data._long;
             break;
         case SINGLE:
-            retVal = (int) var->data._single;
+            retVal = (__integer) var->data._single;
             break;
         case DOUBLE:
-            retVal = (int) var->data._double;
+            retVal = (__integer) var->data._double;
             break;
         default:
             __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
@@ -53,23 +53,23 @@ int __variantToInt(PVariant var)
 
 
 
-long __variantToLong(PVariant var)
+__long __variantToLong(PVariant var)
 {
-    long retVal = 0;
+    __long retVal = 0;
 
     switch (var->type)
     {
         case INTEGER:
-            retVal = (long) var->data._integer;
+            retVal = (__long) var->data._integer;
             break;
         case LONG:
             retVal = var->data._long;
             break;
         case SINGLE:
-            retVal = (long) var->data._single;
+            retVal = (__long) var->data._single;
             break;
         case DOUBLE:
-            retVal = (long) var->data._double;
+            retVal = (__long) var->data._double;
             break;
         default:
             __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
@@ -81,23 +81,25 @@ long __variantToLong(PVariant var)
 
 
 
-float __variantToFloat(PVariant var)
+#warning variantToFloat and not Single?
+
+__single __variantToFloat(PVariant var)
 {
-    float retVal = 0;
+    __single retVal = 0;
 
     switch (var->type)
     {
         case INTEGER:
-            retVal = (float) var->data._integer;
+            retVal = (__single) var->data._integer;
             break;
         case LONG:
-            retVal = (float) var->data._long;
+            retVal = (__single) var->data._long;
             break;
         case SINGLE:
             retVal = var->data._single;
             break;
         case DOUBLE:
-            retVal = (float) var->data._double;
+            retVal = (__single) var->data._double;
             break;
         default:
             __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
@@ -109,20 +111,20 @@ float __variantToFloat(PVariant var)
 
 
 
-double __variantToDouble(PVariant var)
+__double __variantToDouble(PVariant var)
 {
-    double retVal = 0;
+    __double retVal = 0;
 
     switch (var->type)
     {
         case INTEGER:
-            retVal = (double) var->data._integer;
+            retVal = (__double) var->data._integer;
             break;
         case LONG:
-            retVal = (double) var->data._long;
+            retVal = (__double) var->data._long;
             break;
         case SINGLE:
-            retVal = (double) var->data._single;
+            retVal = (__double) var->data._single;
             break;
         case DOUBLE:
             retVal = var->data._double;
