@@ -11,7 +11,7 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
        FileSystemFunctions.o Variant.o BasicError.o NoConsole.o \
        DirectConsole.o RedirectedConsole.o CursesConsole.o \
-       EnvrFunctions.o
+       EnvrFunctions.o Gosub.o
 
 CC = gcc
 LINKER = gcc
@@ -54,6 +54,9 @@ Initialize.o : Initialize.c Initialize.h
 
 OnEvents.o : OnEvents.c OnEvents.h
 	$(CC) $(COPTIONS) OnEvents.o OnEvents.c
+
+Gosub.o : Gosub.c Gosub.h
+	$(CC) $(COPTIONS) Gosub.o Gosub.c
 
 ErrorFunctions.o : ErrorFunctions.c ErrorFunctions.h
 	$(CC) $(COPTIONS) ErrorFunctions.o ErrorFunctions.c
