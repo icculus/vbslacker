@@ -20,8 +20,7 @@ void __prepareGosub(void *ret, __PGosubState state)
  */
 {
     state->count++;
-    state->addrs = __memReallocInBoxcar(state->addrs,
-                                        sizeof (void *) * state->count);
+    state->addrs = __memRealloc(state->addrs, sizeof (void *) * state->count);
     state->addrs[state->count - 1] = ret;
 } /* __prepareGosub */
 

@@ -22,7 +22,7 @@
 #define INITFLAG_UNIX_FILE_SYSTEM      16
 
     /* function prototypes ... */
-void __initBasicLib(long flags, int argc, char **argv);
+void __initBasicLib(void *base, long flags, int argc, char **argv);
 void __deinitBasicLib(void);
 long __getInitFlags();
 void __shellOutNotification();

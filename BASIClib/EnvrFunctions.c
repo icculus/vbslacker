@@ -241,7 +241,7 @@ int vbiS_fre(PBasicString strExp)
  *    returns : see above.
  */
 {
-    __memForceFullBoxcarRelease();
+    __memDoFullCollect();
     return(65767);  /* !!! */
 } /* vbiS_fre */
 

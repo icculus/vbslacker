@@ -53,6 +53,13 @@
     #define __jump(addr)                         /* YOUR DEFINITION HERE... */
 
         /*
+         * Unconditional jump to a specified line label, (label), for
+         *  better or for worse. This label must be specified with
+         *  __insertLineLabel, or results are really undefined.
+         */
+    #define __jumpLabel(label)                   /* YOUR DEFINITION HERE... */
+
+        /*
          * This is used by __triggerOnError()...adjust the
          *  stack and base pointers to (stack) and (base), and
          *  unconditionally jump to (addr)...

@@ -40,17 +40,26 @@
                                                         : "=q" (retVal)     \
                                                   )
 
+        /*
+         * GNU C actually does a bunch of this low-level stuff as extensions
+         *  to the C language. It optimizes more than inline assembly
+         *  would, and is less prone to optimization bugs in the long run.
+         */
+
 
         /*
          * Unconditional jump to a specified address, (addr), for
          *  better or for worse.
          */
-    #define __jump(addr)                          __asm__ __volatile__      \
-                                                  (                         \
-                                                    "jmpl *%0\n\t"          \
-                                                        :                   \
-                                                        : "q" (addr)        \
-                                                  )
+    #define __jump(addr)                          goto *(addr)
+
+
+        /*
+         * Unconditional jump to a specified line label, (label), for
+         *  better or for worse. This label must be specified with
+         *  __insertLineLabel, or results are really undefined.
+         */
+    #define __jumpLabel(label)                    goto label
 
         /*
          * This is used by __triggerOnError()...adjust the
@@ -61,7 +70,7 @@
                                                   (                         \
                                                     "movl %0, %%ebp \n\t"   \
                                                     "movl %1, %%esp \n\t"   \
-                                                    "jmpl *%2       \n\t"   \
+                                                    "jmp  *%2       \n\t"   \
                                                         :                   \
                                                         : "q" (base),       \
                                                           "q" (stack),      \
@@ -75,19 +84,13 @@
          *  specified addresses, we need to implement this in assembly,
          *  where line label addresses are commonplace.
          */
-    #define __insertLineLabel(label)              __asm__ __volatile__      \
-                                                  (                         \
-                                                    #label ":\n\t"          \
-                                                  )
+    #define __insertLineLabel(label)              label:
+
         /*
          * Get the address in memory of a line label specified by
          *  __insertLineLabel, and store it in (retVal).
          */
-    #define __getLabelAddr(label, retVal)         __asm__ __volatile__      \
-                                                  (                         \
-                                                    "movl " #label ",%0\n\t"\
-                                                        : "=q" (retVal)     \
-                                                  )
+    #define __getLabelAddr(label, retVal)         retVal = &&label;
 
 #endif /* defined _INCLUDE_I386_GNU_H_ */
 #endif /* defined _INCLUDING_LOCAL_ASM_CODE__ */

@@ -77,7 +77,7 @@ static char *__convertPathWinToUnix(char *pathName)
  */
 {
     int length = strlen(pathName);
-    char *retVal = __memAllocInBoxcar(length + 1);
+    char *retVal = __memAlloc(length + 1);
     int i;
 
     if ((length >= 2) && (pathName[1] == ':'))   /* drive letter? */
@@ -104,7 +104,7 @@ static char *__convertPathUnixToWin(char *pathName)
  */
 {
     int length = strlen(pathName);
-    char *retVal = __memAllocInBoxcar(length + 3);
+    char *retVal = __memAlloc(length + 3);
     int i;
 
     strcpy(retVal, "C:");

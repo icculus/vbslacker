@@ -20,12 +20,12 @@ typedef struct
     long uBound;                /* End of index range.              */
     __boolean multiDimensional; /* An array of arrays?              */
     __boolean isStatic;         /* true == static, false == dynamic */
-} BasicArray;
+} __BasicArray;
 
-typedef BasicArray *PBasicArray;
+typedef __BasicArray *__PBasicArray;
 
 #endif  /* !defined _INCLUDE_BASICARRAY_H_ */
-#endif  /* defined _INCLUDE_STDBASIC_H_ */
+#endif  /* !defined _INCLUDE_STDBASIC_H_ */
 
 /* end of BasicArray.h ... */
 
