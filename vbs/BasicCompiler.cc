@@ -41,6 +41,7 @@ BasicCompiler::BasicCompiler(char *strFileName, BasicContext *pBasicContext)
     }
                                 // Allocate space for source code line
     this->m_strBasicStatement = new char[MAX_LINE_SIZE];
+    this->m_lLineNumber = 0;
 
     this->Compile(strFileName);
 }
@@ -93,10 +94,7 @@ BASIC_FILE_TYPE BasicCompiler::GetFileType(char *strFileName)
     char *FileType[] = {"VBP","FRM","BAS","CLS"};
     char **pFile;               // Pointer to file extension in FileType array
     short i;                    // Generic counter
-                                // Type to return
-    BASIC_FILE_TYPE ReturnValue;
 
-                                    
                                 // Set starting index to end of string
     p = strFileName + strlen(strFileName);
 
@@ -119,13 +117,12 @@ BASIC_FILE_TYPE BasicCompiler::GetFileType(char *strFileName)
 
                 pFile++;        // Increment to next array element
             }
+                                // Not a valid extension
+            return BASIC_FILE_UNKNOWN;
         }
     }
-
-    if(p == strFileName)        // If we didn't find an extension
-        ReturnValue = BASIC_FILE_UNKNOWN;
-
-    return ReturnValue;
+                                // If we didn't find an extension
+    return BASIC_FILE_UNKNOWN;
 }
 
 void BasicCompiler::Compile(char *strFileName)
@@ -156,9 +153,11 @@ void BasicCompiler::Compile(char *strFileName)
             break;
         case BASIC_FILE_CLS:
             Context = CONTEXT_MODULE_CLS;
-        default:
+            break;
+        default:                // File was not valid
             this->m_pBasicContext->GetErrors()->
                 AddError(BASIC_ERROR_UNRECOGNIZED_FILE);
+            return;             // Bail out, don't process the file
     };
 
     if((this->m_pStream = fopen(strFileName, "rt")) == NULL)
@@ -173,15 +172,8 @@ void BasicCompiler::Compile(char *strFileName)
         while(!feof(this->m_pStream) && 
         !this->m_pBasicContext->GetTerminateFlag())
         {
-                                // Read a line in from the file
-            if(this->GetStatement())
-            {
-                /***TEMPORARY***/
-                printf("%s\n", this->m_strBasicStatement);
-                                // Put statement through compiler.
-                this->m_pBasicContext->GetStatements()->
-                    ProcessStatement(this->m_strBasicStatement);
-            }
+                                // Read next statement from file
+            this->ProcessStatement();
         }
                                 // Close file since we're done with it.
         fclose(this->m_pStream);
@@ -234,35 +226,40 @@ void BasicCompiler::CleanupString(char *strStatement)
         {
                                 // If TRUE, it's just whitespace
             if(*p == *p2)
+            {
                 bWhiteSpace = TRUE;
+                break;
+            }
+            p2++;
         }
 
         if(bWhiteSpace)
             p--;
         else
-            *(p++) = '\x0';
+            *(++p) = '\x0';
     } while(bWhiteSpace);
 }
 
-BOOLEAN BasicCompiler::GetStatement()
+void BasicCompiler::ProcessStatement()
 /*
- * Reads in a valid line of BASIC source code.  In a nutshell, it's just like
- *  an 'fgets' statement except in accounts for lines ending with '_', which
- *  means to continue processing the next line as if it were the same
- *  statement.
+ * Reads and process a valid basic statement.  This differs from just a line
+ *  of text, in the fact that statements can be spread over multiple lines
+ *  using the '_' character.
  *
  *     params : none
- *    returns : TRUE if successful, otherwise FALSE on error.
+ *    returns : none.  Raises an error in BasicError if there's problems.
  */
 {
     char *p;
     BOOLEAN bDone;
-    BOOLEAN bReturnValue;
+    BOOLEAN bOk;                // Did we process line okay?
+    long lFirstLine;            // First line of this statement
 
     p = this->m_strBasicStatement;
     *p = '\x0';                 // Make string 0 length to start out.
     bDone = FALSE;
-    bReturnValue = TRUE
+    bOk = FALSE;
+    lFirstLine = this->m_lLineNumber + 1;
 
     while(!bDone)
     {
@@ -275,25 +272,43 @@ BOOLEAN BasicCompiler::GetStatement()
                                 // Flag to stop parsing since we got a fatal
                                 //  error.
             this->m_pBasicContext->SetTerminateFlag();
-                                // Return that we failed
-            bReturnValue = FALSE;
             bDone = TRUE;
+            bOk = FALSE;
         }
         else                    // It's all good
         {
+                                // Keep track of current line number
+            this->m_lLineNumber++;
                                 // Cleanup the string we've got so far
             this->CleanupString(p);
 
-            p += strlen(p) - 1; // Go to last character in string
+            p += strlen(p);     // Go to last character in string
 
                                 // If last character is not a "continue" then
                                 //  we're done.  Otherwise, we'll read the next
                                 //  line and append it to our current line.
-            if(*p != '_')       
+                                // We'll keep the '_' character in there so
+                                //  that the BasicStatement object that we
+                                //  pass our string to will know that it's a
+                                //  new line.
+            if(*(p-1) != '_')
+            {
                 bDone = TRUE;
+                bOk = TRUE;
+            }
         }
     }
 
-    return bReturnValue;
+    if(bOk)                     // If statement was process successfully.
+    {
+                                // Put statement through compiler, passing
+                                //  the line number of the start of the
+                                //  statement.
+        this->m_pBasicContext->GetStatements()->
+            ProcessStatement(this->m_strBasicStatement, lFirstLine);
+
+        /***TEMPORARY***/
+        printf("%s\n", this->m_strBasicStatement);
+    }
 }
 /* end of BasicCompiler.cpp */

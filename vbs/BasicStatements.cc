@@ -66,18 +66,20 @@ BasicStatements::~BasicStatements()
     for(i = 0; i < NUMBER_OF_BASIC_STATEMENTS; i++)
     {
         delete (*p);
+        p++;
     }
 
                                 // Now remove the array.
     delete this->m_pBasicStatements;
 }
 
-void BasicStatements::ProcessStatement(char *strStatement)
+void BasicStatements::ProcessStatement(char *strStatement, long lLineNumber)
 /*
  * Attempt to process statement through one of the BasicStatement objects
  *  in the collection.
  *
  *     params : strStatement    ==  Basic source code statement to process.
+ *              lLineNumber     ==  Line number of beginning of statement.
  *    returns : none
  */
 {
