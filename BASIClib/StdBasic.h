@@ -22,7 +22,6 @@
 #include "Language.h"
 #include "BasicString.h"
 #include "Variant.h"
-#include "OnOffStopType.h"
 #include "BasicError.h"
 #include "Threads.h"
 #include "Initialize.h"
