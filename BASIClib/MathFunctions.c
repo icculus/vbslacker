@@ -60,6 +60,7 @@ __double _vbdd_tan(__double x)
 
 
 __double _vbdd_exp(__double x)
+#warning uh?
 {
     return(pow(2.718282, 2.0));
 } /* _vbddd_exp */
