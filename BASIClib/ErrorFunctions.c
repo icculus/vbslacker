@@ -53,11 +53,14 @@ void __runtimeError(int errorNum)
 
     basicErrno = __basicErrno = errorNum;
 
-    pHandler = __getOnEventHandler(ONERROR);
-    if (pHandler == NULL)
-        __defaultRuntimeErrorHandler();
-    else
-        __triggerOnEvent(ONERROR);
+    if (errorNum != ERR_NO_ERROR)
+    {
+        pHandler = __getOnEventHandler(ONERROR);
+        if (pHandler == NULL)
+            __defaultRuntimeErrorHandler();
+        else
+            __triggerOnEvent(ONERROR);
+    } /* if */
 } /* __runtimeError */
 
 
