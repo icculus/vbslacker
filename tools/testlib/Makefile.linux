@@ -1,7 +1,8 @@
 # Makefile for building a dynamic (shared) BASIClib
 
-OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o
-
+# move this to root makefile. export it.
+OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o \
+       TestErrorFunctions.o
 CC = gcc
 LINKER = gcc
 
@@ -37,5 +38,11 @@ TestConversionFunctions.o : TestConversionFunctions.c \
                             $(BASICLIBDIR)/BasicString.h \
                             $(BASICLIBDIR)/ConversionFunctions.h 
 	$(CC) $(COPTIONS) TestConversionFunctions.o TestConversionFunctions.c
+
+TestErrorFunctions.o : TestErrorFunctions.c \
+                            $(BASICLIBDIR)/Initialize.h \
+                            $(BASICLIBDIR)/OnEvents.h \
+                            $(BASICLIBDIR)/ErrorFunctions.h 
+	$(CC) $(COPTIONS) TestErrorFunctions.o TestErrorFunctions.c
 
 # end of Makefile.linux ...
