@@ -10,10 +10,9 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o \
        ErrorFunctions.o MathFunctions.o MemoryManager.o Threads.o \
        TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
        StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
-       ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
-       FileSystemFunctions.o Variant.o BasicError.o NoConsole.o \
-       DirectConsole.o RedirectedConsole.o CursesConsole.o \
-       EnvrFunctions.o Gosub.o MiscFunctions.o ArrayFunctions.o
+       ConsoleFunctions.o ProcessFunctions.o FileSystemFunctions.o \
+       Variant.o BasicError.o NoConsole.o DirectConsole.o RedirectedConsole.o \
+       CursesConsole.o EnvrFunctions.o Gosub.o MiscFunctions.o ArrayFunctions.o
 
 CC = gcc
 LINKER = gcc
@@ -30,8 +29,8 @@ IOACCESS = -O3
 #ASMOPTIONS = -Wall -c -o
 
 # Debug command lines...
-#COPTIONS = -DSINGLE_THREADED -DLINUXELF_I386 -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
-COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
+COPTIONS = -DSINGLE_THREADED -D_REENTRANT -DLINUXELF_I386 -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
+#COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
 LOPTIONS = -Wall -shared -Wl,-soname,$(DYNLIBMAJOR) -o
 ASMOPTIONS = -D_REENTRANT -Wall -c -o
 
@@ -107,9 +106,6 @@ RedirectedConsole.o : RedirectedConsole.c RedirectedConsole.h ConsoleFunctions.h
 
 CursesConsole.o : CursesConsole.c CursesConsole.h ConsoleFunctions.h
 	$(CC) $(COPTIONS) CursesConsole.o CursesConsole.c
-
-PenFunctions.o : PenFunctions.c PenFunctions.h
-	$(CC) $(COPTIONS) PenFunctions.o PenFunctions.c
 
 ProcessFunctions.o : ProcessFunctions.c ProcessFunctions.h
 	$(CC) $(COPTIONS) ProcessFunctions.o ProcessFunctions.c
