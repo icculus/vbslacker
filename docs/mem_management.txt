@@ -1,0 +1,6 @@
+This will eventually be documentation on how to use BASIClib's memory
+management API, but it ain't yet.
+
+--the mcmanagement.
+
+
