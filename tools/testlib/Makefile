@@ -7,7 +7,7 @@ WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
 
 BASICLIBDIR = ../../BASIClib
 
-OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o
+OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o
 
 CC = gcc
 LINKER = gcc
@@ -46,6 +46,11 @@ TestOnEvents.o : TestOnEvents.c $(BASICLIBDIR)/OnEvents.h \
                  $(BASICLIBDIR)/ErrorFunctions.h
 	$(CC) $(COPTIONS) TestOnEvents.o TestOnEvents.c
 
+
+TestThreads.o : TestThreads.c 
+                $(BASICLIBDIR)/Boolean.h \
+                $(BASICLIBDIR)/Threads.h 
+	$(CC) $(COPTIONS) TestThreads.o TestThreads.c
 
 TestConversionFunctions.o : TestConversionFunctions.c \
                             $(BASICLIBDIR)/BasicString.h \
