@@ -7,6 +7,10 @@
 #ifndef _INCLUDE_MATHFUNCTIONS_H_
 #define _INCLUDE_MATHFUNCTIONS_H_
 
+/* !!! nowhere better for these, currently... */
+#define __min(x, y) ((x) < (y) ? (x) : (y))
+#define __max(x, y) ((x) > (y) ? (x) : (y))
+
 double func_abs(double x);
 double func_sqr(double x);
 
