@@ -6,6 +6,7 @@
 
 #include "ArrayFunctions.h"
 
+#warning write these!
 static void __arrayEraseStatic(__PBasicArray array)
 /*
  * Handles the ERASE command for dynamic arrays.
