@@ -5,14 +5,73 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
 #include "EnvrFunctions.h"
 
-#warning Most of EnvrFunctions.c are stubs...
+
+extern char **environ;
+
+ThreadLock envrLock;
+
+
+void __initEnvrFunctions(STATEPARAMS)
+{
+    __createThreadLock(STATEARGS, &envrLock);
+} /* __initEnvrFunctions */
+
+
+void __deinitEnvrFunctions(STATEPARAMS)
+{
+    __destroyThreadLock(STATEARGS, &envrLock);
+} /* __initEnvrFunctions */
 
 
 void vbpS_chdir(STATEPARAMS, PBasicString newDir)
+/*
+ * Change the current working directory. All relative paths used in
+ *  file i/o will work from the new working directory from now on.
+ *
+ *    params : newDir == new directory to make current.
+ *   returns : void. Throws a few errors, though.
+ */
 {
-    /* path not found. */
+    char *str = __basicStringToAsciz(STATEARGS, newDir);
+    int rc;
+
+    rc = chdir(str);
+    __memFree(STATEARGS, str);
+
+
+    if (rc == -1)
+    {
+        switch (errno)
+        {
+            case ENOENT:
+            case ENOTDIR:
+                rc = ERR_PATH_NOT_FOUND;
+                break;
+
+            case ELOOP:
+            case EIO:
+                rc = ERR_PATH_FILE_ACCESS_ERROR;
+                break;
+
+            case EACCES:
+                rc = ERR_PERMISSION_DENIED;
+                break;
+
+            case EFAULT:
+            case ENAMETOOLONG:
+            case ENOMEM:
+            default:
+                rc = ERR_INTERNAL_ERROR;
+                break;
+        } /* switch */
+
+        __runtimeError(STATEARGS, rc);
+    } /* if */
 } /* vbpS_chdir */
 
 
@@ -25,6 +84,18 @@ PBasicString vbSS_environ_DC_(STATEPARAMS, PBasicString envVarName)
  *              such a variable does not exist.
  */
 {
+    char *str = __basicStringToAsciz(STATEARGS, envVarName);
+    char *rc;
+    PBasicString retVal;
+
+        /* other threads may overwrite this, so lock it... */
+    __obtainThreadLock(STATEARGS, &envrLock);
+    rc = getenv(str);
+    retVal = __createString(STATEARGS, (rc == NULL) ? "" : rc, false);
+    __releaseThreadLock(STATEARGS, &envrLock);
+
+    __memFree(STATEARGS, str);
+    return(retVal);
 } /* vbSS_environ_DC_ */
 
 
@@ -34,18 +105,31 @@ PBasicString vbSi_environ_DC_(STATEPARAMS, int n)
  *  it may be.
  *
  *     params : n == the index of the variable you wish to retrieve.
- *    returns : (?!) !!!
+ *    returns : BASIC String in form "VARNAME=VARVALUE". The case of
+ *               returned values is undefined. Returns ("") if there isn't
+ *               an (n)th environment variable.
  */
 {
-} /* vbSS_environ_DC_ */
+    PBasicString retVal;
+    int i;
+
+    for (i = 0; (i < n) && (environ[i] != NULL); i++)
+        /* do nothing. */;
+
+    retVal = __createString(STATEARGS,
+                            (environ[i] == NULL) ? "" : environ[i],
+                            false);
+    return(retVal);
+} /* vbSi_environ_DC_ */
 
 
 void vbpS_environ(STATEPARAMS, PBasicString newEnvrStr)
 {
+#warning vbpS_environ() is a stub!
 } /* vbpS_environ */
 
 
-vbii_fre(STATEPARAMS, int arg)
+int vbii_fre(STATEPARAMS, int arg)
 /*
  * Returns a byte count of available memory remaining.
  *
@@ -73,7 +157,7 @@ vbii_fre(STATEPARAMS, int arg)
 } /* vbii_fre */
 
 
-vbiS_fre(STATEPARAMS, PBasicString strExp)
+int vbiS_fre(STATEPARAMS, PBasicString strExp)
 /*
  * Compact memory (garbage collect), and return the available string space,
  *  in bytes.
