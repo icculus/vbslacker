@@ -32,7 +32,7 @@
          */
     #define __getBasePointer(retVal)              __asm                     \
                                                   {                         \
-                                                    __asm mov retVal, ebp \
+                                                    __asm mov retVal, ebp   \
                                                   }
 
 
