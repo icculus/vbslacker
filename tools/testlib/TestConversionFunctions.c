@@ -12,7 +12,7 @@
 #include "ErrorFunctions.h"
 
 
-void test_chr_DC_(int x) /* !!! */
+void test_chr_DC_(STATEPARAMS)
 /*
  * Test chr$() functionality.
  *
@@ -20,23 +20,28 @@ void test_chr_DC_(int x) /* !!! */
  *   returns : void.
  */
 {
+    void *_stack_ptr_;
+    void *_base_ptr_;
     int i;
     PBasicString rc;
 
+    __setResumeStack;
+    __setResumeInstructs(&&chrErrorResume, &&chrErrorResumeNext);
+
     printf("Testing chr_DC_()...\n");
 
-    __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(&&chrError, &x + sizeof (x),
-                             _stack_ptr_, _base_ptr_, ONERROR);
-    __releaseThreadLock(&registerLock);
-
+    __registerOnEventHandler(STATEARGS, &&chrError, ONERROR);
 
     for (i = -32767; i <= 32767; i++)
     {
         __basicErrno = ERR_NO_ERROR;
-        rc = chr_DC_(i);
+
+chrErrorResume:
+        rc = chr_DC_(STATEARGS, i);
+
+chrErrorResumeNext:
         if (__basicErrno == ERR_NO_ERROR)
         {
             if (rc->length != 1)
@@ -46,24 +51,22 @@ void test_chr_DC_(int x) /* !!! */
             } /* if */
             else if (rc->data[0] != (unsigned char) i)
                 printf("  - chr$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
-            __freeString(rc);
+            __freeString(STATEARGS, rc);
         } /* if */
     } /* for */
 
-    __deregisterOnEventHandler(&x + sizeof (x), ONERROR);
+    __deregisterOnEventHandlers(STATEARGS);
     return;
 
 chrError:              /* error handler... */ 
-    __markOnEventHandlerAddr;
-
     if ((i >= 0) && (i <= 255))  /* !!! string of error number? */
         printf("  - chr$(%d) threw error %d!\n", i, __basicErrno);
 
-    __resumeNext();
+    __resumeNext(STATEARGS);
 } /* test_chr_DC_ */
 
 
-void test_str_DC_(void)
+void test_str_DC_(STATEPARAMS)
 /*
  * Test str$() functionality.
  *
@@ -79,7 +82,7 @@ void test_str_DC_(void)
 
     i = -32523.9921;
     sprintf(buffer, "%s%f", (i < 0.0) ? "" : " ", i);
-    rc = str_DC_(i);
+    rc = str_DC_(STATEARGS, i);
 
     if (rc->length > sizeof (buffer))
         printf("  - str$(%f) returned %d byte string.\n", i, rc->length);
@@ -91,11 +94,11 @@ void test_str_DC_(void)
         printf("  - str$(%f) returned \"%s\"!\n", i, buffer);
     } /* if */
 
-    __freeString(rc);
+    __freeString(STATEARGS, rc);
 } /* test_str_DC_ */
 
 
-void test_asc(int x)  /* !!! */
+void test_asc(STATEPARAMS)
 /*
  * Test asc() functionality.
  *
@@ -104,7 +107,8 @@ void test_asc(int x)  /* !!! */
  */
 {
     int i;
-    PBasicString argStr = __createString("The Quick brown fox... ", false);
+    PBasicString argStr = __createString(STATEARGS, "The Quick brown fox... ",
+                                         false);
     unsigned int rc;
 
     printf("Testing asc()...\n");
@@ -112,7 +116,7 @@ void test_asc(int x)  /* !!! */
     for (i = 0; i < 255; i++)
     {
         argStr->data[0] = i;
-        rc = asc(argStr);
+        rc = asc(STATEARGS, argStr);
         if (rc != i)
         {
             argStr->data[argStr->length - 1] = '\0';
@@ -120,11 +124,11 @@ void test_asc(int x)  /* !!! */
         } /* if */
     } /* for */
 
-    __freeString(argStr);
+    __freeString(STATEARGS, argStr);
 } /* test_asc */
 
 
-void test_hex_DC_(void)
+void test_hex_DC_(STATEPARAMS)
 /*
  * Test hex$() functionality.
  *
@@ -141,7 +145,7 @@ void test_hex_DC_(void)
     for (i = 0; i < 0xFFFF; i++)
     {
         sprintf(buffer, "%X", i);
-        rc = hex_DC_(i);
+        rc = hex_DC_(STATEARGS, i);
 
         if (memcmp(rc->data, buffer, rc->length) != 0)
         {
@@ -150,12 +154,12 @@ void test_hex_DC_(void)
             printf("  - hex$(0x%X) returned \"%s\"!\n", i, buffer);
         } /* if */
 
-        __freeString(rc);
+        __freeString(STATEARGS, rc);
     } /* for */
 } /* test_hex_DC_ */
 
 
-void test_oct_DC_(void)
+void test_oct_DC_(STATEPARAMS)
 /*
  * Test oct$() functionality.
  *
@@ -172,7 +176,7 @@ void test_oct_DC_(void)
     for (i = 0; i < 0xFFFF; i++)
     {
         sprintf(buffer, "%o", i);
-        rc = oct_DC_(i);
+        rc = oct_DC_(STATEARGS, i);
 
         if (memcmp(rc->data, buffer, rc->length) != 0)
         {
@@ -181,12 +185,12 @@ void test_oct_DC_(void)
             printf("  - hex$(%d) returned \"%s\"!\n", i, buffer);
         } /* if */
 
-        __freeString(rc);
+        __freeString(STATEARGS, rc);
     } /* for */
 } /* test_oct_DC_ */
 
 
-void test_val(void)
+void test_val(STATEPARAMS)
 {
     double i;
     double rc;
@@ -209,20 +213,20 @@ void test_val(void)
             buffer[5] = ' ';
         } /* if */
 
-        pStr = __createString(buffer, false);
+        pStr = __createString(STATEARGS, buffer, false);
 
-        rc = val(pStr);
+        rc = val(STATEARGS, pStr);
         if (rc != i)
             printf("  - val(\"%s\") returned [%f]!\n", buffer, rc);
 
-        __freeString(pStr);
+        __freeString(STATEARGS, pStr);
     } /* for */
 
     /* !!! test for nulls/non numeric strings... */
 } /* test_val */
 
 
-void test_str_DC_and_val(void)
+void test_str_DC_and_val(STATEPARAMS)
 /*
  * Does str$ and val() testing by passing a value between both and
  *  seeing if it comes back to the original value.
@@ -239,16 +243,16 @@ void test_str_DC_and_val(void)
 
     for (i = -2000.9274; i < 32523.9921; i += 321.3214);
     {
-        rcS = str_DC_(i);
-        rcD = val(rcS);
-        __freeString(rcS);
+        rcS = str_DC_(STATEARGS, i);
+        rcD = val(STATEARGS, rcS);
+        __freeString(STATEARGS, rcS);
         if (rcD != i)
             printf("  - Value (%f) came back as (%f).\n", i, rcD);
     } /* for */
 } /* test_str_DC_and_val */
 
 
-void testConversionFunctions(void)
+void testConversionFunctions(STATEPARAMS)
 /*
  * This code tests all the conversion functions in BASIClib.
  *
@@ -258,14 +262,14 @@ void testConversionFunctions(void)
 {
     printf("\n[TESTING CONVERSION FUNCTIONS...]\n");
 
-    test_chr_DC_(1);
-    test_asc(1);
-    test_str_DC_();
-    test_str_DC_and_val();
+    test_chr_DC_(STATEARGS);
+    test_asc(STATEARGS);
+    test_str_DC_(STATEARGS);
+    test_str_DC_and_val(STATEARGS);
 #warning test_val() is commented out! Fix val()!!!
 /*    test_val();  !!! */
-    test_hex_DC_();
-    test_oct_DC_();
+    test_hex_DC_(STATEARGS);
+    test_oct_DC_(STATEARGS);
 } /* testConversionFunctions */
 
 
@@ -275,9 +279,9 @@ void testConversionFunctions(void)
 
 int main(void)
 {
-    __initBasicLib();
-    testConversionFunctions();
-    __deinitBasicLib();
+    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
+    testConversionFunctions(NULLSTATEARGS);
+    __deinitBasicLib(NULLSTATEARGS);
 } /* main */
 
 #endif

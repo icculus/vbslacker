@@ -23,8 +23,18 @@ uchar TEST_LTRIM[] =         "Here's some trimmable spaces!     ";
 uchar TEST_RTRIM[] = "        Here's some trimmable spaces!";
 
 
-void cmpStr(PBasicString pStr, char *data, int length, boolean fixedLength)
-/* !!! comment this. */
+void cmpStr(STATEPARAMS, PBasicString pStr, char *data,
+            int length, boolean fixedLength)
+/*
+ * This function checks a BasicString to verify that its various attributes
+ *  are correct, and display details if they are not.
+ *
+ *    params : pStr == BasicString to check.
+ *             data == what string's data field should hold.
+ *             length == how long the string should be.
+ *             fixedLength == should the string be fixed length?
+ *   returns : void.
+ */
 {
     if (pStr == NULL)
         printf("  - New string is NULL!\n");
@@ -47,7 +57,7 @@ void cmpStr(PBasicString pStr, char *data, int length, boolean fixedLength)
 } /* cmpStr */
 
 
-void test___constString(void)
+void test___constString(STATEPARAMS)
 /*
  * Test __constString functionality.
  *
@@ -59,8 +69,8 @@ void test___constString(void)
 
     printf("Testing __constString()...\n");
 
-    rc = __constString(TEST_TEXT2);
-    cmpStr(rc, TEST_TEXT2, strlen(TEST_TEXT2), true);
+    rc = __constString(STATEARGS, TEST_TEXT2);
+    cmpStr(STATEARGS, rc, TEST_TEXT2, strlen(TEST_TEXT2), true);
 
         /* extra test; not only must data match, but it must be same pointer. */
     if (rc != NULL)
@@ -73,7 +83,7 @@ void test___constString(void)
 } /* test___constString */
 
 
-void test___createString(void)
+void test___createString(STATEPARAMS)
 /*
  * Test __createString functionality.
  *
@@ -85,13 +95,13 @@ void test___createString(void)
 
     printf("Testing __createString()...\n");
 
-    rc = __createString(TEST_TEXT1, true);
-    cmpStr(rc, TEST_TEXT1, strlen(TEST_TEXT1), true);
-    __freeString(rc);
+    rc = __createString(STATEARGS, TEST_TEXT1, true);
+    cmpStr(STATEARGS, rc, TEST_TEXT1, strlen(TEST_TEXT1), true);
+    __freeString(STATEARGS, rc);
 } /* test___createString */
 
 
-void test___assignString(void)
+void test___assignString(STATEPARAMS)
 /*
  * Test __assignString functionality.
  *
@@ -99,19 +109,19 @@ void test___assignString(void)
  *   returns : void.
  */
 {
-    PBasicString copyThis = __createString(TEST_TEXT1, true);
+    PBasicString copyThis = __createString(STATEARGS, TEST_TEXT1, true);
     PBasicString rc = NULL;
 
     printf("Testing __assignString()...\n");
 
-    __assignString(&rc, copyThis);
-    cmpStr(rc, copyThis->data, copyThis->length, false);
-    __freeString(rc);
-    __freeString(copyThis);
+    __assignString(STATEARGS, &rc, copyThis);
+    cmpStr(STATEARGS, rc, copyThis->data, copyThis->length, false);
+    __freeString(STATEARGS, rc);
+    __freeString(STATEARGS, copyThis);
 } /* test___assignString */
 
 
-void test___catString(void)
+void test___catString(STATEPARAMS)
 /*
  * Test __catString functionality.
  *
@@ -119,8 +129,8 @@ void test___catString(void)
  *   returns : void.
  */
 {
-    PBasicString str1 = __createString(TEST_TEXT1, false);
-    PBasicString str2 = __createString(TEST_TEXT2, false);
+    PBasicString str1 = __createString(STATEARGS, TEST_TEXT1, false);
+    PBasicString str2 = __createString(STATEARGS, TEST_TEXT2, false);
     int length = str1->length + str2->length;
     char buffer[length + 1];
 
@@ -128,14 +138,14 @@ void test___catString(void)
 
     sprintf(buffer, "%s%s", TEST_TEXT1, TEST_TEXT2);
 
-    __catString(&str1, str2);
-    cmpStr(str1, buffer, length, false);
-    __freeString(str1);
-    __freeString(str2);
+    __catString(STATEARGS, &str1, str2);
+    cmpStr(STATEARGS, str1, buffer, length, false);
+    __freeString(STATEARGS, str1);
+    __freeString(STATEARGS, str2);
 } /* test___catString */
 
 
-void testInternalStringFuncs(void)
+void testInternalStringFuncs(STATEPARAMS)
 /*
  * Entry for tests for internal string functions, like __createString() and
  *  __assignString()...
@@ -146,14 +156,14 @@ void testInternalStringFuncs(void)
 {
     printf("\n[TESTING INTERNAL STRING FUNCTIONS...]\n");
 
-    test___constString();
-    test___createString();
-    test___assignString();
-    test___catString();
+    test___constString(STATEARGS);
+    test___createString(STATEARGS);
+    test___assignString(STATEARGS);
+    test___catString(STATEARGS);
 } /* testInternalStringFuncs */
 
 
-void test_len(void)
+void test_len(STATEPARAMS)
 /*
  * Test LEN() functionality.
  *
@@ -161,20 +171,20 @@ void test_len(void)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(TEST_TEXT1, false);
+    PBasicString pStr = __createString(STATEARGS, TEST_TEXT1, false);
     int rc;
 
     printf("Testing len()...\n");
 
-    rc = len(pStr);
+    rc = len(STATEARGS, pStr);
     if (rc != pStr->length)
         printf("  - Failed. Returned (%d), expected (%d).\n", rc, pStr->length);
 
-    __freeString(pStr);
+    __freeString(STATEARGS, pStr);
 } /* test_len */
 
 
-void test_space_DC_(void)
+void test_space_DC_(STATEPARAMS)
 /*
  * Test SPACE$() functionality.
  *
@@ -187,13 +197,13 @@ void test_space_DC_(void)
 
     printf("Testing space_DC_()...\n");
 
-    rc = space_DC_(length);
-    cmpStr(rc, TEST_SPACE, length, false);
-    __freeString(rc);
+    rc = space_DC_(STATEARGS, length);
+    cmpStr(STATEARGS, rc, TEST_SPACE, length, false);
+    __freeString(STATEARGS, rc);
 } /* test_space_DC_ */
 
 
-void test_right_DC_(void)
+void test_right_DC_(STATEPARAMS)
 /*
  * Test RIGHT$() functionality.
  *
@@ -201,7 +211,7 @@ void test_right_DC_(void)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(TEST_TEXT3, false);
+    PBasicString pStr = __createString(STATEARGS, TEST_TEXT3, false);
     PBasicString rc;
     int length = pStr->length;
     int i;
@@ -210,16 +220,16 @@ void test_right_DC_(void)
 
     for (i = 0; i <= length; i++)
     {
-        rc = right_DC_(pStr, i);
-        cmpStr(rc, (TEST_TEXT3 + length) - i, i, false);
-        __freeString(rc);
+        rc = right_DC_(STATEARGS, pStr, i);
+        cmpStr(STATEARGS, rc, (TEST_TEXT3 + length) - i, i, false);
+        __freeString(STATEARGS, rc);
     } /* for */
 
-    __freeString(pStr);
+    __freeString(STATEARGS, pStr);
 } /* test_right_DC_ */
 
 
-void test_left_DC_(void)
+void test_left_DC_(STATEPARAMS)
 /*
  * Test LEFT$() functionality. A string is left$()ed five times with
  *  different random sizes requested each time. Results are compared.
@@ -228,7 +238,7 @@ void test_left_DC_(void)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(TEST_TEXT3, false);
+    PBasicString pStr = __createString(STATEARGS, TEST_TEXT3, false);
     PBasicString rc;
     int length = pStr->length;
     int i;
@@ -237,16 +247,16 @@ void test_left_DC_(void)
 
     for (i = 1; i <= length; i++)
     {
-        rc = left_DC_(pStr, i);
-        cmpStr(rc, TEST_TEXT3, i, false);
-        __freeString(rc);
+        rc = left_DC_(STATEARGS, pStr, i);
+        cmpStr(STATEARGS, rc, TEST_TEXT3, i, false);
+        __freeString(STATEARGS, rc);
     } /* for */
 
-    __freeString(pStr);
+    __freeString(STATEARGS, pStr);
 } /* test_left_DC_ */
 
 
-void test_ucase_DC_(void)
+void test_ucase_DC_(STATEPARAMS)
 /*
  * Test UCASE$() functionality.
  *
@@ -254,19 +264,19 @@ void test_ucase_DC_(void)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(TEST_CASE, false);
+    PBasicString pStr = __createString(STATEARGS, TEST_CASE, false);
     PBasicString rc;
 
     printf("Testing ucase_DC_()...\n");
 
-    rc = ucase_DC_(pStr);
-    cmpStr(rc, TEST_UCASE, pStr->length, false);
-    __freeString(pStr);
-    __freeString(rc);
+    rc = ucase_DC_(STATEARGS, pStr);
+    cmpStr(STATEARGS, rc, TEST_UCASE, pStr->length, false);
+    __freeString(STATEARGS, pStr);
+    __freeString(STATEARGS, rc);
 } /* test_ucase_DC_ */
 
 
-void test_lcase_DC_(void)
+void test_lcase_DC_(STATEPARAMS)
 /*
  * Test LCASE$() functionality.
  *
@@ -274,19 +284,19 @@ void test_lcase_DC_(void)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(TEST_CASE, false);
+    PBasicString pStr = __createString(STATEARGS, TEST_CASE, false);
     PBasicString rc;
 
     printf("Testing lcase_DC_()...\n");
 
-    rc = lcase_DC_(pStr);
-    cmpStr(rc, TEST_LCASE, pStr->length, false);
-    __freeString(pStr);
-    __freeString(rc);
+    rc = lcase_DC_(STATEARGS, pStr);
+    cmpStr(STATEARGS, rc, TEST_LCASE, pStr->length, false);
+    __freeString(STATEARGS, pStr);
+    __freeString(STATEARGS, rc);
 } /* test_lcase_DC_ */
 
 
-void test_ltrim_DC_(void)
+void test_ltrim_DC_(STATEPARAMS)
 /*
  * Test LTRIM$() functionality.
  *
@@ -294,19 +304,19 @@ void test_ltrim_DC_(void)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(TEST_TRIM, false);
+    PBasicString pStr = __createString(STATEARGS, TEST_TRIM, false);
     PBasicString rc;
 
     printf("Testing ltrim_DC_()...\n");
 
-    rc = ltrim_DC_(pStr);
-    cmpStr(rc, TEST_LTRIM, strlen(TEST_LTRIM), false);
-    __freeString(pStr);
-    __freeString(rc);
+    rc = ltrim_DC_(STATEARGS, pStr);
+    cmpStr(STATEARGS, rc, TEST_LTRIM, strlen(TEST_LTRIM), false);
+    __freeString(STATEARGS, pStr);
+    __freeString(STATEARGS, rc);
 } /* test_ltrim_DC_ */
 
 
-void test_rtrim_DC_(void)
+void test_rtrim_DC_(STATEPARAMS)
 /*
  * Test RTRIM$() functionality.
  *
@@ -314,19 +324,19 @@ void test_rtrim_DC_(void)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(TEST_TRIM, false);
+    PBasicString pStr = __createString(STATEARGS, TEST_TRIM, false);
     PBasicString rc;
 
     printf("Testing rtrim_DC_()...\n");
 
-    rc = rtrim_DC_(pStr);
-    cmpStr(rc, TEST_RTRIM, strlen(TEST_RTRIM), false);
-    __freeString(pStr);
-    __freeString(rc);
+    rc = rtrim_DC_(STATEARGS, pStr);
+    cmpStr(STATEARGS, rc, TEST_RTRIM, strlen(TEST_RTRIM), false);
+    __freeString(STATEARGS, pStr);
+    __freeString(STATEARGS, rc);
 } /* test_rtrim_DC_ */
 
 
-void testUserStringFuncs(void)
+void testUserStringFuncs(STATEPARAMS)
 /*
  * Entry for tests for user-called string functions, like rtrim$() and
  *  left$()...
@@ -337,21 +347,21 @@ void testUserStringFuncs(void)
 {
     printf("\n[TESTING USER-CALLED STRING FUNCTIONS...]\n");
 
-    test_len();
-    test_space_DC_();
-    test_right_DC_();
-    test_left_DC_();
-    test_rtrim_DC_();
-    test_ltrim_DC_();
-    test_lcase_DC_();
-    test_ucase_DC_();
+    test_len(STATEARGS);
+    test_space_DC_(STATEARGS);
+    test_right_DC_(STATEARGS);
+    test_left_DC_(STATEARGS);
+    test_rtrim_DC_(STATEARGS);
+    test_ltrim_DC_(STATEARGS);
+    test_lcase_DC_(STATEARGS);
+    test_ucase_DC_(STATEARGS);
 
     /* !!! need mid$ tests! */
 } /* testUserStringFuncs */
 
 
 
-void testStringFunctions(void)
+void testStringFunctions(STATEPARAMS)
 /*
  * This code tests all the string functions in BASIClib.
  *
@@ -359,8 +369,8 @@ void testStringFunctions(void)
  *   returns : void.
  */
 {
-    testInternalStringFuncs();
-    testUserStringFuncs();
+    testInternalStringFuncs(STATEARGS);
+    testUserStringFuncs(STATEARGS);
 } /* testStringFunctions */
 
 
@@ -370,9 +380,10 @@ void testStringFunctions(void)
 
 int main(void)
 {
-    __initBasicLib();
-    testStringFunctions();
-    __deinitBasicLib();
+    __initBasicLib(NULLSTATEARGS);
+    testStringFunctions(NULLSTATEARGS);
+    __deinitBasicLib(NULLSTATEARGS);
+    return(0);
 } /* main */
 
 #endif

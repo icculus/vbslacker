@@ -177,10 +177,11 @@ void testOnEventGotoHandling(STATEPARAMS, int runCount)
 
     printf("Testing ON EVENT GOTO handling (run #%d)...\n", runCount);
 
+    __getBasePointer(&_base_ptr_); 
     __getStackPointer(&_stack_ptr_);
-    __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(STATEARGS, &&errHandler, _base_ptr_,
-                            _stack_ptr_,ONERROR);
+
+    __setResumeStack;
+    __registerOnEventHandler(STATEARGS, &&errHandler ,ONERROR);
 
     recursive = 0;
     __triggerOnEvent_recurse(STATEARGS, ONERROR, true);
@@ -277,10 +278,11 @@ void testOnEventGotoRecurseHandling(STATEPARAMS, int runCount)
 
     recursive = 0;
 
+    __getBasePointer(&_base_ptr_); 
     __getStackPointer(&_stack_ptr_);
-    __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(STATEARGS, &&errHandler, _base_ptr_,
-                            _stack_ptr_,ONERROR);
+
+    __setResumeStack;
+    __registerOnEventHandler(STATEARGS, &&errHandler, ONERROR);
 
     recursive = 0;
     __triggerOnEventByType(STATEARGS, ONERROR);
@@ -365,15 +367,15 @@ void testResumeNext(STATEPARAMS, int runCount)
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
+    __getBasePointer(&_base_ptr_); 
+    __getStackPointer(&_stack_ptr_);
+
     __setResumeStack;
     __setResumeInstructs(&&resumeZeroWrong, &&resumeNextRight);
 
     printf("Testing RESUME NEXT (run #%d)...\n", runCount);
 
-    __getStackPointer(&_stack_ptr_);
-    __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(STATEARGS, &&resumeNextErrHandler,
-                             _base_ptr_, _stack_ptr_, ONTIMER);
+    __registerOnEventHandler(STATEARGS, &&resumeNextErrHandler, ONTIMER);
 
     recursive = 0;
     __triggerOnEvent_recurse(STATEARGS, ONTIMER, false);
@@ -442,10 +444,7 @@ void testResumeZero(STATEPARAMS, int runCount)
 
     printf("Testing RESUME 0 (run #%d)...\n", runCount);
 
-    __getStackPointer(&_stack_ptr_);
-    __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(STATEARGS, &&resumeZeroErrHandler,
-                             _base_ptr_, _stack_ptr_, ONTIMER);
+    __registerOnEventHandler(STATEARGS, &&resumeZeroErrHandler, ONTIMER);
 
     recursive = 0;
     __triggerOnEvent_recurse(STATEARGS, ONTIMER, false);

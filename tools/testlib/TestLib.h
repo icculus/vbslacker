@@ -7,12 +7,14 @@
 #ifndef _INCLUDE_TESTLIB_H_
 #define _INCLUDE_TESTLIB_H_
 
-void testOnEvents(void);
-void testErrorFunctions(void);
-void testThreads(void);
-void testStringFunctions(void);
-void testConversionFunctions(void);
-void testFileIOFunctions(void);
+#include "RegState.h"
+
+void testOnEvents(STATEPARAMS);
+void testErrorFunctions(STATEPARAMS);
+void testThreads(STATEPARAMS);
+void testStringFunctions(STATEPARAMS);
+void testConversionFunctions(STATEPARAMS);
+void testFileIOFunctions(STATEPARAMS);
 
 #endif
 

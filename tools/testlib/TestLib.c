@@ -11,36 +11,41 @@
 #include "TestLib.h"
 
 
-void initTestLib(void)
+void initTestLib(STATEPARAMS)
 {
     setbuf(stdout, NULL);
     printf("\n[TESTLIB FOR VBSLACKER STARTING UP...]\n");
     printf("Making call to __initBasicLib()...\n"); 
-    __initBasicLib();
+    __initBasicLib(STATEARGS, INITFLAG_NO_FLAGS);
 } /* initTestLib */
 
-void deinitTestLib(void)
+void deinitTestLib(STATEPARAMS)
 {
     printf("\n[TESTLIB FOR VBSLACKER SHUTTING DOWN...]\n");
     printf("Making call to __deinitBasicLib()...\n"); 
 
         /* !!! This will be done automatically, eventually... */
-    __deinitBasicLib();
+    __deinitBasicLib(STATEARGS);
+
+    printf("\n");
 } /* deinitTestLib */
+
+void testEverything(STATEPARAMS)
+{
+    testOnEvents(STATEARGS);
+    testErrorFunctions(STATEARGS);
+    testThreads(STATEARGS);
+    testStringFunctions(STATEARGS);
+    testConversionFunctions(STATEARGS);
+    testFileIOFunctions(STATEARGS);
+} /* testEverything */
 
 
 int main(void)
 {
-    initTestLib();
-
-    testOnEvents();
-    testErrorFunctions();
-    testThreads();
-    testStringFunctions();
-    testConversionFunctions();
-    testFileIOFunctions();
-
-    deinitTestLib();
+    initTestLib(NULLSTATEARGS);
+    testEverything(NULLSTATEARGS);
+    deinitTestLib(NULLSTATEARGS);
     return(0);
 } /* main */
 

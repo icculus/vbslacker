@@ -10,39 +10,41 @@
 #include "BasicString.h"
 #include "FileIOFunctions.h"
 
-boolean test___FileOpen(void)
+boolean test___FileOpen(STATEPARAMS)
 {
     PBasicString pFile;
 
-    pFile = __createString("./test.txt", false); 
+    pFile = __createString(STATEARGS, "./test.txt", false); 
 
     printf("Testing VBOpen functions...\n");
 
-    printf("   Opening 'test.txt' for writing as binary (overwrite if exist)\n");
-    VBopen_NoAccess_NoLock_NoRecLen(pFile, Output, 1);
+        /* Opening 'test.txt' for writing as binary (overwrite if exist) */
+    VBopen_NoAccess_NoLock_NoRecLen(STATEARGS, pFile, Output, 1);
 
+/*    __freeString(STATEARGS, pFile); */
     return true;
 }
 
-boolean test___FileClose(void)
+boolean test___FileClose(STATEPARAMS)
 {
     printf("Testing VBClose functions...\n");
 
-    printf("   Closing file handle 1...\n");
-    VBclose_Params(1, 1);
+    VBclose_Params(STATEARGS, 1, 1);
 
     return true;
 }
 
-void testFileIOFunctions(void)
+void testFileIOFunctions(STATEPARAMS)
 /*
  * Tests all file i/o routines
  */
 {
-    if(!test___FileOpen())             /* Nothing else will work if it fails */
+    printf("\n[TESTING FILE I/O FUNCTIONS...]\n");
+
+    if(!test___FileOpen(STATEARGS))     /* Nothing else will work if it fails */
         return;
 
-    test___FileClose();
+    test___FileClose(STATEARGS);
 }
 
 
@@ -52,9 +54,9 @@ void testFileIOFunctions(void)
 
 int main(void)
 {
-    __initBasicLib();
-    testFileIOFunctions();
-    __deinitBasicLib();
+    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
+    testFileIOFunctions(NULLSTATEARGS);
+    __deinitBasicLib(NULLSTATEARGS);
     return(0);
 } /* main */
 
