@@ -1,7 +1,8 @@
 /* 
- * Coding standards. Revised 10/16/1998
+ * Coding standards. Revised 9/13/1999
  *
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *   Written by Ryan C. Gordon.
  */
 
 - Every file will start with a comment containing an explanation of what
@@ -78,13 +79,12 @@
 
       MyCoolClassName instanceOfCoolClass = new MyCoolClassName();
 
-  Exceptions to this rule are data types that try to disguise themselves as
-   intrinsics. Best example is declaring a data type called "boolean."
-
   Filenames (which in Java must be identical to the contained class' name)
    will be capitalized like class names. Filenames should fit the module,
    and API modules should end with "Functions". (i.e. -- an API module might
-   be called MathFunctions.c or FileIOFunctions.c ...)
+   be called MathFunctions.c or FileIOFunctions.c ...) Internal BASIClib
+   modules (that is, modules that aren't meant to fill in standard BASIC APIs)
+   do not end in "Functions": BasicString.c, MemoryManager.c ...
 
   Constants and macros are completely capitalized, and since they don't have
    the luxury of lowercase letters, you can signify word separations with an
@@ -94,7 +94,7 @@
   #define BUTTS(x) ((x > CRACK_PIPE) ? x : CRACK_PIPE)
 
   Macros that are meant to look like functions (like __doGosub) may be
-   capitalized like function names. !!! This may change in the future.
+   capitalized like function names.
 
 - In C/C++, since we can't necessarily use '$' in identifiers, we'll replace
    it with "_DC_". (underscore-D-C-underscore. DC is for "dollar char.") This
