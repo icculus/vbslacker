@@ -1,5 +1,5 @@
 /*
- * Test OnEvents subsystem...
+ * Test OnError subsystem and some assembler stuff, too.
  *
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
@@ -96,24 +96,6 @@ void test__getStackPointer_recurse(void)
 } /* test__getStackPointer_recurse */
 
 
-void __triggerOnEvent_recurse(STATEPARAMS, OnEventTypeEnum evType,
-                              __boolean printErr)
-/*
- * This function calls itself RECURSION_COUNT times, to pile
- *  some data on the stack, then calls __triggerOnEvent(evType)...
- */
-{
-    recursive++;
-    if (recursive == RECURSION_COUNT)
-        __triggerOnEventByType(STATEARGS, evType);
-    else
-        __triggerOnEvent_recurse(STATEARGS, evType, printErr);
-
-    if (printErr)   /* if we fell here without a RESUME NEXT... */
-        printf("  - Event handler returns incorrectly.\n");
-} /* __triggerOnEvent_recurse */
-
-
 void test__getStackPointer()
 /*
  * The theory being that a void function with void arguments should
@@ -144,13 +126,42 @@ void test__getStackPointer()
 } /* test__getStackPointer */
 
 
-
-void testOnEventGotoHandling(STATEPARAMS, int runCount)
+void test__jump(void)
 /*
- * This tests ON [event] GOTO functionality. We set up an event handler,
- *  build up a couple of function calls on the stack, and trigger an event.
+ * This function is pretty i386 specific. Your mileage may vary.
  *
- * This code checks to see if the event handler is called correctly, and if
+ *  !!! more comments.
+ */
+{
+    printf("Testing __jump()...\n");
+
+    __jump(&&jumpToLabel);
+    printf("  - __jump() didn't jump.\n");
+
+jumpToLabel:
+    return;
+} /* test__jump */
+
+
+void __triggerOnError_recurse(STATEPARAMS, int recurse)
+/*
+ * This function calls itself RECURSION_COUNT times, to pile
+ *  some data on the stack, then calls __runtimeError()...
+ */
+{
+    if (recurse == RECURSION_COUNT)
+        __runtimeError(STATEARGS, ERR_DISK_NOT_READY);
+    else
+        __triggerOnError_recurse(STATEARGS, recurse + 1);
+} /* __triggerOnError_recurse */
+
+
+void testOnErrorGotoHandling(STATEPARAMS, int runCount)
+/*
+ * This tests ON ERROR GOTO functionality. We set up an error handler,
+ *  build up a couple of function calls on the stack, and trigger an error.
+ *
+ * This code checks to see if the error handler is called correctly, and if
  *  the base pointer is correct. If the base pointer (and therefore the stack)
  *  is fucked up, we dump some debug information to disk, and terminate the
  *  program gracefully, before it is terminated ungracefully for us by a
@@ -158,34 +169,33 @@ void testOnEventGotoHandling(STATEPARAMS, int runCount)
  *
  * This function should be called more than once (but should be called several
  *  times, if you err on the side of caution), to verify that
- *  __(de)registerOnEventHandler() is working correctly. If not correctly, then
- *  correctly enough. testOnEventGotoRecurseHandling() is a more rigorous
- *  test of event handler (de)registration, since it stacks handlers.
+ *  __(de)registerOnErrorHandler() is working correctly. If not correctly, then
+ *  correctly enough. testOnErrorGotoRecurseHandling() is a more rigorous
+ *  test of Error handler (de)registration, since it stacks handlers.
  *
  *    params : runCount == count of times this function has been executed.
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     int testVar1 = TESTVAR_VALUE1;
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
     int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
-    printf("Testing ON EVENT GOTO handling (run #%d)...\n", runCount);
+    __INITONERROR;
 
-    __getBasePointer(&_base_ptr_); 
+    __getBasePointer(&_base_ptr_);      /* set up globals for comparison. */
     __getStackPointer(&_stack_ptr_);
 
-    __setStateStack;
-    __registerOnEventHandler(STATEARGS, &&errHandler ,ONERROR);
+    printf("Testing ON ERROR GOTO handling (run #%d)...\n", runCount);
 
-    recursive = 0;
-    __triggerOnEvent_recurse(STATEARGS, ONERROR, true);
-
+    __setOnErrorHandler(&&errHandler);
+    __triggerOnError_recurse(STATEARGS, 0);
     goto missedHandler;
 
 errHandler:
-    __getBasePointer(&_base_ptr2_); 
+    __getBasePointer(&_base_ptr2_);     /* get 2nd globals for comparison. */
     __getStackPointer(&_stack_ptr2_);
 
     if (_base_ptr2_ != _base_ptr_)
@@ -229,14 +239,14 @@ endTest:
         case 1:   /* good. */
             break;
         case 2:
-            printf("  - Handler missed. Failed.\n");
-            printf("  - Other tests will give incorrect results.\n"
+            printf("  - Handler missed. Failed.\n"  
+                   "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
             exit(1);
             break;
         default:
-            printf("  - Confused! Failed.\n");
-            printf("  - Other tests will give incorrect results.\n"
+            printf("  - Confused! Failed.\n"
+                   "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
             exit(1);
             break;
@@ -244,49 +254,78 @@ endTest:
 
     testVar3[0] = '\0';  /* stops compiler whining. */
 
-    __deregisterOnEventHandlers(STATEARGS);
-} /* testOnEventGotoHandling */
+    __exitCleanupOnError;
+} /* testOnErrorGotoHandling */
 
 
-
-void testOnEventGotoRecurseHandling(STATEPARAMS, int runCount)
+void testOnErrorGotoStackedHandling2(STATEPARAMS)
 /*
- * This tests recursive ON [event] GOTO functionality. We set up an event
- *  handler, trigger an onEvent, and inside the handler, trigger another
- *  onEvent.
+ * This tests recursive ON ERROR GOTO functionality. We set up an Error
+ *  handler, trigger an onError, and inside the handler, trigger another
+ *  onError.
  *
- * This function checks the same things testOnEventsGotoHandling() does.
- *
+ * This function checks the same things testOnErrorsGotoHandling() does.
+ * !!!! wrong comments...
  * This function should be called more than once (but should be called several
  *  times, if you err on the side of caution), to help verify that
- *  __(de)registerOnEventHandler() is working correctly.
+ *  __(de)registerOnErrorHandler() is working correctly.
  *
  *    params : runCount == count of times this function has been executed.
  *   returns : void.
  */
 {
+    __ONERRORVARS;
+
+    __INITONERROR;
+
+    __setOnErrorHandler(&&errHandler);
+    __runtimeError(STATEARGS, ERR_PERMISSION_DENIED);
+    printf(FAILED);
+    goto missedHandler;
+
+errHandler:
+    __runtimeError(STATEARGS, ERR_PATH_NOT_FOUND);
+
+missedHandler:
+    __exitCleanupOnError;
+} /* testOnErrorGotoStackedHandling2 */
+
+
+void testOnErrorGotoStackedHandling1(STATEPARAMS, int runCount)
+/*
+ * This tests recursive ON [Error] GOTO functionality. We set up an Error
+ *  handler, trigger an onError, and inside the handler, trigger another
+ *  onError.
+ *
+ * This function checks the same things testOnErrorsGotoHandling() does.
+ *
+ * This function should be called more than once (but should be called several
+ *  times, if you err on the side of caution), to help verify that
+ *  __(de)registerOnErrorHandler() is working correctly.
+ *
+ *    params : runCount == count of times this function has been executed.
+ *   returns : void.
+ */
+{
+    __ONERRORVARS;
     int testVar1 = TESTVAR_VALUE1;
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
     int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
-    printf("Testing recursive ON EVENT GOTO handling (run #%d)...\n", runCount);
+    __INITONERROR;
 
-    recursive = 0;
-
-    __getBasePointer(&_base_ptr_); 
+    __getBasePointer(&_base_ptr_);      /* set up globals for comparison. */
     __getStackPointer(&_stack_ptr_);
 
-    __setStateStack;
-    __registerOnEventHandler(STATEARGS, &&errHandler, ONERROR);
+    printf("Testing stacked ON ERROR GOTO handling (run #%d)...\n", runCount);
 
-    recursive = 0;
-    __triggerOnEventByType(STATEARGS, ONERROR);
-                                      /* no recurse since we use global var */
+    __setOnErrorHandler(&&errHandler);
+    testOnErrorGotoStackedHandling2(STATEARGS);
     goto missedHandler;
 
 errHandler:
-    __getBasePointer(&_base_ptr2_); 
+    __getBasePointer(&_base_ptr2_);     /* get 2nd globals for comparison. */
     __getStackPointer(&_stack_ptr2_);
 
     if (_base_ptr2_ != _base_ptr_)
@@ -327,20 +366,17 @@ missedHandler:
 endTest:
     switch (landed)
     {
-        case 1:   /* good. trigger again. */
-            recursive++;
-            if (recursive <= RECURSION_COUNT)
-                __triggerOnEventByType(STATEARGS, ONERROR);
+        case 1:   /* good. */
             break;
         case 2:
-            printf("  - (Iteration #%d) Handler missed. Failed.\n", recursive);
-            printf("  - Other tests will give incorrect results.\n"
+            printf("  - Handler missed. Failed.\n"  
+                   "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
             exit(1);
             break;
         default:
-            printf("  - (Iteration #%d) Confused! Failed.\n", recursive);
-            printf("  - Other tests will give incorrect results.\n"
+            printf("  - Confused! Failed.\n"
+                   "  - Other tests will give incorrect results.\n"
                    "  - Must terminate testing.\n");
             exit(1);
             break;
@@ -348,39 +384,36 @@ endTest:
 
     testVar3[0] = '\0';  /* stops compiler whining. */
 
-    __deregisterOnEventHandlers(STATEARGS);
-} /* testOnEventGotoRecurseHandling */
+    __exitCleanupOnError;
+} /* testOnErrorGotoStackedHandling1 */
 
 
 void testResumeNext(STATEPARAMS, int runCount)
 /*
- * Test RESUME NEXT command. We trigger an event, and see where control goes.
+ * Test RESUME NEXT command. We trigger an Error, and see where control goes.
  *
  *  Run this multiple times, for the sake of the chaos factor.
  */
 {
+    __ONERRORVARS;
     int testVar1 = TESTVAR_VALUE1;
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
-    __getBasePointer(&_base_ptr_); 
+    __INITONERROR;
+    __getBasePointer(&_base_ptr_);
     __getStackPointer(&_stack_ptr_);
-
-    __setStateStack;
-    __setStateInstructs(&&resumeZeroWrong, &&resumeNextRight);
+    __setInstructs(&&resumeZeroWrong, &&resumeNextRight);
 
     printf("Testing RESUME NEXT (run #%d)...\n", runCount);
 
-    __registerOnEventHandler(STATEARGS, &&resumeNextErrHandler, ONTIMER);
+    __setOnErrorHandler(&&resumeNextErrHandler);
 
-    recursive = 0;
-    __triggerOnEvent_recurse(STATEARGS, ONTIMER, false);
-
-    printf(FAILED);
+    __runtimeError(STATEARGS, ERR_BAD_FILE_MODE);
     goto resumeNextEnd;
 
 resumeNextErrHandler:
-    __resumeNext(STATEARGS);
+    __resumeNext;
     printf(FAILED);
     goto resumeNextEnd;
 
@@ -420,44 +453,40 @@ resumeNextRight:
     } /* if */
 
 resumeNextEnd:
-    __deregisterOnEventHandlers(STATEARGS);
+    __exitCleanupOnError;
 } /* testResumeNext */
 
 
 void testResumeZero(STATEPARAMS, int runCount)
 /*
- * Test RESUME 0 command. We trigger an event, and see where control goes.
+ * Test RESUME 0 command. We trigger an Error, and see where control goes.
  *
  *  Run this multiple times, for the sake of the chaos factor.
  */
 {
+    __ONERRORVARS;
     int testVar1 = TESTVAR_VALUE1;
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
-    __setStateStack;
-    __setStateInstructs(&&resumeZeroRight, &&resumeNextWrong);
+    __INITONERROR;
+    __getBasePointer(&_base_ptr_);
+    __getStackPointer(&_stack_ptr_);
+    __setInstructs(&&resumeZeroRight, &&resumeNextWrong);
 
     printf("Testing RESUME 0 (run #%d)...\n", runCount);
 
-    __registerOnEventHandler(STATEARGS, &&resumeZeroErrHandler, ONTIMER);
+    __setOnErrorHandler(&&resumeZeroErrHandler);
 
-    recursive = 0;
-    __triggerOnEvent_recurse(STATEARGS, ONTIMER, false);
-
-    printf(FAILED);
+    __runtimeError(STATEARGS, ERR_RENAME_ACROSS_DISKS);
     goto resumeZeroEnd;
 
 resumeZeroErrHandler:
-    __resumeZero(STATEARGS);
+    __resumeZero;
     printf(FAILED);
     goto resumeZeroEnd;
 
-resumeNextWrong:
-    printf("  - Resumed NEXT instead of ZERO.\n");
-    goto resumeZeroEnd;
-
-resumeZeroRight:
+resumeZeroRight:    
     __getBasePointer(&_base_ptr2_); 
     __getStackPointer(&_stack_ptr2_);
 
@@ -487,25 +516,97 @@ resumeZeroRight:
         printf("  - Stack will be FUBAR. Must terminate testing.\n");
         exit(1);
     } /* if */
+    goto resumeZeroEnd;
+
+resumeNextWrong:
+    printf("  - Resumed NEXT instead of ZERO.\n");
+    goto resumeZeroEnd;
 
 resumeZeroEnd:
-    __deregisterOnEventHandlers(STATEARGS);
-} /* testResumeZero */
+    __exitCleanupOnError;
+} /* testResumeNext */
 
 
-void testOnEventState(STATEPARAMS)
+void testResumeLabel(STATEPARAMS, int runCount)
+/*
+ * Test RESUME linelabel command. We trigger an Error, and see where control
+ *  goes.
+ *
+ *  Run this multiple times, for the sake of the chaos factor.
+ */
 {
-    if (__getOnEventsRecursionCount(STATEARGS) != 0)
+    __ONERRORVARS;
+    int testVar1 = TESTVAR_VALUE1;
+    int testVar2 = TESTVAR_VALUE2;
+    char testVar3[] = TESTVAR_VALUE3;
+
+    __INITONERROR;
+    __getBasePointer(&_base_ptr_);
+    __getStackPointer(&_stack_ptr_);
+
+    printf("Testing RESUME linelabel (run #%d)...\n", runCount);
+
+    __setOnErrorHandler(&&resumeLabelErrHandler);
+
+    __runtimeError(STATEARGS, ERR_RENAME_ACROSS_DISKS);
+    printf(FAILED);
+    goto resumeLabelEnd;
+
+resumeLabelErrHandler:
+    __resumeLabel(&&resumeLabel);
+    printf(FAILED);
+    goto resumeLabelEnd;
+
+resumeLabel:
+    __getBasePointer(&_base_ptr2_); 
+    __getStackPointer(&_stack_ptr2_);
+
+    if (_base_ptr2_ != _base_ptr_)
     {
-        printf("  - OnEvent was not cleaned up correctly.\n"
+        printf("  - Base pointer is damaged.\n");
+        printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
+        printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
+    } /* if */
+
+    if (_stack_ptr2_ != _stack_ptr_)
+    {
+        printf("  - Stack pointer is damaged.\n");
+        printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
+        printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
+    } /* if */
+
+    if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
+    {
+        printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
+                                 testVar1, TESTVAR_VALUE1);
+        printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
+                                 testVar2, TESTVAR_VALUE2);
+        printf("  - testVar3 is [%s], should be legible...\n", testVar3);
+        if (binaryDump("debugErrGoto.bin", _base_ptr_ - 100, 200) == true)
+            printf("  - (That's our supposed [ebp-100] to [ebp+100]...)\n");
+        printf("  - Stack will be FUBAR. Must terminate testing.\n");
+        exit(1);
+    } /* if */
+    goto resumeLabelEnd;
+
+resumeLabelEnd:
+    __exitCleanupOnError;
+} /* testResumeLabel */
+
+
+void testOnErrorState(STATEPARAMS)
+{
+    if (__isOnErrorThreadStateNULL(STATEARGS) != true)
+    {
+        printf("  - OnError was not cleaned up correctly.\n"
                "  - Later tests will probably fail inexplicably.\n");
     } /* if */
-} /* testOnEventState */
+} /* testOnErrorState */
 
 
-void testOnEventHandling(STATEPARAMS)
+void testOnErrorHandling(void)
 /*
- * Test "on event" handling of various types.
+ * Test "on error" handling of various types.
  *
  *    params : void.
  *   returns : void.
@@ -513,59 +614,68 @@ void testOnEventHandling(STATEPARAMS)
 {
     int i;
 
+    printf("\n[TESTING ON ERROR HANDLING...]\n");
+
     for (i = 1; i <= 3; i++)
     {
-        testOnEventGotoHandling(STATEARGS, i);
-        testOnEventState(STATEARGS);
+        testOnErrorGotoHandling(NULLSTATEARGS, i);
+        testOnErrorState(NULLSTATEARGS);
     } /* for */
 
     for (i = 1; i <= 3; i++)
     {
-        testOnEventGotoRecurseHandling(STATEARGS, i); 
-        testOnEventState(STATEARGS);
+        testOnErrorGotoStackedHandling1(NULLSTATEARGS, i); 
+        testOnErrorState(NULLSTATEARGS);
     } /* for */
 
     for (i = 1; i <= 3; i++)
     {
-        testResumeNext(STATEARGS, i);
-        testOnEventState(STATEARGS);
+        testResumeNext(NULLSTATEARGS, i);
+        testOnErrorState(NULLSTATEARGS);
     } /* for */
 
     for (i = 1; i <= 3; i++)
     {
-        testResumeZero(STATEARGS, i);
-        testOnEventState(STATEARGS);
+        testResumeZero(NULLSTATEARGS, i);
+        testOnErrorState(NULLSTATEARGS);
     } /* for */
-} /* testOnEventHandling */
+
+    for (i = 1; i <= 3; i++)
+    {
+        testResumeLabel(NULLSTATEARGS, i);
+        testOnErrorState(NULLSTATEARGS);
+    } /* for */
+} /* testOnErrorHandling */
 
 
-void testOnEvents(STATEPARAMS)
+void testOnErrors(void)
 /*
- * Test ON EVENT functionality in BASIClib.
+ * Test ON Error functionality in BASIClib.
  *
  *    params : void.
  *   returns : void.
  */
 {
-    printf("\n[TESTING ON EVENT HANDLING...]\n");
+    printf("\n[TESTING ASSEMBLER INSTRUCTIONS...]\n");
     test__getBasePointer();
     test__getStackPointer();
-    testOnEventHandling(STATEARGS);
-} /* testOnEvents */
+    test__jump();
+    testOnErrorHandling();
+} /* testOnErrors */
 
 
 #ifdef STANDALONE
 
-int main(void)
+int main(int argc, char **argv)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
-    testOnEvents(NULLSTATEARGS);
+    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE, argc, argv);
+    testOnErrors();
     __deinitBasicLib();
     return(0);
 } /* main */
 
 #endif
 
-/* end of TestOnEvents.c ... */
+/* end of TestOnErrors.c ... */
 
 
