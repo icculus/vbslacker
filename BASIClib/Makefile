@@ -23,7 +23,7 @@ ASM = nasm
 
 # Debug command lines...
 COPTIONS = -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
-LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -g -o
+LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -o
 ASMOPTIONS = -f elf -o
 
 # end of makelib ...
