@@ -11,6 +11,7 @@
 #include "Initialize.h"
 #include "InternalMemManager.h"
 #include "BasicString.h"
+#include "BasicArray.h"
 #include "Variant.h"
 #include "Boolean.h"
 #include "OnEvents.h"
