@@ -1,6 +1,7 @@
 TODO list:
 
 - OnEvents should properly handle NULLSTATEARGS.
+- Make rest of testlib use STATEPARAMS. ugh.
 - Make current BASIClib code use the boxcar system, where applicable.
 - HOWTO on adding new modules to BASIClib.
 - RESUME NEXT recursive testing.
