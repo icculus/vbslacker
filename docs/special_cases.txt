@@ -4,23 +4,23 @@ doesn't already have a solution encoded in the function name...)
 
 
 PRINT (and print #), with more than one parameter (separated by semicolons)
- must be broken into multiple calls. Strings concatenations should be done
+ must be broken into multiple calls. String concatenations should be done
  prior to breaking down the API call. That is, PRINT "crack" + "pipe" would
  be one call, but PRINT "crack"; "pipe" would be two. ALSO -- Semicolons at
  the end of the PRINT statement specify that no newline should be sent to the
- console. This will need to be handled specifically. Solution: the print call
+ console. This will need to be handled specifically. Solution: the PRINT call
  should, by the parser/compiler, do this: Break down semi-colon separated
  fields into strings, if possible, and call vbpS_print(). Otherwise,
  convert the argument to a variant, and make a call to vbpV_print(), which
  will convert whatever the data was from a variant type to a string, and 
  print it. If there is no semicolon at the end of the line, the 
  parser/compiler will generate a call to __printNewLine() (an internal
- function) after all the vbp?_print() calls. Note that the__printNewLine()
+ function) after all the vbp?_print() calls. Note that the __printNewLine()
  call might be the only call generated, if there are no parameters to the
  BASIC PRINT statement. If, for some crazy reason, a programmer has
  decided to put a "PRINT ;" statement, the line will not generate any C
  code, but will still produce proper line labling and debug/tracing code.
- (The above discussion applies to vbp?_print_NC() when using PRINT #)
+ (The above discussion also applies to vbp?_print_NC() when using PRINT #)
 
 OPEN calls should all call one function, with default values for optional
  missing values. The OPEN function should determine what action to take

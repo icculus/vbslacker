@@ -202,5 +202,48 @@ Remember that every thread has it's own stack, and data stored on it will
 be separate from other functions...therefore local variables and arguments
 are thread-proofed already. This doesn't solve EVERY problem, but keep
 it in mind.
+
+<P>In lieu of stack-use for thread proofing, there are two not-so-general
+functions in the thread API for helping set up thread-proof data:
+
+<P><I>void *__createThreadStateVector(STATEARGS, int tidx, void ***stateVect,
+                                        int elemSize, ThreadLock *lockAddr);
+   </I>
+
+<P>...can be used to create a new element in an array of (threadCount)
+elements. In your __initThreadMyModule() function, lets say you have a
+structure of thread specific data ("thread state data"), and you need
+somewhere to put it. Do this:
+
+<PRE><FONT FACE="Courier New">
+/* At top of module... */
+
+typedef struct _MyThreadStateData
+{
+    int data1;
+    int data2;
+    int data3;
+} MyThreadStateData;
+
+MyThreadStateData **ppState = NULL;
+ThreadLock myLock;  /* be sure to __createThreadLock() this... */
+
+/* later on... */
+
+void __initThreadMyModule(STATEPARAMS, int tidx)
+{
+    MyThreadStateData *pState;
+
+    pState = (MyThreadStateData *) __createThreadStateVector(STATEARGS, tidx,
+                                      &amp;ppState, sizeof (MyThreadStateData *),
+                                      &amp;myLock);
+
+    pState->data1 = 0;   /* default initializations... */
+    pState->data2 = 0;
+    pState->data3 = 0;
+} /* __initThreadMyModule */
+
+</FONT></PRE>
+
 </BODY>
 </HTML>
