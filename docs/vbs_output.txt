@@ -17,18 +17,16 @@ To start:
     int main(int __argc, char **__argv, char **__envp)
     {
         __initBasicLib(__argc, __argv, __envp);
-        __userMainline();
+        __VBSLACKER_MAINLINE__();
         return(0);          /* !!! What should this REALLY return? */
     }
 
-    __userMainline() may be a separate function, or may inlined into main()
-    by the BASIC compiler. Either is acceptable. (Let's avoid the C "inline"
-    keyword, however, since it isn't forceful enough for our uses.)
+    __VBSLACKER_MAINLINE__() is a separate function, which will contain
+    the user-written BASIC mainline, converted, of course, to C.
 
 Lines:
     Each line of BASIC code should be represented in the C output with the
     #line preprocessor directive.
-
 
     ' in test.bas ...          'line 1
     PRINT "this is a line."    'line 2
@@ -53,10 +51,8 @@ SUBs and FUNCTIONs:
     SUBs and FUNCTIONs in BASIC will convert directly to ANSI C format
     functions. That is to say that the format of the C output will not follow
     K&R-style C function syntax, for example. The BASIC mainline (which does
-    NOT land between SUB/END SUB statements) will be fitted into either the C
-    mainline (main()), or will be fitted into a C void function of standard
-    naming (__userMainline will suffice in such an event; almost anything we
-    can standardize upon with an underscore at the start will suffice, though.)
+    NOT land between SUB/END SUB statements) will be fitted into a C void
+    function of standard naming (__VBSLACKER_MAINLINE__).
 
 
 Identifiers:
