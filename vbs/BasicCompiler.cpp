@@ -12,6 +12,14 @@
 #define MAX_LINE_SIZE   2048    // A line of basic code can't be more than 2K
 #define FILE_TYPE_COUNT 4       // Number of file types we're looking for
 
+                                // All these character codes are considered
+                                //  to be whitespace
+#define TAB                     0x09
+#define CR                      0x0D
+#define LF                      0x0A
+#define SPACE                   0x20
+#define WHITESPACE_COUNT        4
+
 BasicCompiler::BasicCompiler(char *strFileName, BasicContext *pBasicContext)
 /*
  * Constructor
@@ -167,9 +175,13 @@ void BasicCompiler::Compile(char *strFileName)
         {
                                 // Read a line in from the file
             if(this->GetStatement())
+            {
+                /***TEMPORARY***/
+                printf("%s\n", this->m_strBasicStatement);
                                 // Put statement through compiler.
                 this->m_pBasicContext->GetStatements()->
                     ProcessStatement(this->m_strBasicStatement);
+            }
         }
                                 // Close file since we're done with it.
         fclose(this->m_pStream);
@@ -185,6 +197,51 @@ void BasicCompiler::CleanupString(char *strStatement)
  *    returns : none
  */
 {
+                                // Lookup table for whitespace characters
+    char WhiteSpace[WHITESPACE_COUNT] = {TAB, CR, LF, SPACE};    
+    short i;                    // Generic counters
+    char *p, *p2;               // Pointer into strStatement
+    BOOLEAN bWhiteSpace;        // TRUE if on a whitespace character
+
+    p = strStatement;
+    do
+    {
+        p2 = WhiteSpace;
+        bWhiteSpace = FALSE;
+        for(i = 0; i < WHITESPACE_COUNT; i++)
+        {
+                                // If TRUE, it's just whitespace
+            if(*p == *p2)
+            {
+                bWhiteSpace = TRUE;
+                break;
+            }
+            p2++;
+        }
+
+        if(bWhiteSpace)
+            p++;
+    } while(bWhiteSpace);
+    strcpy(strStatement, p);    // Cut off the beginning whitespace (if any)
+
+                                // Go to the end of the statement
+    p = strStatement + strlen(strStatement) - 1;
+    do
+    {
+        p2 = WhiteSpace;
+        bWhiteSpace = FALSE;
+        for(i = 0; i < WHITESPACE_COUNT; i++)
+        {
+                                // If TRUE, it's just whitespace
+            if(*p == *p2)
+                bWhiteSpace = TRUE;
+        }
+
+        if(bWhiteSpace)
+            p--;
+        else
+            *(p++) = '\x0';
+    } while(bWhiteSpace);
 }
 
 BOOLEAN BasicCompiler::GetStatement()
@@ -203,6 +260,7 @@ BOOLEAN BasicCompiler::GetStatement()
     BOOLEAN bReturnValue;
 
     p = this->m_strBasicStatement;
+    *p = '\x0';                 // Make string 0 length to start out.
     bDone = FALSE;
     bReturnValue = TRUE
 
@@ -219,6 +277,7 @@ BOOLEAN BasicCompiler::GetStatement()
             this->m_pBasicContext->SetTerminateFlag();
                                 // Return that we failed
             bReturnValue = FALSE;
+            bDone = TRUE;
         }
         else                    // It's all good
         {

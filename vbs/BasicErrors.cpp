@@ -68,8 +68,8 @@ void BasicErrors::AddError(BASIC_ERROR_CODE sErrorCode)
         this->m_Errors[this->m_ErrorCount] = 
             new BasicError(pBasicContext->GetContext(), sErrorCode);
 
-        this->m_ErrorCount++;   // Increment counter...duh.
         pBasicContext->RaiseEvent(BASIC_EVENT_ERROR, this->m_Errors[this->m_ErrorCount]);
+        this->m_ErrorCount++;   // Increment counter...duh.
     }
 
                                 // If we have one more error we're allowed
