@@ -1,7 +1,7 @@
 (mikey's) TODO list:
 
-- Update DirectConsole based on "Linux Application Development" info...
-- Replace cursesconsole with SlangConsole?
+- Split console drivers into individual shared libraries that are
+  loaded/unloaded dynamically, in a config-file-specified hierarchy.
 - errors should be their own type? Short?
 - autoconf.
 - __crashHandler();
@@ -23,7 +23,7 @@
 - Complete console drivers.
 - Catch up testlib, in general.
 - RESUME NEXT recursive testing.
-- Streamline makefiles. Most of it is just duplication.
+- Streamline makefiles. Most of it is just duplication. Autoconf?
 - Examine/eliminate the "!!!" comments in the source.
 - Eliminate #warnings in the source, as well.
 - DON'T FORGET TO WRITE TESTLIB CODE FOR ALL IMPORTANT FUNCTIONS!
