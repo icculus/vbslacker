@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 void testFileSystemFunctions(void);
-void testGarbageCollector(void);
+void testGarbageCollector(int skipCollector);
 void testOnError(void);
 void testErrorFunctions(void);
 void testThreads(void);

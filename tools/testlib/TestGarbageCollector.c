@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
-void testGarbageCollector(void)
+void testGarbageCollector(int skipCollector)
 /*
  * This code tests the BASIClib garbage collector.
  *
- *    params : void.
+ *    params : skipCollector == non-zero, skip this lengthy test.
  *   returns : void.
  */
 {
@@ -27,26 +27,34 @@ void testGarbageCollector(void)
 
     printf("\n[TESTING GARBAGE COLLECTOR...]\n");
 
-    __setOnErrorHandler(__memAllocBailed);
 
-    printf("Testing brute force allocation: %ld blocks of %ld bytes...",
-            totalBlocks, blockSize);
-
-    for (allocated = 0; allocated < totalBlocks; allocated++)
+    if (skipCollector)
+        printf(" - Test skipped by user request.\n");
+    else
     {
-#ifdef WANT_MALLOC_NOT_MEMALLOC
-        ptr = malloc(blockSize);
-        if (ptr == NULL)
-            __runtimeError(ERR_OUT_OF_MEMORY);
-#else
-        ptr = __memAlloc(blockSize);
-#endif
-        for (tmp = 0; tmp < blockSize; tmp++)
-            ptr[tmp] = '\0';    /* touch all allocated bytes... */
-    } /* for */
+        __setOnErrorHandler(__memAllocBailed);
 
-    printf("done.\n");
-    printf(" - Please compile with WANT_MALLOC_NOT_MEMALLOC for comparison.\n");
+        printf("Testing brute force allocation: %ld blocks of %ld bytes...",
+                totalBlocks, blockSize);
+
+        for (allocated = 0; allocated < totalBlocks; allocated++)
+        {
+#ifdef WANT_MALLOC_NOT_MEMALLOC
+            ptr = malloc(blockSize);
+            if (ptr == NULL)
+                __runtimeError(ERR_OUT_OF_MEMORY);
+#else
+            ptr = __memAlloc(blockSize);
+#endif
+            for (tmp = 0; tmp < blockSize; tmp++)
+                ptr[tmp] = '\0';    /* touch all allocated bytes... */
+        } /* for */
+
+        printf("done.\n");
+        printf(" - Please compile with WANT_MALLOC_NOT_MEMALLOC "
+                   "for comparison.\n");
+    } /* else */
+
     __exitCleanupOnError;
     return;
 
@@ -77,7 +85,7 @@ int main(int argc, char **argv, char **envp)
 
     __getBasePointer(base);
     __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
-    testGarbageCollection();
+    testGarbageCollection(0);
     return(0);
 } /* main */
 

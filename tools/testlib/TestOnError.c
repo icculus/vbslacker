@@ -15,7 +15,7 @@
 #define RECURSION_COUNT 3
 
 #define FAILED "  - Failed.\n"
-#define FAILED_WITH_WARNING "  - Failed. Later tests will fail, too.\n"
+#define FAILED_WITH_WARNING "  - Failed. Later tests may fail, too.\n"
 
 static int recursive = 0;
 static void *_stack_ptr_;

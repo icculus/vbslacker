@@ -3,7 +3,7 @@
 # move this to root makefile. export it.
 OBJS = TestLib.o TestConversionFunctions.o TestOnError.o TestThreads.o \
        TestErrorFunctions.o TestStringFunctions.o TestMathFunctions.o \
-       TestGarbageCollector.o
+       TestGarbageCollector.o TestFileSystemFunctions.o
 CC = gcc
 LINKER = gcc
 
@@ -48,6 +48,9 @@ TestMathFunctions.o : TestMathFunctions.c
 
 TestGarbageCollector.o : TestGarbageCollector.c
 	$(CC) $(COPTIONS) TestGarbageCollector.o TestGarbageCollector.c
+
+TestFileSystemFunctions.o : TestFileSystemFunctions.c
+	$(CC) $(COPTIONS) TestFileSystemFunctions.o TestFileSystemFunctions.c
 
 
 testconsole : TestConsole.o
