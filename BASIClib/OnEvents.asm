@@ -40,17 +40,6 @@ extern __exitCriticalThreadSection     ; See Threads.c ...
 extern __calcBasePtrStorage            ; See OnEvents.c ...
 
 
-
-; !!! lose this.
-extern printf
-msg1  db  'Returned from call.',0Ah,0h
-msg2  db  'Boldly going where no man has gone before...',0Ah,0h
-ebpIs db  'EBP == (%p)',0Ah,0h
-; !!! lose this.
-
-
-
-
 ;
 ; Here's the procedure itself. Let's do the nasty...
 ;
@@ -88,29 +77,11 @@ __callOnEventHandler:                   ; proc
             ;  at [ebp - 4], though...
 
         mov     ebp,esp                 ; Move stack ptr to base ptr.
-;        sub     esp,4                   ; Allocate local variables...
 
         call    __calcBasePtrStorage    ; Return value is in eax.
         mov     dword [eax],ebp         ; Save base pointer into basePtrStacks.
 
-        ; lose this. !!!
-        pushad
-        push    ebp
-        mov	eax,ebpIs
-        push	eax
-        call	printf
-        add	esp,8
-        popad
-        ; lose this. !!!
-
-
-
         mov     ebx,[ebp + 4]           ; Store POnEventHandler in ebx.
-
-;        mov     esi,[ebx + 12]          ; Store ebx->origReturnAddr in esi.
-;        mov     eax,[esi]               ; Get value pointed to by esi...
-;        mov     dword [ebp - 4],eax     ;  ...and save it to local variable...
-;                                        ;  ...this is where we'll return to.
 
             ; Since the C code gives the pOnEventHandler->stackStart as
             ;  (&lastArg + sizeof(lastArg)), we're actually ONE past the start
@@ -137,7 +108,7 @@ __callOnEventHandler:                   ; proc
         loop    @stackcopy              ; ecx--; if (ecx != 0) goto @stackcopy;
 @endstackcopy:
 
-        mov     ebp,[ebx + 16]          ; Store ebx->basePtr in ebp.
+        mov     ebp,[ebx + 12]          ; Store ebx->basePtr in ebp.
         inc     esi                     ; point esi to end of copied stack.
         sub     esi,esp                 ; Calculate offset between two stacks.
         sub     ebp,esi                 ;  ...offset ebp to spoof handler.
@@ -156,21 +127,6 @@ __callOnEventHandler:                   ; proc
 
 @returnloc:                             ;  ...and (maybe) land right here.
 
-
-
-
-        ; lose this. !!!
-        pushad
-        mov	eax,msg1
-        push	eax
-        call	printf
-        add	esp,4
-        popad
-        ; lose this. !!!
-
-
-
-
         push    ebp                     ; Save all important registers.
         push    edi
         push    esi
@@ -182,38 +138,25 @@ __callOnEventHandler:                   ; proc
         mov     ebp,[eax]               ; Move it back into ebp.
 
 
-
-        ; lose this. !!!
-        pushad
-        push    ebp
-        mov	eax,ebpIs
-        push	eax
-        call	printf
-        add	esp,8
-        popad
-        ; lose this. !!!
-
-
-
-
             ; We need to decrement the count of base pointers stored up
             ;  by this procedure for the current thread. So we find where it's
             ;  stored, and alter the value...
 
-;        call    __getCurrentThreadIndex ; Get current thread index in eax.
-;        call    __enterCriticalThreadSection
-;        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
-;        mul     ebx                     ; ebx*eax make it into offset in array.
-;        mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
-;        add     esi,eax                 ; esi now points to our element.
-;        mov     eax,[esi]               ; get value pointed to by esi.
-;        dec     eax                     ; decrement it.
-;        mov     dword [esi],eax         ; store it back in addr esi points to.
-;        call    __exitCriticalThreadSection
+        call    __getCurrentThreadIndex ; Get current thread index in eax.
+        call    __enterCriticalThreadSection
+        mov     ebx,4                   ; 32-bits; sizeof (void *) == 4.
+        mul     ebx                     ; ebx*eax make it into offset in array.
+        mov     esi,[basePtrIndexes]    ; Get array of bp indexes in stacks.
+        add     esi,eax                 ; esi now points to our element.
+        mov     eax,[esi]               ; get value pointed to by esi.
+        dec     eax                     ; decrement it.
+        mov     dword [esi],eax         ; store it back in addr esi points to.
+        call    __exitCriticalThreadSection
 
         mov     ebx,[ebp + 4]           ; Get POnEventHandler ptr again.
 
-        mov     ecx,[ebx + 12]          ; Store ebx->OrigReturnAddr in ecx.
+        mov     ecx,[ebx + 12]          ; Store ebx->basePtr in esi.
+        add     ecx,4                   ; Offset four points to return addr.
 
         pop     eax                     ; Restore all important registers.
         pop     edx
@@ -221,17 +164,6 @@ __callOnEventHandler:                   ; proc
         pop     esi
         pop     edi
         pop     ebp
-
-
-
-        ; lose this. !!!
-        pushad
-        mov	eax,msg2
-        push	eax
-        call	printf
-        add	esp,4
-        popad
-        ; lose this. !!!
 
         mov     esp,ecx                 ; adjust stack for return call...
         ret                             ;  ...and pray for the best.
