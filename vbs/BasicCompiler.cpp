@@ -7,11 +7,12 @@
 #include "BasicCompiler.h"
 #include "ContextObject.h"
 #include "BasicContext.h"
+#include <string.h>
 
 #define MAX_LINE_SIZE   2048    // A line of basic code can't be more than 2K
 #define FILE_TYPE_COUNT 4       // Number of file types we're looking for
 
-void BasicCompiler::BasicCompiler(char *strFileName, BasicContext *pBasicContext)
+BasicCompiler::BasicCompiler(char *strFileName, BasicContext *pBasicContext)
 /*
  * Constructor
  *
@@ -21,15 +22,41 @@ void BasicCompiler::BasicCompiler(char *strFileName, BasicContext *pBasicContext
  */
 {
     if(pBasicContext == NULL)
-        m_pBasicContext = new BasicContext;
-        pBasicContext = m_pBasicContext;
+    {
+        this->m_pBasicContext = new BasicContext;
+        this->m_bCreatedBasicContext = TRUE;
+    }
     else
-        m_pBasicContext = NULL;
+    {
+        this->m_pBasicContext = pBasicContext;
+        this->m_bCreatedBasicContext = FALSE;
+    }
+                                // Allocate space for source code line
+    this->m_strBasicStatement = new char[MAX_LINE_SIZE];
 
-    this->Compile(strFileName, pBasicContext);
+    this->Compile(strFileName);
 }
 
-void BasicCompiler::~BasicCompiler()
+BasicCompiler::BasicCompiler(char *strFileName, BASIC_EVENT_HANDLER pEventHandler)
+/*
+ * Constructor 2 - This constructor calls the first constructor, and sets
+ *  the event handler member.
+ *
+ *     params : strFileName     == Full path and name of file.
+ *              pEventHandler   == Pointer to event handler
+ *    returns : none
+ */
+{
+    this->m_pBasicContext = new BasicContext(pEventHandler);
+    BasicCompiler(strFileName, this->m_pBasicContext);
+                                // The first constructor will set this to FALSE
+                                //  because it thinks it didn't create it.  But
+                                //  since we created it here, we'll have to
+                                //  make sure it's deleted at deconstruction.
+    this->m_bCreatedBasicContext = TRUE;
+}
+
+BasicCompiler::~BasicCompiler()
 /*
  * Destructor
  *
@@ -39,8 +66,8 @@ void BasicCompiler::~BasicCompiler()
 {
                                 // Delete context if we created it in the
                                 //  constructor.
-    if(m_pBasicContext != NULL)
-        delete m_pBasicContext;
+    if(this->m_bCreatedBasicContext)
+        delete this->m_pBasicContext;
 }
 
 BASIC_FILE_TYPE BasicCompiler::GetFileType(char *strFileName)
@@ -55,9 +82,12 @@ BASIC_FILE_TYPE BasicCompiler::GetFileType(char *strFileName)
 
                                 // Each index in the list cooresponds with
                                 //  the appropriate file type constant.
-    char *FileType[] = {"VBP","FRM,"BAS","CLS"};
+    char *FileType[] = {"VBP","FRM","BAS","CLS"};
     char **pFile;               // Pointer to file extension in FileType array
     short i;                    // Generic counter
+                                // Type to return
+    BASIC_FILE_TYPE ReturnValue;
+
                                     
                                 // Set starting index to end of string
     p = strFileName + strlen(strFileName);
@@ -65,7 +95,7 @@ BASIC_FILE_TYPE BasicCompiler::GetFileType(char *strFileName)
     while(p != strFileName)     // Only loop through until we hit start
     {
         p--;
-        if(*p = '.')            // If we've hit the beginning of the file ext.
+        if(*p == '.')            // If we've hit the beginning of the file ext.
         {
             p++;                // Increment just after '.'
 
@@ -76,7 +106,8 @@ BASIC_FILE_TYPE BasicCompiler::GetFileType(char *strFileName)
             {
                                 // If extension is equal to one in array
                 if(strcmpi(*pFile, p) == 0)
-                    ReturnValue = i;
+                    /***Set ReturnValue instead (better coding)***/
+                    return (BASIC_FILE_TYPE)i;
 
                 pFile++;        // Increment to next array element
             }
@@ -89,29 +120,16 @@ BASIC_FILE_TYPE BasicCompiler::GetFileType(char *strFileName)
     return ReturnValue;
 }
 
-void BasicCompiler::Compile(char *strFileName, BasicContext *pBasicContext)
+void BasicCompiler::Compile(char *strFileName)
 /*
  * Compiles the module specified by 'strFileName'.
  *
  *     params : strFileName     == Full path and name of file.
- *              pBasicContext   == Context of compile process.  This is set to
- *                                 NULL if compile starts at specified module.
  *    returns : none
  */
 {
     BASIC_FILE_TYPE FileType;   // Type of file passed to compiler
     CONTEXT_TYPE    Context;    // Context constant associated with file type
-    FILE            *pStream;   // Input file stream for basic module
-                                // Line of basic code read from input file
-    char            strBasicStatement[MAX_LINE_SIZE];
-                                // Basic statement that matches code line.
-    BasicStatement  *pBasicStatement;
-
-                                // Create BasicContext object if they didn't
-                                //  pass one.  This means we're starting a
-                                //  new compile.
-    if(pBasicContext == NULL)
-        pBasicContext = new BasicContext();
 
                                 // Get type of file we're compiling
     FileType = this->GetFileType(strFileName);
@@ -131,31 +149,92 @@ void BasicCompiler::Compile(char *strFileName, BasicContext *pBasicContext)
         case BASIC_FILE_CLS:
             Context = CONTEXT_MODULE_CLS;
         default:
-            pBasicContext->BasicErrors->AddError(BASIC_ERROR_UNRECOGNIZED_FILE);
+            this->m_pBasicContext->GetErrors()->
+                AddError(BASIC_ERROR_UNRECOGNIZED_FILE);
     };
 
-    if((fStream = fopen(strFileName, "rt")) == NULL)
-        pBasicContext->BasicErrors->AddError(BASIC_ERROR_FILE_OPEN);
+    if((this->m_pStream = fopen(strFileName, "rt")) == NULL)
+        this->m_pBasicContext->GetErrors()->AddError(BASIC_ERROR_FILE_OPEN);
     else
     {
                                 // Set context to the passed file
-        pBasicContext->EnterContext(Context, strFileName);
+        this->m_pBasicContext->EnterContext(Context, strFileName);
 
-        while(!feof(pStream))
+                                // Loop until end of file, or a request
+                                //  for compile termination has occured.
+        while(!feof(this->m_pStream) && 
+        !this->m_pBasicContext->GetTerminateFlag())
         {
                                 // Read a line in from the file
-            if(fgets(strStatement, MAX_LINE_SIZE, pStream) != NULL)
-            {
+            if(this->GetStatement())
                                 // Put statement through compiler.
-                pBasicContext->m_pBasicStatements->
-                    ProcessStatement(strStatement);
-            }
-                                // If line wasn't read, either EOF was hit or
-                                //  we've got an error.
-            else if(!feof(pStream))
-                pBasicContext->BasicErrors->AddError(BASIC_ERROR_FILE_READ);
+                this->m_pBasicContext->GetStatements()->
+                    ProcessStatement(this->m_strBasicStatement);
         }
+                                // Close file since we're done with it.
+        fclose(this->m_pStream);
     }
 }
 
+void BasicCompiler::CleanupString(char *strStatement)
+/*
+ * Just cleans up excess whitespace before and after the statement.
+ *
+ *     params : strStatement    ==  Statement to process.  Note that this does
+ *                                  not need to be a complete/valid statement.
+ *    returns : none
+ */
+{
+}
+
+BOOLEAN BasicCompiler::GetStatement()
+/*
+ * Reads in a valid line of BASIC source code.  In a nutshell, it's just like
+ *  an 'fgets' statement except in accounts for lines ending with '_', which
+ *  means to continue processing the next line as if it were the same
+ *  statement.
+ *
+ *     params : none
+ *    returns : TRUE if successful, otherwise FALSE on error.
+ */
+{
+    char *p;
+    BOOLEAN bDone;
+    BOOLEAN bReturnValue;
+
+    p = this->m_strBasicStatement;
+    bDone = FALSE;
+    bReturnValue = TRUE
+
+    while(!bDone)
+    {
+                                // Read a line...if it errors, throw an error
+                                //  into the BasicErrors collection.
+        if(fgets(p, MAX_LINE_SIZE - strlen(this->m_strBasicStatement), 
+        this->m_pStream) == NULL && !feof(this->m_pStream))
+        {
+            this->m_pBasicContext->GetErrors()->AddError(BASIC_ERROR_FILE_READ);
+                                // Flag to stop parsing since we got a fatal
+                                //  error.
+            this->m_pBasicContext->SetTerminateFlag();
+                                // Return that we failed
+            bReturnValue = FALSE;
+        }
+        else                    // It's all good
+        {
+                                // Cleanup the string we've got so far
+            this->CleanupString(p);
+
+            p += strlen(p) - 1; // Go to last character in string
+
+                                // If last character is not a "continue" then
+                                //  we're done.  Otherwise, we'll read the next
+                                //  line and append it to our current line.
+            if(*p != '_')       
+                bDone = TRUE;
+        }
+    }
+
+    return bReturnValue;
+}
 /* end of BasicCompiler.cpp */

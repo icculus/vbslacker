@@ -8,25 +8,23 @@
 #define _INCLUDE_BASICERRORS_H_
 
 #include "BasicError.h"
-#include "BasicContext.h"
 #include "boolean.h"
 
-class BasicErrors  
+class BasicErrors
 {
     public:
-        void BasicErrors(BasicContext *pContext);
-        void ~BasicErrors();
-
-        BOOLEAN AddError(BASIC_ERROR_CODE sErrorCode);
+        BasicErrors(void *pBasicContext);
+        ~BasicErrors();
+        void AddError(BASIC_ERROR_CODE sErrorCode);
         short GetErrorCount();
         BasicError *GetError(short sIndex);
     
     private:
         short m_ErrorCount;     // Number of BasicError objects in collection
-        BasicError *m_Errors[]; // Collection of BasicError objects added
+        BasicError **m_Errors;  // Collection of BasicError objects added
 
                                 // Context object passed from compiler
-        BasicContext *m_pContext;
+        void *m_pBasicContext;
 };
 
 #endif

@@ -7,7 +7,7 @@
 #ifndef _INCLUDE_BOOLEAN_H_
 #define _INCLUDE_BOOLEAN_H_
 
-typedef short BOOLEAN;
+typedef int BOOLEAN;
 
 #define TRUE    0xFFFF;
 #define FALSE   0x0000;
