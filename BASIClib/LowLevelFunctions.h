@@ -13,15 +13,15 @@
 extern "C" {
 #endif
 
-int vbil_peek(long addr);
-void vbpli_poke(long addr, int newVal);
-int vbil_inp(long ioport);
-void vbpli_out(long ioport, int byte);
-PBasicString vbSi_ioctl_DC_(int devFileNum);
-void vbpiS_ioctl(int devFileNum, PBasicString ctlStr);
-long vblA_varptr(void *myVar);
-PBasicString vbSA_varptr_DC_(void *myVar);
-long vblA_varseg(void *myVar);
+int _vbil_peek(long addr);
+void _vbpli_poke(long addr, int newVal);
+int _vbil_inp(long ioport);
+void _vbpli_out(long ioport, int byte);
+PBasicString _vbSi_ioctl_DC_(int devFileNum);
+void _vbpiS_ioctl(int devFileNum, PBasicString ctlStr);
+long _vblA_varptr(void *myVar);
+PBasicString _vbSA_varptr_DC_(void *myVar);
+long _vblA_varseg(void *myVar);
 
 #ifdef __cplusplus
 }

@@ -23,19 +23,19 @@
 static __boolean portAccess = false;
 
 
-int vbil_peek(long addr)
+int _vbil_peek(long addr)
 {
     return(*((char *) addr));
-} /* vbil_peek */
+} /* _vbil_peek */
 
 
-void vbpli_poke(long addr, int newVal)
+void _vbpli_poke(long addr, int newVal)
 {
     *((char *) addr) = (char) newVal;
-} /* vbpli_poke */
+} /* _vbpli_poke */
 
 
-static void __getPortAccess(void)
+static void __requestPortAccess(void)
 {
     int rc;
 
@@ -51,51 +51,51 @@ static void __getPortAccess(void)
         else
             portAccess = true;
     } /* if */
-} /* __getPortAccess */
+} /* __requestPortAccess */
 
 
-int vbil_inp(long ioport)
+int _vbil_inp(long ioport)
 {
-    __getPortAccess();
+    __requestPortAccess();
     return((int) inb(ioport));
-} /* vbil_inp */
+} /* _vbil_inp */
 
 
-void vbpli_out(long ioport, int byte)
+void _vbpli_out(long ioport, int byte)
 {
-    __getPortAccess();
+    __requestPortAccess();
     outb((char) byte, ioport);
-} /* vbpli_out */
+} /* _vbpli_out */
 
 
-PBasicString vbSi_ioctl_DC_(int devFileNum)
+PBasicString _vbSi_ioctl_DC_(int devFileNum)
 {
     return(__createString("", false));
-} /* vbSi_ioctl_DC_ */
+} /* _vbSi_ioctl_DC_ */
 
 
-void vbpiS_ioctl(int devFileNum, PBasicString ctlStr) {}
+void _vbpiS_ioctl(int devFileNum, PBasicString ctlStr) {}
 
 
-long vblA_varptr(void *myVar)
+long _vblA_varptr(void *myVar)
 {
     return((long) myVar);
-} /* vblA_varptr */
+} /* _vblA_varptr */
 
 
-PBasicString vbSA_varptr_DC_(void *myVar)
+PBasicString _vbSA_varptr_DC_(void *myVar)
 {
     PBasicString retVal = __allocString(sizeof (void *), false);
 
     memcpy(retVal->data, &myVar, sizeof (void *));
     return(retVal);
-} /* vbSA_varptr_DC_ */
+} /* _vbSA_varptr_DC_ */
 
 
-long vblA_varseg(void *myVar)
+long _vblA_varseg(void *myVar)
 {
     return(0);   /* no segments in 32-bit architecture. */
-} /* vblA_varseg */
+} /* _vblA_varseg */
 
 
 /* !!! still need: */
