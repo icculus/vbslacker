@@ -1,4 +1,5 @@
 THIS FILE IS PROBABLY HORRIBLY OUT OF DATE. DO =NOT= RELY ON IT.
+Use vbs_output.txt instead.
 
 IDEALLY we'll want a conversion to look SOMETHING like this:
 

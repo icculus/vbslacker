@@ -10,5 +10,11 @@ and mail it back to the vbSlacker development team, currently residing at
 ryan_gordon@hotmail.com. They will plug it into the Language.h file, and
 add it to the distribution.
 
-/* end of adding_languages.h ... */
+Please note that you will be credited for your work, but otherwise not
+compensated. Immortality in the "contributions" documentation is all
+we can offer; sorry.
+
+!!! This will change with the BASIClibLang file...
+
+/* end of adding_languages.txt ... */
 
