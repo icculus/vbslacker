@@ -32,7 +32,7 @@ Some notes on platform-independence and Windows:
 FILE SYSTEM AND FILE I/O:
 
   The most notable variation between Microsoft OSes and Unix is how they
-   handle the file system. A Mac handles its file system is a third
+   handle the file system. A Mac handles its file system in a third
    incompatible way. What it comes down to is a need for abstraction in
    the API.
 
@@ -63,22 +63,49 @@ FILE SYSTEM AND FILE I/O:
 
   APIs that accept filenames (KILL, OPEN, NAME, etc...) will always accept
    both Windows-like filenames and unix-like filenames. On Unix-like systems,
-   the drive letter (if specified) will be ignored. The "\" character is
-   converted to "/".
+   the drive letter (if specified) must be "C:" or a runtime error is
+   thrown (this is okay for legacy code...after all, on Windows, if I don't
+   have a "D:" and try to access it, you can expect an error. Therefore Linux
+   and friends have, as far as the vbSlacker process is concerned, only a
+   "C:" drive. There is no "A:" and "B:" drives, which is still plausible
+   under Windows. The "\" characters in a path are converted to "/".
 
   If the "ignore filename case" runtime option is NOT set, case will still
    be significant. If set, anything that must access files will access the
    file with the exact specified case, and failing that, will access the first
    to match an case-insensitive search. This option is not recommended unless
    your code is REALLY legacy, but it can be helpful for programs that make
-   poor use of the DIR$() command. This option will not be available to a
-   Win32 or OS/2 system, since they are already case-insensitive.
+   poor use of the File I/O and File System APIs. This option should not be
+   available to a Win32 or OS/2 system, since they are already
+   case-insensitive.
+
+  Note the dangers of this, though: If two files match a criteria, the first
+   one is selected, even if it iis not the intended file. The solution to this
+   is to specify the correct case from the beginning, since the exact match
+   is always selected over the case-insensitive match. However, if you could
+   always do that, why would you use this option in the first place?
+
+  Furthermore, since directories also are checked for insensitive matches,
+   you could end up traversing a completely unexpected subtree on the
+   file system.
+
+  Files you create (with MKDIR and OPEN, etc...) are also matched first. This
+   could lead to unexpected errors or worse, data overwriting.  Still, it was
+   necessary to do this, so you can OPEN a file as "C:\myfile" when you
+   create it, and still get the same file when you use "C:\MYFILE" later. Note
+   that if there is no match for "myfile" when created, it'll be created in
+   the specified case.
+
+  So use at your own risk. Generally, it WON'T cause problems, and will help
+   port legacy code. But the risk is there.
+
+  Other file stuff:
 
   Things that expect various file attributes are treated differently:
 
     vbNormal    : same as always.
-    vbReadOnly  : The file is checked to see if the process has rights to
-                   read it.
+    vbReadOnly  : The file is checked to see if the process does NOT
+                   have permission to write to the file.
     vbHidden    : ignored. There is no such thing as a "hidden" file.
     vbSystem    : ignored. There is no such thing as a "system" file.
     vbVolume    : ignored. There is no such thing as a "volume" file.
@@ -92,11 +119,29 @@ FILE SYSTEM AND FILE I/O:
   So, we set up another runtime option: Windows file compatibility.
    This allows for either a "native feel", where a programmer may choose
    to hardcode platform-specific details, or legacy code may be up and running
-   that much quicker. In Windows mode, CURDRIVE$() always returns "C:".
-   File dialog boxes are roughly Windows-like, but specify only a "C:" to
-   click through.
+   that much quicker. In "Windows filesystem compatibility" mode, CURDRIVE$()
+   always returns "C:". File dialog boxes are roughly Windows-like, but
+   specify only a "C:" to click through.
 
+  Therefore, for any platform vbSlacker runs on, it needs to supply a few
+   functions:
 
+     __convertPathWinToLocal(p) : Convert a string (which may or may not be
+      a windows compatible path) to a local path format.  Under unix, this
+      means losing the drive letter (and throwing an error if the letter is
+      anything other than C:), and converting '\\' characters in the path to
+      '/'. The return value should be a newly allocated, garbage-collectable
+      asciz string. (p) is a path in an asciz string.
+
+     __convertPathLocalToWin(p) : Do the opposite of __convertPathWinToLocal().
+      Under unix, "/mydir1/mydir2/filename.txt" becomes
+      "C:\mydir1\mydir2\filename.txt" ... This is so return values can be
+      in a format legacy code expects, if the option is enabled.
+
+     __getCurrentDriveLetter(void) : Return a byte of the current working
+      drive letter. Under Unix and OSes without a concept of drive letters,
+      this always returns ('C')...under OS/2 and Windows, we have to make
+      calls to platform-specific APIs for this information...
 
 
 !!! MORE TO COME!
