@@ -1,17 +1,30 @@
 /*
  * Internal routines for handling BASIC strings...
  *
+ * BASIC strings differ from C strings in a few respects. C strings are
+ *  signified with a char pointer, and are, literally, a string of
+ *  characters. BASIC strings are wrapped in a structure containing extra
+ *  information, and are not terminated by a NULL char (chr$(0)), like
+ *  their C counterparts. This is consistent with Microsoft Basics.
+ *
  *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *    Written by Ryan C. Gordon.
  */
 
 #include <string.h>
 #include "BasicString.h"
 
-#define __min(x, y) ((x) < (y) ? (x) : (y))
+#ifndef __min
+#    define __min(x, y) ((x) < (y) ? (x) : (y))
+#endif
+
 
 PBasicString __allocString(__long length, __boolean isFixed)
 /*
- * Build a string, but don't initialize the data.
+ * Build a string, but don't initialize the data. The returned data
+ *  is dynamically allocated, and may be explicitly freed with the
+ *  __freeString() function, but if left alone, will eventually be
+ *  released by the garbage collector.
  *
  *   params : length  == size of new string.
  *            isFixed == allow dynamic string resizing?
@@ -72,7 +85,9 @@ PBasicString __constString(__byte *asciz)
 
 void __freeString(PBasicString pBasicStr)
 /*
- * Free a previously allocated BASIC String.
+ * Free a previously allocated BASIC String. This is unnecessary, since
+ *  the garbage collector will handle this automatically, but for
+ *  efficiency's sake, this option is left available.
  *
  *   params : pBasicStr == BASIC String to free.
  *  returns : void.
@@ -94,7 +109,7 @@ PBasicString __assignString(PBasicString to, PBasicString from)
  *
  *  Doing this is in BASIC:
  *
- *   str1 = str2
+ *   str1$ = str2$
  *
  *  is equivalent to:
  *
@@ -105,8 +120,8 @@ PBasicString __assignString(PBasicString to, PBasicString from)
  *                      later. Fixed length flag is copied from this
  *                      string, if it is not NULL. If NULL, it is
  *                      nonfixed length.
- *             from == String to "assign".
- *   returns : copy of (to), newly allocated.
+ *             from == String to "assign" from.
+ *   returns : copy of (from), newly allocated.
  */
 {
     __long copyCount;
@@ -191,7 +206,7 @@ __byte *__copyAscizString(__byte *copyThis)
  * Allocates a new, garbage collectable object, and copies (copyThis) into it.
  *  The newly allocated object must never be used to store ANY pointers.
  *
- *      params : copyThis == string to copy.
+ *      params : copyThis == ASCIZ string to copy.
  *     returns : newly-allocated copy of (copyThis).
  */
 {
@@ -199,7 +214,6 @@ __byte *__copyAscizString(__byte *copyThis)
     strcpy(retVal, copyThis);
     return(retVal);
 } /* __copyAscizString */
-
 
 /* end of BasicString.c ... */
 
