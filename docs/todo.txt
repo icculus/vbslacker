@@ -1,5 +1,6 @@
 TODO list:
 
+- Make current BASIClib code use the boxcar system, where applicable.
 - HOWTO on adding new modules to BASIClib.
 - Testlib code for boxcar system.
 - Documentation: mem_management.txt and on_events.txt
