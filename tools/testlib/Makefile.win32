@@ -1,18 +1,20 @@
 # Makefile for building a dynamic (shared) BASIClib
 
 OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o \
-       TestErrorFunctions.o TestStringFunctions.o TestFileIOFunctions.o
+       TestErrorFunctions.o TestStringFunctions.o TestFileIOFunctions.o \
+       TestMathFunctions.o
 
 CC = gcc
 LINKER = gcc
 
 # Shipping command lines
-#COPTIONS = -DWIN32 -D_REENTRANT -DLANG_ENGLISH -DLINUX -Wall -fasm -finline-functions -I $(BASICLIBDIR) -s -O2 -c -o
-#LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -s -O2 -o
+#COPTIONS = -DWIN32_I386 -D_REENTRANT -DLANG_ENGLISH -Wall -fasm -finline-functions -I $(BASICLIBDIR) -s -O2 -c -o
+#LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lncurses -lpthread -s -O2 -o
 
 # Debug command lines...
-COPTIONS = -DWIN32 -DDEBUG -D_REENTRANT -DLANG_ENGLISH -DLINUX -Wall -fasm -finline-functions -I $(BASICLIBDIR) -g -c -o
-LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -lncurses -g -o
+COPTIONS = -DWIN32_I386 -DDEBUG -D_REENTRANT -DLANG_ENGLISH -Wall -fasm -finline-functions -I $(BASICLIBDIR) -g -c -o
+LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -g -o
+#LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -lncurses -g -o
 
 
 all : testlib.exe
@@ -55,5 +57,8 @@ TestFileIOFunctions.o : TestFileIOFunctions.c $(BASICLIBDIR)/Initialize.h \
                             $(BASICLIBDIR)/FileIOFunctions.h \
                             $(BASICLIBDIR)/Boolean.h 
 	$(CC) $(COPTIONS) TestFileIOFunctions.o TestFileIOFunctions.c
+
+TestMathFunctions.o : TestMathFunctions.c $(BASICLIBDIR)/MathFunctions.h
+	$(CC) $(COPTIONS) TestMathFunctions.o TestMathFunctions.c
 
 # end of Makefile.win32 ...
