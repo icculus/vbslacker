@@ -7,8 +7,12 @@
 #ifndef _INCLUDE_LOWLEVEL_H_
 #define _INCLUDE_LOWLEVEL_H_
 
-char peek(long addr);
-void poke(long addr, char newVal);
+#include "RegState.h"
+
+char peek(STATEPARAMS, long addr);
+void poke(STATEPARAMS, long addr, char newVal);
+char inp(STATEPARAMS, long ioport);
+void out(STATEPARAMS, long ioport, char byte);
 
 #endif
 
