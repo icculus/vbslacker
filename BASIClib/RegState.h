@@ -1,5 +1,7 @@
 /*
  * Some lowlevel stuff that all vbSlacker code should include.
+ * ALL __asm__ STATEMENTS SHOULD BE ISOLATED TO THIS FILE, UNDER THE
+ *  CORRECT ARCHITECTURE. This is for abstraction purposes.
  *
  *  This file is automagically included by StdBasic.h and BasicLib.h ...
  *
@@ -34,9 +36,24 @@
 /*
  * Unconditional jump to a specified address, for better or for worse.
  */
-#define __jmp(addr) __asm__ __volatile__ ("jmpl %0\n\t" \
-                                           : /* no output */ \
-                                           : "=q" (addr) )
+#define __jump(addr) __asm__ __volatile__ ("jmpl %0\n\t" \
+                                            : /* no output */ \
+                                            : "=q" (addr) )
+
+/*
+ * This is used by __triggerOnEvent()...adjust the stack, and unconditionally
+ *  jump to an address...
+ */
+#define __setStackAndJump(base, stack, addr) __asm__ __volatile__       \
+                                             (                          \
+                                                "movl %0, %%ebp \n\t"   \
+                                                "movl %1, %%esp \n\t"   \
+                                                "jmpl %2        \n\t"   \
+                                                    : /* no output */   \
+                                                    : "=q" (base)       \
+                                                    : "=q" (stack)      \
+                                                    : "=q" (addr)       \
+                                             ) /* __setStackAndJump */
 
 
 /*
