@@ -10,7 +10,7 @@
 #include "BasicString.h"
 #include "Variant.h"
 
-double asc(PBasicString pBasicStr);
+unsigned int asc(PBasicString pBasicStr);
 PBasicString chr_DC_(double asciiValue);
 PBasicString str_DC_(double numeric);
 double val(PBasicString pBasicStr);
