@@ -7,15 +7,6 @@ W32DIR = ./platform/win32
 LIBBASE = libBASIC
 LIBWHOLE = $(LIBBASE)$(MAJORVER)$(MINORVER).a
 
-OBJS = BasicString.o ConversionFunctions.o Initialize.o \
-       ErrorFunctions.o MathFunctions.o MemoryManager.o Threads.o \
-       TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
-       StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
-       ConsoleFunctions.o ProcessFunctions.o FileSystemFunctions.o \
-       Variant.o BasicError.o NoConsole.o DirectConsole.o RedirectedConsole.o \
-       CursesConsole.o EnvrFunctions.o Gosub.o MiscFunctions.o \
-       ArrayFunctions.o GUIFrontEnd.o
-
 CC = gcc
 LINKER = gcc
 ASM = gcc
@@ -121,6 +112,9 @@ ArrayFunctions.o : ArrayFunctions.c ArrayFunctions.h
 
 GUIFrontEnd.o : GUIFrontEnd.c GUIFrontEnd.h
 	$(CC) $(COPTIONS) GUIFrontEnd.o GUIFrontEnd.c
+
+RegistryFunctions.o : RegistryFunctions.c RegistryFunctions.h
+	$(CC) $(COPTIONS) RegistryFunctions.o RegistryFunctions.c
 
 # end of Makefile.win32 ...
 
