@@ -16,19 +16,17 @@
 typedef struct
 {
     unsigned int length;
-    unsigned char *data;      /* THIS IS -=NOT=- NULL-TERMINATED! */
+    __byte *data;          /* THIS IS -=NOT=- NULL-TERMINATED! */
     __boolean fixedLength;
 } BasicString;
 
 typedef BasicString *PBasicString;
 
-
-PBasicString __allocString(STATEPARAMS, int length, __boolean fixedLength);
+PBasicString __allocString(STATEPARAMS, int length, __boolean isFixed);
 PBasicString __createString(STATEPARAMS, char *asciz, __boolean fixedLength);
 PBasicString __constString(STATEPARAMS, char *asciz);
-void __freeString(STATEPARAMS, PBasicString pBasicStr);
-void __assignString(STATEPARAMS, PBasicString *ppStr, PBasicString pStrAssign);
-void __catString(STATEPARAMS, PBasicString *ppBasicStr, PBasicString pStrToCat);
+PBasicString __assignString(STATEPARAMS, PBasicString to, PBasicString from);
+PBasicString __catString(STATEPARAMS, PBasicString str1, PBasicString str2);
 char *__basicStringToAsciz(STATEPARAMS, PBasicString pStr);
 
 #endif /* _INCLUDE_BASICSTRING_H_ */

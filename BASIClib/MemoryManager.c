@@ -4,6 +4,7 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "MemoryManager.h"
@@ -14,16 +15,16 @@
     /*
      * ABOVESTACK is a comparison operator based on which
      *  direction the stack grows on a given platform...
-     * STACKINCREMENT is a unary operator that describes the
-     *  way a pointer must be incremented to go towards the
+     * STACKINCREMENT is a macro that adds (or subtracts)
+     *  in the way a pointer must move to go towards the
      *  the top of the stack.
      */
 #if (STACK_DIRECTION == -1)
 #    define ABOVESTACK <=
-#    define STACKINCREMENT --
+#    define STACKINCREMENT(x) ((x)--)
 #else
 #    define ABOVESTACK >=
-#    define STACKINCREMENT ++
+#    define STACKINCREMENT(x) ((x)++)
 #endif
 
     /*
@@ -40,11 +41,28 @@
 #define ALLOCFLOODLEVEL  30
 
 
-typedef struct _Boxcar
+    /*
+     * This is the information for one memory object in a boxcar.
+     *  (ptr) stores the actual pointer to the allocated memory.
+     *  (isGarbage) signifies whether the stack scanner has
+     *   declared this memory object as unreferenced.
+     *  (finalizer) is for future C++ support.
+     */
+typedef struct
+{
+    void *ptr;
+    __boolean isGarbage;
+    void (*finalizer)(STATEPARAMS);
+} MemoryObject;
+
+typedef MemoryObject *PMemoryObject;
+
+
+typedef struct
 {
     void *id;
-    unsigned int totalPtrs;
-    void **ptrs;
+    unsigned int totalObjs;
+    PMemoryObject objs;
     struct _Boxcar *next;
     struct _Boxcar *prev;
     unsigned int overflowCount;
@@ -82,35 +100,62 @@ void __initMemoryManager(STATEPARAMS)
 
 
 void __deinitMemoryManager(STATEPARAMS)
+/*
+ * Deinitialize; destroys the ThreadLock.
+ *
+ *   params : void.
+ *  returns : void.
+ */
 {
     __destroyThreadLock(STATEARGS, &trainLock);
 } /* __deinitMemoryManager */
 
 
 void __initThreadMemoryManager(STATEPARAMS, int tidx)
+/*
+ * Each thread has its own memory "train," which is a linked list
+ *  of boxcars. This is to keep the thread-proofing simple and efficient,
+ *  since the ThreadLock only need be kept long enough to find the first
+ *  car in the train: that is, to figure out which Thread Index we are in,
+ *  and access that element of an array. This routine makes sure that array
+ *  is set up correctly for the newly-spun thread.
+ *
+ * This routine will raise a fatal runtime error if realloc() fails.
+ *
+ *     params : tidx == Thread index of dying thread.
+ *    returns : void.
+ */
 {
-    void *rc;
-
-    rc = malloc(__getHighestThreadIndex(STATEARGS) * sizeof (PBoxcar));
-    if (rc == NULL)
+    __obtainThreadLock(STATEARGS, &trainLock);
+    trains = realloc(trains,
+                     __getHighestThreadIndex(STATEARGS) * sizeof(PBoxcar));
+    if (trains == NULL)
         __fatalRuntimeError(STATEARGS, ERR_OUT_OF_MEMORY);
-    else
-    {
-        __obtainThreadLock(STATEARGS, &trainLock);
-        free(trains);
-        trains = rc;
-        __releaseThreadLock(STATEARGS, &trainLock);
-    } /* else */
+    trains[tidx] = NULL;
+    __releaseThreadLock(STATEARGS, &trainLock);
 } /* __initThreadMemoryManager */
 
 
 void __deinitThreadMemoryManager(STATEPARAMS, int tidx)
+/*
+ * Thread is terminating; release all of its boxcars with extreme prejudice.
+ *
+ *     params : tidx == Thread index of dying thread.
+ *    returns : void.
+ */
 {
     __memReleaseAllBoxcars(STATEARGS);
 } /* __deinitThreadMemoryManager */
 
 
 static void __setStartOfTrain(STATEPARAMS, PBoxcar newStart)
+/*
+ * Set the start of the thread's memory train. New cars are added to
+ *  the front, since they are most likely to be accessed.
+ *
+ *    params : newStart == new beginning of train.
+ *   returns : void.
+ */
 {
     __obtainThreadLock(STATEARGS, &trainLock);
     trains[__getCurrentThreadIndex(STATEARGS)] = newStart;
@@ -296,38 +341,54 @@ static PBoxcar __retrieveBoxcar(STATEPARAMS)
 
 static void __scanForLocalGarbage(STATEPARAMS, PBoxcar pCar)
 /*
- * This is a VERY simple, conservative garbage collector. Basically,
+ * This is a simple, conservative garbage collector. Basically,
  *  it'll scan the stack from (pCar->id) (the base pointer of (pCar)'s
  *  associated function) to the current base pointer. This should be
  *  any local variables (and some other minor stack noise) in a given
  *  function. If no reference to a given pointer in (pCar) is found,
  *  we consider it garbage, and collect it.
  *
-
-
-    !!! limit this search?
-
-
  *    params : pCar == boxcar to use for scan.
  *   returns : void.
  */
 {
-    void *stackLoc;   /* current scan point on stack */
-    void *basePtr;    /* current base pointer.       */
+    void *stackLoc;
+    void *basePtr;
     int i;
 
+#ifdef DEBUG
+    unsigned int objsFreed = 0;
+    printf("Conservative Garbage Collector starting...\n");
+    printf("  - Checking at most %d bytes of stack.\n", MAXSTACKSCAN);
+    printf("  - There are %d memory objects to free\n", pCar->totalPtrs);
+#endif
+
     __getBasePointer(&basePtr);
+
+    memset(flags, '\0', pCar->totalPtrs * sizeof (__boolean));
 
     for (stackLoc = pCar->id; basePtr ABOVESTACK stackLoc; stackLoc++)
     {
         for (i = 0; i < pCar->totalPtrs; i++)
         {
             if ( pCar->ptrs[i] == *((void **) stackLoc) )
-            {
-
-            } /* if */
+                flags[i] = true;
         } /* for */
     } /* for */
+
+    for (i = 0; i < pCar->totalPtrs; i++)
+    {
+        if (flags[i] != true)   /* !!! won't work. */
+            __memFreeInBoxcar(STATEARGS, pCar->ptrs[i]);
+#ifdef DEBUG
+        objsFreed++;
+#endif    
+    } /* for */
+
+#ifdef DEBUG
+    printf("Done. Collected %d objects.\n", objsFreed);
+#endif    
+
 } /* __scanForLocalGarbage */
 
 
@@ -344,7 +405,10 @@ static void __incrementBoxcarPointers(STATEPARAMS, PBoxcar pCar)
     pCar->totalPtrs++;
     pCar->overflowCount++;
     if (pCar->overflowCount > ALLOCFLOODLEVEL)
+    {
         __scanForLocalGarbage(STATEARGS, pCar);
+        pCar->overflowCount = 0;
+    } /* if */
 } /* __incrementBoxcarPointers */
 
 
@@ -433,7 +497,10 @@ void *__memReallocInBoxcar(STATEPARAMS, void *ptr, int byteCount)
 
     index = __locateBoxcarPtrIndex(STATEARGS, pCar, ptr);
     if (index == -1)
+    {
+        fprintf(stderr, "__memReallocInBoxcar() on non-existant pointer!\n");
         retVal = __memAllocInBoxcar(STATEARGS, byteCount);
+    } /* if */
     else
     {
         retVal = pCar->ptrs[index] = __memRealloc(STATEARGS,

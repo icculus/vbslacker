@@ -9,13 +9,8 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
-#include "FileIOFunctions.h"
-#include "BasicFileStream.h"
-#include "Variant.h"
-#include "ErrorFunctions.h"
-#include "Boolean.h"
-#include "MemoryManager.h"
 
+#include "StdBasic.h"
 /*** Private function declarations ***/
 static void __VBopen(STATEPARAMS, PBasicString pathName, FileModeEnum mode,
                      FileAccessEnum *access, FileLockEnum *lock,

@@ -134,7 +134,7 @@ PBasicString vbSS_curdir_DC_(STATEPARAMS, PBasicString drive)
  *   returns : see above.
  */
 {
-
+    
 } /* vbSS_curdir */
 
 
