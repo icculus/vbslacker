@@ -12,6 +12,7 @@ void testErrorFunctions(void);
 void testThreads(void);
 void testStringFunctions(void);
 void testConversionFunctions(void);
+void testFileIOFunctions(void);
 
 #endif
 

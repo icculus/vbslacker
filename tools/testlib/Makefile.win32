@@ -1,7 +1,7 @@
 # Makefile for building a dynamic (shared) BASIClib
 
 OBJS = TestLib.o TestConversionFunctions.o TestOnEvents.o TestThreads.o \
-       TestErrorFunctions.o TestStringFunctions.o
+       TestErrorFunctions.o TestStringFunctions.o TestFileIOFunctions.o
 
 CC = gcc
 LINKER = gcc
@@ -49,5 +49,11 @@ TestStringFunctions.o : TestStringFunctions.c $(BASICLIBDIR)/Initialize.h \
                             $(BASICLIBDIR)/StringFunctions.h \
                             $(BASICLIBDIR)/Boolean.h 
 	$(CC) $(COPTIONS) TestStringFunctions.o TestStringFunctions.c
+
+TestFileIOFunctions.o : TestFileIOFunctions.c $(BASICLIBDIR)/Initialize.h \
+                            $(BASICLIBDIR)/BasicString.h \
+                            $(BASICLIBDIR)/FileIOFunctions.h \
+                            $(BASICLIBDIR)/Boolean.h 
+	$(CC) $(COPTIONS) TestFileIOFunctions.o TestFileIOFunctions.c
 
 # end of Makefile.win32 ...

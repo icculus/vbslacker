@@ -51,4 +51,10 @@ TestStringFunctions.o : TestStringFunctions.c $(BASICLIBDIR)/Initialize.h \
                             $(BASICLIBDIR)/Boolean.h
 	$(CC) $(COPTIONS) TestStringFunctions.o TestStringFunctions.c
 
+TestFileIOFunctions.o : TestFileIOFunctions.c $(BASICLIBDIR)/Initialize.h \
+                            $(BASICLIBDIR)/BasicString.h \
+                            $(BASICLIBDIR)/FileIOFunctions.h \
+                            $(BASICLIBDIR)/Boolean.h 
+	$(CC) $(COPTIONS) TestFileIOFunctions.o TestFileIOFunctions.c
+
 # end of Makefile.linux ...

@@ -38,6 +38,7 @@ int main(void)
     testThreads();
     testStringFunctions();
     testConversionFunctions();
+    testFileIOFunctions();
 
     deinitTestLib();
     return(0);
