@@ -69,37 +69,6 @@ static unsigned int allocatedThreads = 0;
 static POnEventsState *ppState = NULL;
 
 
-#ifdef DEBUG
-
-static inline boolean binaryDump(char *fileName, void *data, int size)
-/*
- * This function dumps (size) bytes starting at (data) to the file
- *  (fileName).
- */
-{
-    FILE *binStream = fopen(fileName, "wb");
-    boolean retVal = false;
-
-    if (binStream == NULL)
-        printf("  - COULDN'T OPEN [%s] FOR BINARY OUTPUT!\n", fileName);
-    else
-    {
-        if (fwrite(data, size, 1, binStream) != 1)
-            printf("  - COULDN'T WRITE DATA DUMP TO DISK!\n");
-        else
-        {
-            printf("  - Data dump is in [%s]...\n", fileName);
-            retVal = true;
-        }
-        fclose(binStream);
-    }
-
-    return(retVal);
-}
-
-#endif
-
-
 void __initOnEvents(STATEPARAMS)
 /*
  * This is called once at program startup.
