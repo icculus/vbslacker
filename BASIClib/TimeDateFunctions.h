@@ -11,6 +11,8 @@
 
 typedef enum {ON, OFF, STOP} TimerArgEnum;
 
+void __initTimeDateFunctions(void);
+
 double func_timer(void);
 void proc_timer(TimerArgEnum setting);
 
