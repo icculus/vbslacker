@@ -5,6 +5,8 @@
  */
 
 #include "ConsoleFunctions.h"
+
+    /* Console drivers... */
 #include "DirectConsole.h"
 #include "NoConsole.h"
 #include "CursesConsole.h"
@@ -39,8 +41,8 @@ void __initConsoleFunctions(STATEPARAMS)
  */
 {
     if (__initNoConsole(STATEARGS) == true);
-    else if (__initDirectConsole(STATEARGS) == true);
     else if (__initRedirectedConsole(STATEARGS) == true);
+    else if (__initDirectConsole(STATEARGS) == true);
     else if (__initCursesConsole(STATEARGS) == true);
     else __forceRedirectedConsole(STATEARGS);
 } /* __initConsoleFunctions */
