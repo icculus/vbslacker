@@ -119,5 +119,8 @@ RegistryFunctions.o : RegistryFunctions.c RegistryFunctions.h
 BasicFileSystem.o : BasicFileSystem.c BasicFileSystem.h
 	$(CC) $(COPTIONS) BasicFileSystem.o BasicFileSystem.c
 
+Language.o : Language.c Language.h
+	$(CC) $(COPTIONS) Language.o Language.c
+
 # end of Makefile.win32 ...
 
