@@ -38,7 +38,7 @@ void *__prepareReturn(__PGosubState state);
                                __prepareGosub(__gosub.tmp, &__gosub); \
                                __jumpLabel(addr)
 
-#define __doReturn           __jump(__prepareReturn(&__gosub))
+#define __doReturn()           __jump(__prepareReturn(&__gosub))
 
 #define __doReturnLabel(label) __prepareReturn(&__gosub); \
                                __jumpLabel(label)
