@@ -8,7 +8,7 @@
 #include "MathFunctions.h"
 
 
-int __round(double x)
+int __round(STATEPARAMS, double x)
 /*
  * Round (x) to the nearest whole number.
  *
@@ -20,7 +20,7 @@ int __round(double x)
 } /* __round */
 
 
-double func_abs(double x)
+double func_abs(STATEPARAMS, double x)
 /*
  * Returns the absolute value of a numeric.
  *
@@ -32,7 +32,7 @@ double func_abs(double x)
 } /* func_abs */
 
 
-double func_sqr(double x)
+double func_sqr(STATEPARAMS, double x)
 /*
  * Returns the square root of a numeric.
  *

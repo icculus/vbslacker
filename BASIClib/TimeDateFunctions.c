@@ -32,7 +32,7 @@ static TimerArgEnum timerSetting = OFF;
 static time_t todaySecs;
 
 
-struct tm *__getBrokenTime(void)
+struct tm *__getBrokenTime(STATEPARAMS)
 /*
  * Returns brokendown time for current time of day, a glibc-specific
  *  data structure that parses time into various fields, like day,
@@ -56,7 +56,7 @@ struct tm *__getBrokenTime(void)
 } /* __getBrokenTime */
 
 
-time_t __getTodaySecs(void)
+time_t __getTodaySecs(STATEPARAMS)
 /*
  * Figure out how many seconds have elasped between Midnight Jan, 1970,
  *  GMT, and the beginning of today. Calculating this once will help the
@@ -66,7 +66,7 @@ time_t __getTodaySecs(void)
  *  returns : see above.
  */
 {
-    struct tm *brokenTime = __getBrokenTime();
+    struct tm *brokenTime = __getBrokenTime(STATEARGS);
 
     brokenTime->tm_sec  = 0;    /* reset time to beggining of day. */
     brokenTime->tm_min  = 0;
@@ -76,13 +76,13 @@ time_t __getTodaySecs(void)
 } /* __getTodaySecs */
 
 
-void __initTimeDateFunctions(void)
+void __initTimeDateFunctions(STATEPARAMS)
 {
-    todaySecs = __getTodaySecs();
+    todaySecs = __getTodaySecs(STATEARGS);
 } /* __initTimeDateFunctions */
 
 
-double func_timer(void)
+double func_timer(STATEPARAMS)
 /*
  * Returns the number of seconds elasped since midnight, with two
  *  decimal places worth of precision.
@@ -108,14 +108,14 @@ double func_timer(void)
 } /* func_timer */
 
 
-void proc_timer(TimerArgEnum setting)
+void proc_timer(STATEPARAMS, TimerArgEnum setting)
 {
     timerSetting = setting;
     /* !!! write this! Enable a timer interrupt? */
 } /* proc_timer */
 
 
-PBasicString __makeTimeDateString(int size, char *fmt)
+PBasicString __makeTimeDateString(STATEPARAMS, int size, char *fmt)
 /*
  * This called by the function versions of TIME$ and DATE$, since they
  *  require the exact same logic, with some different parameters.
@@ -130,21 +130,21 @@ PBasicString __makeTimeDateString(int size, char *fmt)
     PBasicString retVal = NULL;
     char buffer[size + 1];          /* plus one for NULL terminator. */
     int rc;
-    struct tm *brokenTime = __getBrokenTime();
+    struct tm *brokenTime = __getBrokenTime(STATEARGS);
 
     rc = strftime(buffer, sizeof (buffer), fmt, brokenTime);
 
     if ((unsigned int) rc == sizeof (buffer))  /* not enough space? */
-        __runtimeError(ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS. ERR_INTERNAL_ERROR);
     else
-        retVal = __createString(buffer, false);
+        retVal = __createString(STATEARGS, buffer, false);
 
     return(retVal);
 } /* __makeTimeDateString */
 
 
 
-PBasicString func_time_DC_(void)
+PBasicString func_time_DC_(STATEPARAMS)
 /*
  * Returns a BASIC string containing the current system time in the format
  *  "HH:MM:SS" (8 bytes) ... The time is returned in 24-hour format.
@@ -153,18 +153,18 @@ PBasicString func_time_DC_(void)
  *    returns : newly allocated BASIC string containing current system time.
  */
 {
-    return(__makeTimeDateString(8, "%H:%M:%S"));
+    return(__makeTimeDateString(STATEARGS, 8, "%H:%M:%S"));
 } /* func_time_DC_ */
 
 
-void proc_time_DC_(PBasicString newTimeStr)
+void proc_time_DC_(STATEPARAMS, PBasicString newTimeStr)
 {
     /* !!! compare to proc_date_DC_()... */
 } /* proc_time_DC_ */
 
 
 
-PBasicString func_date_DC_(void)
+PBasicString func_date_DC_(STATEPARAMS)
 /*
  * Return a BASIC string containing current date in the
  *  format "MM-DD-YYYY" (10 bytes).
@@ -173,12 +173,12 @@ PBasicString func_date_DC_(void)
  *   returns : newly allocated BASIC string with current date.
  */
 {
-    return(__makeTimeDateString(10, "%m-%d-%C%y"));
+    return(__makeTimeDateString(STATEARGS, 10, "%m-%d-%C%y"));
 } /* func_date_DC_ */
 
 
 
-boolean __checkDateBounds(int month, int day, int year)
+boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
 /*
  * Verify that specified numbers are valid for setting through BASIC's
  *  DATE$ function. The bounds appear to be:
@@ -216,7 +216,7 @@ boolean __checkDateBounds(int month, int day, int year)
 
 
 
-boolean __prepareDateString(char *str)
+boolean __prepareDateString(STATEPARAMS, char *str)
 /*
  * Check a date string for initial validity. This will check that characters
  *  are acceptable, but won't determine if numbers are in range.
@@ -255,8 +255,7 @@ boolean __prepareDateString(char *str)
 
 
 
-boolean __setSystemDate(int month, int day, int year,
-                        int *pErrVal)
+boolean __setSystemDate(STATEPARAMS, int month, int day, int year, int *pErrVal)
 /*
  * Set system clock to new date.
  *
@@ -268,7 +267,7 @@ boolean __setSystemDate(int month, int day, int year,
  */
 {
     boolean retVal = true;
-    struct tm *brokenTime = __getBrokenTime();
+    struct tm *brokenTime = __getBrokenTime(STATEARGS);
     struct timeval tv;
 
     brokenTime->tm_mday = day;  
@@ -299,7 +298,7 @@ boolean __setSystemDate(int month, int day, int year,
 
 
 
-void proc_date_DC_(PBasicString newDateStr)
+void proc_date_DC_(STATEPARAMS, PBasicString newDateStr)
 /*
  * Set the system date. This throws a BASIC runtime error if the process
  *  doesn't have rights to change the system clock. DOS and Windows versions
@@ -327,7 +326,7 @@ void proc_date_DC_(PBasicString newDateStr)
     str[newDateStr->length] = '\0';
 
     if (__prepareDateString(str) == false)
-        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
         month = strtol(str, &next, 10);
@@ -337,11 +336,11 @@ void proc_date_DC_(PBasicString newDateStr)
         if (year < 100)
             year += 1900;
 
-        if (__checkDateBounds(month, day, year) == false)
-            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+        if (__checkDateBounds(STATEARGS, month, day, year) == false)
+            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
 
-        else if (__setSystemDate(month, day, year, &errVal) == false)
-            __runtimeError(errVal);
+        else if (__setSystemDate(STATEARGS, month, day, year, &errVal) == false)
+            __runtimeError(STATEARGS, errVal);
     } /* else */
 } /* proc_date_DC_ */
 
@@ -351,14 +350,14 @@ void proc_date_DC_(PBasicString newDateStr)
 /*
         !!! Yikes! I'll look into these later...
 
-    long dateserial(int year, int month, int day);
-    long datevalue(PBasicString date);
-    int day(long serialNum);
-    int weekday(long serialNum);
-    int month(long serialNum);
-    int year(long serialNum);
+    long dateserial(STATEPARAMS, int year, int month, int day);
+    long datevalue(STATEPARAMS, PBasicString date);
+    int day(STATEPARAMS, long serialNum);
+    int weekday(STATEPARAMS, long serialNum);
+    int month(STATEPARAMS, long serialNum);
+    int year(STATEPARAMS, long serialNum);
 
-    int now(void);
+    int now(STATEPARAMS, void);
 */
 
 

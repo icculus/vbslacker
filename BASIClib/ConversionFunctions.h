@@ -7,20 +7,21 @@
 #ifndef _INCLUDE_CONVERSIONFUNCTIONS_H_
 #define _INCLUDE_CONVERSIONFUNCTIONS_H_
 
+#include "RegState.h"
 #include "BasicString.h"
 #include "Variant.h"
 
-int asc(PBasicString pBasicStr);
-PBasicString chr_DC_(double asciiValue);
-PBasicString str_DC_(double numeric);
-double val(PBasicString pBasicStr);
-PBasicString hex_DC_(double x);
-PBasicString oct_DC_(double x);
-int __VariantToInt(PVariant var);
-long __VariantToLong(PVariant var);
-float __VariantToFloat(PVariant var);
-double __VariantToDouble(PVariant var);
-PBasicString __VariantToString(PVariant pVar, boolean byRef);
+int asc(STATEPARAMS, PBasicString pBasicStr);
+PBasicString chr_DC_(STATEPARAMS, double asciiValue);
+PBasicString str_DC_(STATEPARAMS, double numeric);
+double val(STATEPARAMS, PBasicString pBasicStr);
+PBasicString hex_DC_(STATEPARAMS, double x);
+PBasicString oct_DC_(STATEPARAMS, double x);
+int __VariantToInt(STATEPARAMS, PVariant var);
+long __VariantToLong(STATEPARAMS, PVariant var);
+float __VariantToFloat(STATEPARAMS, PVariant var);
+double __VariantToDouble(STATEPARAMS, PVariant var);
+PBasicString __VariantToString(STATEPARAMS, PVariant pVar, boolean byRef);
 
 #endif
 

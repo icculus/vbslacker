@@ -11,10 +11,9 @@
 #define __min(x, y) ((x) < (y) ? (x) : (y))
 #define __max(x, y) ((x) > (y) ? (x) : (y))
 
-
-int __round(double x);
-double func_abs(double x);
-double func_sqr(double x);
+int __round(STATEPARAMS, double x);
+double func_abs(STATEPARAMS, double x);
+double func_sqr(STATEPARAMS, double x);
 
 #endif
 

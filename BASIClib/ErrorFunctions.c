@@ -22,7 +22,7 @@ int __basicErrno = ERR_NO_ERROR;
 
 static char *errStrings[MAX_ERRS];
 
-void __initErrorFunctions(void)
+void __initErrorFunctions(STATEPARAMS)
 /*
  * Initialize the table of errorStrings.
  *
@@ -33,7 +33,7 @@ void __initErrorFunctions(void)
 } /* __initErrorFunctions */
 
 
-void __defaultRuntimeErrorHandler(void)
+void __defaultRuntimeErrorHandler(STATEPARAMS)
 {
     char *errStr;
 
@@ -41,13 +41,35 @@ void __defaultRuntimeErrorHandler(void)
     if (errStr == NULL)
         errStr = UNKNOWN_ERR;
 
-    printf("\n\n***Unhandled runtime error***\n");
-    printf("  \"%s\" (#%d)\n\n", errStr, basicErrno);
+    printf("\n\n***Unhandled runtime error***\n"
+           "  \"%s\" (#%d)\n"
+           "    - __stIP     == (%p)\n"
+           "    - __stNextIP == (%p)\n"
+           "    - __stBP     == (%p)\n"
+           "    - __stSP     == (%p)\n"
+           "\n\n",
+            errStr, basicErrno, __stIP, __stNextIP, __stBP, __stSP);
+
     exit(basicErrno);
 } /* __defaultRuntimeErrorHandler */
 
 
-void __runtimeError(int errorNum)
+void __fatalRuntimeError(STATEPARAMS, int errorNum)
+/*
+ * Call this instead of __runtimeError() if you want to throw an
+ *  unrecoverable error. Even ERR_NO_ERROR is fatal here.
+ *
+ *    params : errorNum == error number to throw.
+ *   returns : never.
+ */
+{
+    basicErrno = __basicErrno = errorNum;
+    __defaultRuntimeErrorHandler(STATEARGS);
+} /* __fatalRuntimeError */
+
+
+void __runtimeError(STATEPARAMS, int errorNum)
+/* !!! comment. */
 {
     POnEventHandler pHandler;
 
@@ -55,22 +77,22 @@ void __runtimeError(int errorNum)
 
     if (errorNum != ERR_NO_ERROR)
     {
-        pHandler = __getOnEventHandler(ONERROR);
-        if (pHandler == NULL)
-            __defaultRuntimeErrorHandler();
+        pHandler = __getOnEventHandler(STATEARGS, ONERROR);
+        if ((pHandler == NULL) || (pHandler->handlerAddr == NULL))
+            __defaultRuntimeErrorHandler(STATEARGS);
         else
-            __triggerOnEvent(pHandler, ONERROR);
+            __triggerOnEvent(STATEARGS, pHandler, ONERROR);
     } /* if */
 } /* __runtimeError */
 
 
-double func_err(void)
+double func_err(STATEPARAMS)
 {
     return((double) basicErrno);
 } /* func_err */
 
 
-void proc_err(double newErr)
+void proc_err(STATEPARAMS, double newErr)
 {
     /* !!! check this later. Fuck. Double vs. int vs. enum. */
 
@@ -79,5 +101,4 @@ void proc_err(double newErr)
 
 
 /* end of ErrorFunctions.c ... */
-
 

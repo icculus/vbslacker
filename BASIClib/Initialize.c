@@ -13,9 +13,10 @@
 #include "InternalMemManager.h"
 #include "Boolean.h"
 
+static long initFlags = INITFLAG_NOT_INITIALIZED;
 static boolean initialized = false;
 
-void __initBasicLib(void)
+void __initBasicLib(STATEPARAMS, long flags)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
  *  else with the library. This function just calls each other sections'
@@ -27,13 +28,14 @@ void __initBasicLib(void)
 {
     if (initialized == false)
     {
-        __initInternalMemManager();
-        __initErrorFunctions();
-        __initOnEvents();
-        __initTimeDateFunctions();
-        __initBasicFileStream();
+        initFlags = flags;
+        __initInternalMemManager(STATEARGS);
+        __initErrorFunctions(STATEARGS);
+        __initOnEvents(STATEARGS);
+        __initTimeDateFunctions(STATEARGS);
+        __initBasicFileStream(STATEARGS);
 
-        __initThreads();    /* Make sure this is last init call. */
+        __initThreads(STATEARGS);    /* Make sure this is last init call. */
 
         /* !!! register __deinitBasicLib() with atexit()... */
 
@@ -42,22 +44,23 @@ void __initBasicLib(void)
 } /* __initBasicLib */
 
 
-void __deinitBasicLib(void)
+void __deinitBasicLib(STATEPARAMS)
 /*
  * Call this before exiting a program using BASIClib.
  */
 {
     if (initialized == true)
     {
-        __deinitThreads();
-        __deinitOnEvents();
-        __deinitInternalMemManager();
+        initFlags = INITFLAG_NOT_INITIALIZED;
+        __deinitThreads(STATEARGS);
+        __deinitOnEvents(STATEARGS);
+        __deinitInternalMemManager(STATEARGS);
         initialized = false;
     } /* if */
 } /* __deinitBasicLib */
 
 
-void __initThread(int tidx)
+void __initThread(STATEPARAMS, int tidx)
 /*
  * This is a entry point to alert modules that a new thread has been spun, 
  *  and to allocate space as necessary. The given index might be recycled
@@ -67,11 +70,11 @@ void __initThread(int tidx)
  *   returns : void.
  */
 {
-    __initThreadOnEvents(tidx);
+    __initThreadOnEvents(STATEARGS, tidx);
 } /* __initThread */
 
 
-void __deinitThread(int tidx)
+void __deinitThread(STATEPARAMS, int tidx)
 /*
  * This is a entry point to alert modules that a thread has died, 
  *  and to handle it as necessary. The given index might be recycled
@@ -81,9 +84,14 @@ void __deinitThread(int tidx)
  *   returns : void.
  */
 {
-    __deinitThreadOnEvents(tidx);
+    __deinitThreadOnEvents(STATEARGS, tidx);
 } /* __deinitThread */
 
+
+long __getInitFlags(STATEPARAMS)
+{
+    return(initFlags);
+} /* __getInitFlags */
 
 /* end of Initialize.c ... */
 

@@ -15,7 +15,7 @@
 #include "Boolean.h"
 
 
-int asc(PBasicString pBasicStr)
+int asc(STATEPARAMS, PBasicString pBasicStr)
 /*
  * Get the ASCII value of the first character of (str)...
  *
@@ -26,7 +26,7 @@ int asc(PBasicString pBasicStr)
     unsigned int retVal = 0;
 
     if (pBasicStr->length == 0)    /* blank string? */
-        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else
         retVal = (unsigned int) pBasicStr->data[0];
 
@@ -35,7 +35,7 @@ int asc(PBasicString pBasicStr)
 
 
 
-PBasicString chr_DC_(double asciiValue)
+PBasicString chr_DC_(STATEPARAMS, double asciiValue)
 /*
  * Returns a new basic string of one character length based on the ascii
  *  value passed.
@@ -48,10 +48,10 @@ PBasicString chr_DC_(double asciiValue)
     int intAscii = (int) asciiValue;
 
     if ((intAscii < 0) || (intAscii > 255))
-        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
-        retVal = __allocString(1, false);
+        retVal = __allocString(STATEARGS, 1, false);
         retVal->data[0] = (char) asciiValue;
     } /* else */
 
@@ -60,7 +60,7 @@ PBasicString chr_DC_(double asciiValue)
 
 
 
-PBasicString str_DC_(double numeric)
+PBasicString str_DC_(STATEPARAMS, double numeric)
 /*
  * Convert a numeric to a BASIC string. If (numeric) is positive, the
  *  string contains a leading blank (' ') character. If negative, that
@@ -75,7 +75,7 @@ PBasicString str_DC_(double numeric)
     PBasicString retVal;
     int allocated = 10;
     int decimalPlaces = 0;
-    char *buffer = __memAlloc(allocated);
+    char *buffer = __memAlloc(STATEARGS, allocated);
     double i;
     int index = 1;
     int number;
@@ -107,13 +107,13 @@ PBasicString str_DC_(double numeric)
         if (index + 1 >= allocated)
         {
             allocated += 10;
-            buffer = __memRealloc(buffer, allocated);
+            buffer = __memRealloc(STATEARGS, buffer, allocated);
         } /* if */            
     } /* for */
 
     buffer[index] = '\0';     /* null-terminate string for conversion. */
-    retVal = __createString(buffer, false);
-    __memFree(buffer);
+    retVal = __createString(STATEARGS, buffer, false);
+    __memFree(STATEARGS, buffer);
     return(retVal);
 
 #else
@@ -124,14 +124,14 @@ PBasicString str_DC_(double numeric)
 
     char buffer[100];
     sprintf(buffer, "%f", numeric);
-    return(__createString(buffer, false));
+    return(__createString(STATEARGS, buffer, false));
 #endif
 
 } /* str_DC_ */
 
 
 
-int __valEndOfNumberString(PBasicString pBasicStr)
+int __valEndOfNumberString(STATEPARAMS, PBasicString pBasicStr)
 /*
  * Used by val() to find index in string where number ends.
  *
@@ -188,7 +188,7 @@ int __valEndOfNumberString(PBasicString pBasicStr)
 
 
 
-double val(PBasicString pBasicStr)
+double val(STATEPARAMS, PBasicString pBasicStr)
 /*
  * Convert a BASIC string into a numeric. This function stops conversion
  *  at the end of the string, or when it runs into a character it can't
@@ -203,7 +203,7 @@ double val(PBasicString pBasicStr)
 #warning "val() still isn't right!"
 
     double retVal = 0.0;
-    int strEndIndex = __valEndOfNumberString(pBasicStr);
+    int strEndIndex = __valEndOfNumberString(STATEARGS, pBasicStr);
     int decimalPlace = 1;
     int ch;
     int i;
@@ -242,7 +242,7 @@ double val(PBasicString pBasicStr)
 
 
 
-PBasicString hex_DC_(double x)
+PBasicString hex_DC_(STATEPARAMS, double x)
 /*
  * Convert a numeric to a string in Hexadecimal format. Numeric is rounded
  *  as necessary.
@@ -257,15 +257,15 @@ PBasicString hex_DC_(double x)
 
     char buffer[20];
 
-    rounded = __round(x);
+    rounded = __round(STATEARGS, x);
     sprintf(buffer, "%X", rounded);
 
-    return(__createString(buffer, false));
+    return(__createString(STATEARGS, buffer, false));
 } /* hex_DC_ */
 
 
 
-PBasicString oct_DC_(double x)
+PBasicString oct_DC_(STATEPARAMS, double x)
 /*
  * Convert a numeric to a string in Octal format. Numeric is rounded
  *  as necessary.
@@ -280,10 +280,10 @@ PBasicString oct_DC_(double x)
 
     char buffer[20];
 
-    rounded = __round(x);
+    rounded = __round(STATEARGS, x);
     sprintf(buffer, "%o", rounded);
 
-    return(__createString(buffer, false));
+    return(__createString(STATEARGS, buffer, false));
 } /* oct_DC_ */
 
 
@@ -295,7 +295,7 @@ PBasicString oct_DC_(double x)
      *  functions expecting non-variant intrinsics...
      */
 
-int __VariantToInt(PVariant var)
+int __VariantToInt(STATEPARAMS, PVariant var)
 {
     int retVal = 0;
 
@@ -314,7 +314,7 @@ int __VariantToInt(PVariant var)
             retVal = (int) var->data._double;
             break;
         default:
-            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -323,7 +323,7 @@ int __VariantToInt(PVariant var)
 
 
 
-long __VariantToLong(PVariant var)
+long __VariantToLong(STATEPARAMS, PVariant var)
 {
     long retVal = 0;
 
@@ -342,7 +342,7 @@ long __VariantToLong(PVariant var)
             retVal = (long) var->data._double;
             break;
         default:
-            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -351,7 +351,7 @@ long __VariantToLong(PVariant var)
 
 
 
-float __VariantToFloat(PVariant var)
+float __VariantToFloat(STATEPARAMS, PVariant var)
 {
     float retVal = 0;
 
@@ -370,7 +370,7 @@ float __VariantToFloat(PVariant var)
             retVal = (float) var->data._double;
             break;
         default:
-            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -379,7 +379,7 @@ float __VariantToFloat(PVariant var)
 
 
 
-double __VariantToDouble(PVariant var)
+double __VariantToDouble(STATEPARAMS, PVariant var)
 {
     double retVal = 0;
 
@@ -398,7 +398,7 @@ double __VariantToDouble(PVariant var)
             retVal = var->data._double;
             break;
         default:
-            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+            __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
             break;
     } /* switch */
 
@@ -407,7 +407,7 @@ double __VariantToDouble(PVariant var)
 
 
 
-PBasicString __VariantToString(PVariant pVar, boolean byRef)
+PBasicString __VariantToString(STATEPARAMS, PVariant pVar, boolean byRef)
 /*
  * The parser/compiler will be responsible for free()ing the return value
  *  from this call after the program is done with it...
@@ -426,10 +426,10 @@ PBasicString __VariantToString(PVariant pVar, boolean byRef)
         if (byRef)
             retVal = pVar->data._string;
         else
-            __assignString(&retVal, pVar->data._string);
+            __assignString(STATEARGS, &retVal, pVar->data._string);
     } // if
     else
-        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
 
     return(retVal);
 } /* __VariantToString */

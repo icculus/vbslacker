@@ -8,6 +8,7 @@
 #define _INCLUDE_BASICSTRING_H_
 
 #include "Boolean.h"
+#include "RegState.h"
 
 typedef struct
 {
@@ -18,13 +19,14 @@ typedef struct
 
 typedef BasicString *PBasicString;
 
-PBasicString __allocString(int length, boolean fixedLength);
-PBasicString __createString(char *asciz, boolean fixedLength);
-PBasicString __constString(char *asciz);
-void __freeString(PBasicString pBasicStr);
-void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign);
-void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat);
-char *__basicStringToAsciz(PBasicString pStr);
+PBasicString __allocString(STATEPARAMS, int length, boolean fixedLength);
+PBasicString __createString(STATEPARAMS, char *asciz, boolean fixedLength);
+PBasicString __constString(STATEPARAMS, char *asciz);
+void __freeString(STATEPARAMS, PBasicString pBasicStr);
+void __assignString(STATEPARAMS, PBasicString *ppBasicStr,
+                    PBasicString pStrToAssign);
+void __catString(STATEPARAMS, PBasicString *ppBasicStr, PBasicString pStrToCat);
+char *__basicStringToAsciz(STATEPARAMS, PBasicString pStr);
 
 #endif
 
