@@ -17,12 +17,14 @@ extern "C" {
 extern "C" {
 #endif
 
-__boolean __fileExists(__byte *fullPathName);
+void __initFileSystemFunctions(void);
+void __deinitFileSystemFunctions(void);
+void __initThreadFileSystemFunctions(__integer tidx);
+
 void _vbpS_kill(PBasicString fileName);
 void _vbpS_mkdir(PBasicString dirStr);
 void _vbpS_rmdir(PBasicString dirStr);
 void _vbpSS_name(PBasicString oldName, PBasicString newName);
-void _vbp_files(void);
 void _vbpSS_filecopy(PBasicString src, PBasicString dest);
 
 #ifdef __cplusplus

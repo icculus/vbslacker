@@ -406,6 +406,7 @@ static void __defaultRuntimeErrorHandler(void)
             __printAsciz(numeric);
             __printNewLine();
             __printNewLine();
+            sleep(3);  /* !!! this is temporary. Need to hit a key... */
         } /* if */
     } /* else */
 
