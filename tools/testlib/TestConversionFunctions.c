@@ -291,7 +291,7 @@ void testConversionFunctions(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
+    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
     testConversionFunctions(NULLSTATEARGS);
     __deinitBasicLib();
     return(0);
