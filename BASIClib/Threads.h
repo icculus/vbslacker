@@ -7,8 +7,10 @@
 #ifndef _INCLUDE_THREADS_H_
 #define _INCLUDE_THREADS_H_
 
+void __initThreads(void);
 int __getThreadCount(void);
 int __getCurrentThreadIndex(void);
+int __getHighestThreadIndex(void);
 void __threadTimeslice(void);
 void __enterCriticalThreadSection(void);
 void __exitCriticalThreadSection(void);

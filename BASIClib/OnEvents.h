@@ -68,7 +68,8 @@ extern void *_base_ptr_;
                                                         : : "memory" );
 
 POnEventHandler __getOnEventHandler(OnEventTypeEnum evType);
-void __initOnEvents();
+void __initThreadOnEvents(int tidx);
+void __deinitThreadOnEvents(int tidx);
 void __registerOnEventHandler(void *handlerAddr, void *stackSize,
                               void *stackEnd, void *origReturnAddr,
                               void *basePtr, OnEventTypeEnum evType);
