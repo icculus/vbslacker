@@ -34,7 +34,7 @@ void __registerOnEventHandler(void *handlerAddr, void *stackSize,
 
 void __deregisterOnEventHandler(void *handlerAddr, OnEventTypeEnum evType);
 
-long __callOnEventHandler(POnEventHandler pHandler);
+void __callOnEventHandler(POnEventHandler pHandler);
 
 #endif
 
