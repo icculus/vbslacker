@@ -1,13 +1,10 @@
+IDEALLY we'll want a conversion to look SOMETHING like this:
 
-NOTE THAT THIS FILE IS OUT OF DATE. --ryan.
-
-IDEALLY we'll want a conversion to look like this:
-
-(Remember that BASIC is NOT case sensitive, even though historically Microsoft's
-  BASIC editors have been anal about changing code to the "proper" case.
-  stringBuffer is defined in BASIClib for scratchpad purposes. In the long
-  run, comments will just be stripped, not converted, but our initial
-  parser/compiler should probably leave them for debugging purposes.)
+(Remember that BASIC is NOT case sensitive, even though historically
+ Microsoft's BASIC editors have been anal about changing code to the "proper"
+ case. In the long run, comments will just be stripped, not converted, but
+ our initial parser/compiler should probably leave them for debugging
+ purposes.)
 
 ' Start of my li'l program...
 
@@ -31,55 +28,68 @@ butts 10, "BITE ME!"
 
 HERE'S THE CONVERTED VERSION:
 
-#include "BASIClib.h"
+#include "BasicLib.h"
 
-PBasicString strConst1 = __constString("Message is : ");
-PBasicString strConst2 = __constString("Message written.");
-PBasicString strConst3 = __constString("Inside error handler. Error number is");
-PBasicString strConst4 = __constString("BITE ME!");
+static PBasicString strConst1;
+static PBasicString strConst2;
+static PBasicString strConst3;
+static PBasicString strConst4;
 
 /* Start of my li'l program... */
 
-void butts(int fileNo, PBasicString message)
+void butts(STATEPARAMS, int fileNo, PBasicString message)
 {
     PBasicString totalMsg_DC_ = NULL;
     PBasicString bufferString = NULL;
 
-    __assignString(&totalMsg_DC_, strConst1);
-    __catString(&totalMsg_DC_, message);
+    __setResumeStacks;
+    __setResumeInstructs(&&l0, &&l1);
+l0:
+    __assignString(STATEARGS, &totalMsg_DC_, strConst1);
+    __catString(STATEARGS, &totalMsg_DC_, message);
 
-    __obtainThreadLock(&registerLock);
-    __getStackPointer(&_stack_ptr_);
-    __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(&&crackpipe, &message + sizeof (message),
-                             _stack_ptr_, _base_ptr_, ONERROR);
-    __releaseThreadLock(&registerLock);
+    __setResumeInstructs(&&l1, &&l2);
+l1:
+    __registerOnEventHandler(STATEARGS, &&l5, ONERROR);
 
-    print_NC_(10, totalMsg_DC_);
-    print(strConst2);
-    __deregisterOnEventHandler(&message + sizeof (message), ONERROR);
-    __freeString(bufferString);
-    __freeString(totalMsg_DC_);
+    __setResumeInstructs(&&l2, &&l3);
+l2:
+    vbpiS_print_NC_(10, totalMsg_DC_);
+
+    __setResumeInstructs(&&l3, &&l4);
+l3:
+    vbpS_print(strConst2);
+
+    __setResumeInstructs(&&l4, &&l5);
+l4:
+    __deregisterOnEventHandlers(STATEARGS);
+    __freeString(STATEARGS, bufferString);
+    __freeString(STATEARGS, totalMsg_DC_);
     return;
 
-crackpipe:              /* error handler... */ 
-    __markOnEventHandlerAddr;
-    __assignString(&stringBuffer, strConst3); 
-    __catString(&stringBuffer, str_DC_(err()));
-    print(stringBuffer);
-    __deregisterOnEventHandler(&message + sizeof (message), ONERROR);
-    __freeString(totalMsg_DC_);
-    __freeString(bufferString);
+    __setResumeInstructs(&&l5, &&l5);
+l5:              /* error handler... */
+    __assignString(STATEARGS, &stringBuffer, strConst3);
+    __catString(STATEARGS, &stringBuffer, str_DC_(STATEARGS, err(STATEARGS)));
+    vbpS_print(STATEARGS, stringBuffer);
+    __deregisterOnEventHandlers(STATEARGS);
+    __freeString(STATEARGS, totalMsg_DC_);
+    __freeString(STATEARGS, bufferString);
 } /* butts */
 
 
 void main(int argc, char **argv, char **envp)
 {
-    __initBasicLib(argc, argv, envp);
+    __initBasicLib(NULLSTATEARGS, argc, argv, envp);
+
+    strConst1 = __constString("Message is : ");
+    strConst2 = __constString("Message written.");
+    strConst3 = __constString("Inside error handler. Error number is");
+    strConst4 = __constString("BITE ME!");
 
     /* Since we didn't open a file, this throws a runtime error... */
-    butts(10, strConst4);
-    __deinitBasicLib();
+    butts(NULLSTATEARGS, 10, strConst4);
+    __deinitBasicLib(NULLSTATEARGS);
 } /* main */
 
 /* end of my li'l program... */
