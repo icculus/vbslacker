@@ -6,7 +6,7 @@ MINORVER = 0
 REVISIONVER = 1
 WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
 
-W32DIR = ./win32
+W32DIR = ./platform/win32
 
 LIBBASE = libBASIC
 LIBWHOLE = $(LIBBASE)$(MAJORVER)$(MINORVER).a
@@ -35,7 +35,7 @@ ASMOPTIONS = $(DEFINES) -Wall -c -o
 all : $(LIBWHOLE)
 
 $(LIBWHOLE) : $(OBJS)
-	$(LINKER) $(LOPTIONS) $(LIBWHOLE) $(OBJS)
+#	$(LINKER) $(LOPTIONS) $(LIBWHOLE) $(OBJS)
 
 BasicString.o : BasicString.c BasicString.h ErrorFunctions.h Boolean.h \
                 MathFunctions.h InternalMemManager.h
