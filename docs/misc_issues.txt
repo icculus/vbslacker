@@ -18,15 +18,36 @@ A: In the rare case that your code would have a chance to overflow a variable,
 
 #include "Initialize.h"
 
-int addOne(STATEPARAMS, short x)
+int vbii_addOne(STATEPARAMS, short x)
 {
     if ((x == 32767) &&
         (!(__getInitFlags(STATEARGS) & INITFLAG_DISABLE_NUM_OVERFLOW)))
     {
         __runtimeError(ERR_OVERFLOW);
     } /* if */
+    else
+        return(x + 1);
 } /* addOne */
 
    ... vbSlacker will take care of overflow checking in usercode. Note that
    you'll probably only have to check for wrappage in the MathFunctions module.
+   That is, if a programmer writes:
+
+   PRINT x% + 100000
+
+   ...than code to check for overflow is added by the compiler before PRINT
+   is called, if overflow checking hasn't been disabled. Disabling this check
+   means that in the case of overflow, the results are undefined. Either way,
+   it is not PRINT's responsibility to check, or care, if x% has overflowed,
+   as it just prints it either way. Something like pow() would have to
+   concern itself that it's return value hasn't overflowed, if such checking
+   is enabled. This is the most efficient way to do this, and is only a rare
+   burden on the API developer.
+
+/* end of misc_issues.txt ... */
+
+
+
+
+
 
