@@ -1,0 +1,14 @@
+Q: On startup, I get this message:
+
+  Init error (#17) has been thrown. Aborting...
+
+(or something similar) What gives?
+
+A: You need to put vbslacker.lang somewhere where BASIClib can find it.
+Either put it in your home dir, export VBHOME=/dir/with/vbslacker.lang/,
+or put it in /etc ...Other errors usually signify that the langfile is too
+short or corrupted. Get a fresh copy out of the latest vbslacker tarball.
+
+/* end of FAQ.txt ... */
+
+
