@@ -108,7 +108,7 @@ __boolean __initializationComplete(void)
 
 
 
-void __initBasicLib(__long flags, int argc, char **argv, char **envp)
+void __initBasicLib(__long flags, int argc, char **argv)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
  *  else with the library. This function just calls each other sections'
@@ -118,26 +118,39 @@ void __initBasicLib(__long flags, int argc, char **argv, char **envp)
  *    returns : void.
  */
 {
+    char *ptr;
+
     if (initialized == false)
     {
         initFlags = flags;
 
         __calculateUserAppDir();
-        __initLanguage(vbHomeDir);
+
+        ptr = malloc(strlen(vbHomeDir) + 1);
+        if (ptr == NULL)
+            __runtimeError(ERR_OUT_OF_MEMORY);
+
+        strcpy(ptr, vbHomeDir);
+        __initLanguage(ptr);
 
         __initMemoryManager();
         __initSignalHandlers();
         __initBasicError();
-        __initConsoleFunctions();
+
+        strcpy(ptr, vbHomeDir);
+        __initConsole(ptr);
+
         __initEnvrFunctions(argc, argv);
         __initTimeDateFunctions();
         __initRegistryFunctions();
         __initGUIFrontEnd();
         __initFileSystemFunctions();
+        __initFileIOFunctions();
         __initThreads();    /* Make sure this is last init call. */
 
         atexit(__deinitBasicLib);
 
+        free(ptr);
         initialized = true;
     } /* if */
 } /* __initBasicLib */
@@ -153,11 +166,12 @@ void __deinitBasicLib(void)
         initFlags = INITFLAG_NOT_INITIALIZED;
         initialized = false;
         __deinitFileSystemFunctions();
+        __deinitFileIOFunctions();
         __deinitRegistryFunctions();
         __deinitEnvrFunctions();
         __deinitThreads();
         __deinitGUIFrontEnd();
-        __deinitConsoleFunctions();
+        __deinitConsole();
         __deinitBasicError();
         __deinitLanguage();
     } /* if */
