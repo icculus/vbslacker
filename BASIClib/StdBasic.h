@@ -18,7 +18,6 @@
 
 #include "Platform.h"
 #include "RegState.h"
-#include "Boolean.h"
 #include "Gosub.h"
 #include "MemoryManager.h"
 #include "Language.h"
@@ -32,6 +31,7 @@
 #include "BasicFileStream.h"
 #include "SignalHandlers.h"
 #include "OnEvents.h"
+#include "BasicExit.h"
 
 #include "ConsoleFunctions.h"
 
