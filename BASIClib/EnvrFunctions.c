@@ -151,7 +151,7 @@ int vbii_fre(STATEPARAMS, int arg)
     else if (arg == -2)  /* return available stack space. */
         /* !!! */ ;
     else                 /* return string space. */
-        /* !!! */ ;
+        retVal = vbiS_fre(STATEARGS, NULL);
 
     return(retVal);
 } /* vbii_fre */
@@ -166,7 +166,8 @@ int vbiS_fre(STATEPARAMS, PBasicString strExp)
  *    returns : see above.
  */
 {
-    return(0);  /* !!! */
+    __memForceFullBoxcarRelease(STATEARGS);
+    return(65767);  /* !!! */
 } /* vbiS_fre */
 
 
