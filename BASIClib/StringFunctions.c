@@ -26,7 +26,7 @@ PBasicString _vbSSl_right_DC_(PBasicString pStr, __long count)
 
     if (count < 0)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-    else if ((unsigned int) count > pStr->length)
+    else if (count > pStr->length)
         retVal = __assignString(retVal, pStr);
     else
     {
@@ -52,7 +52,7 @@ PBasicString _vbSSl_left_DC_(PBasicString pStr, __long count)
 
     if (count < 0)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-    else if ((unsigned int) count > pStr->length)
+    else if (count > pStr->length)
         retVal = __assignString(retVal, pStr);
     else
     {

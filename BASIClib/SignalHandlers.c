@@ -9,7 +9,7 @@
 
 #warning What to do about SIGWINCH?
 
-static void __crashHandler(int sig)
+static void __crashHandler(__attribute__ ((unused)) int sig)
 /*
  * This is called when the program is to be terminated due to a
  *  SIGSEGV, SIGFPE, SIGBUS, etc...While poorly written BASIC
@@ -30,14 +30,14 @@ static void __crashHandler(int sig)
 
 
 #ifdef WANTSIGWINCH
-static void __sigwinchHandler(int sig)
+static void __sigwinchHandler(__attribute__ ((unused)) int sig)
 {
     printf("\n\nsigwinch handler!\n");
 } /* __sigwinchHandler */
 #endif
 
 
-static void __sigintHandler(int sig)
+static void __sigintHandler(__attribute__ ((unused)) int sig)
 /*
  * SIGINT is generated when CTRL-C is hit.
  */

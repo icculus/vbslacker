@@ -105,7 +105,7 @@ __single _vbf_timer(void)
 } /* _vbf_timer */
 
 
-static PBasicString __makeTimeDateString(__long size, __byte *fmt)
+static PBasicString __makeTimeDateString(__long size, const __byte *fmt)
 /*
  * This called by the function versions of TIME$ and DATE$, since they
  *  require the exact same logic, with some different parameters.
@@ -152,6 +152,7 @@ PBasicString _vbS_time_DC_(void)
 
 void _vbpS_time_DC_(PBasicString newTimeStr)
 {
+#warning write me!
     /* !!! compare to proc_date_DC_()... */
 } /* _vbpS_time_DC_ */
 
