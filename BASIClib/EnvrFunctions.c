@@ -50,12 +50,6 @@ void __initEnvrFunctions(int argc, char **argv)
 
                                  /* Convert to a BASIC string. */
     commandLine = __createString(cmdLine, false);
-
-
-    printf("DEBUG: command$() is [%s]\n", cmdLine);
-
-
-
     __memFree(cmdLine);
 } /* __initEnvrFunctions */
 
