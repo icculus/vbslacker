@@ -1,7 +1,7 @@
 /*
  * Some lowlevel stuff that all vbSlacker code should include.
  *
- *  This file is automagically included by OnEvents.h and BasicLib.h ...
+ *  This file is automagically included by StdBasic.h and BasicLib.h ...
  *
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
@@ -30,14 +30,14 @@
 
 /*
  *  __setResumeStack fills in the current base pointer and stack
- *   to a PRegisterState
+ *   to the current STATEPARAMS...
  */
 #define __setResumeStack __getBasePointer(&__stBP); \
                          __getStackPointer(&__stSP);
 
 /*
- *  __setResumeInstructs fills in the current instruction pointer and the "next"
- *   instruction pointer to a PRegisterState
+ *  __setResumeInstructs fills in the current instruction pointer and the
+ *   "next" instruction pointer to the current STATEPARAMS...
  */
 #define __setResumeInstructs(ptr1, ptr2)  __stIP = ptr1; \
                                           __stNextIP = ptr2;
