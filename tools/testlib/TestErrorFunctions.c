@@ -88,7 +88,6 @@ __insertLineLabel(errorErrorHandler);
 } /* test_proc_err */
 
 
-
 void testErrorFunctions(void)
 /*
  * This code tests all the error functions in BASIClib.
@@ -109,10 +108,11 @@ void testErrorFunctions(void)
 long errors = 0;
 long warnings = 0;
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
-    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv);
     testErrorFunctions();
+    exit(0);
     return(0);
 } /* main */
 

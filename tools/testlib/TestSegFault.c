@@ -1,9 +1,9 @@
 #include <unistd.h>
 #include "BasicLib.h"
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
-    __initBasicLib(INITFLAG_NO_FLAGS, argc, argv, envp);
+    __initBasicLib(INITFLAG_NO_FLAGS, argc, argv);
     __printAsciz("About to crash this BASIClib application with a SIGSEGV.\n");
 
     sleep(3);

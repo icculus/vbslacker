@@ -8,9 +8,9 @@ LINKER = gcc
 #LOPTIONS = -Wall -L $(GCLIBDIR) -L $(BASICLIBDIR) -lpthread -lgc -lBASIC -lm -lpthread -s -O2 -o
 
 # Debug command lines...
-STANDALONECOPTIONS = -DSTANDALONE -DSINGLE_THREADED -D_REENTRANT -DLINUX_THREADS -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -L $(GCLIBDIR) -L $(BASICLIBDIR) -lpthread -lgc -ldl -lBASIC -lm -lncurses -o
+STANDALONECOPTIONS = -DSTANDALONE -DSINGLE_THREADED -D_REENTRANT -DLINUX_THREADS -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -L $(BASICLIBDIR) -lpthread -ldl -lBASIC -lm -lncurses -o
 COPTIONS = -DSINGLE_THREADED -D_REENTRANT -DLINUX_THREADS -DLINUXELF_I386 -Wall -fasm -finline-functions -fno-omit-frame-pointer -I $(BASICLIBDIR) -DDEBUG -g -c -o
-LOPTIONS = -Wall -L $(GCLIBDIR) -L $(BASICLIBDIR) -lpthread -lgc -lBASIC -ldl -lm -lncurses -o
+LOPTIONS = -Wall -L$(BASICLIBDIR) -lpthread -lBASIC -ldl -lm -lncurses -o
 
 all : linux
 
@@ -48,6 +48,9 @@ TestGarbageCollector.o : TestGarbageCollector.c
 
 TestFileSystemFunctions.o : TestFileSystemFunctions.c
 	$(CC) $(COPTIONS) TestFileSystemFunctions.o TestFileSystemFunctions.c
+
+TestRandomFunctions.o : TestRandomFunctions.c
+	$(CC) $(COPTIONS) TestRandomFunctions.o TestRandomFunctions.c
 
 
 testconsole : TestConsole.o
@@ -96,5 +99,8 @@ testgarbagecollector : TestGarbageCollector.c
 
 testfilesystemfunctions : TestFileSystemFunctions.c
 	$(CC) $(STANDALONECOPTIONS) testfilesystemfunctions TestFileSystemFunctions.c
+
+testrandomfunctions : TestRandomFunctions.c
+	$(CC) $(STANDALONECOPTIONS) testrandomfunctions TestRandomFunctions.c
 
 # end of Makefile.linux ...

@@ -19,7 +19,7 @@ long errors = 0;
 static int skipCollector = 0;
 
 
-void initTestLib(int argc, char **argv, char **envp)
+void initTestLib(int argc, char **argv)
 {
     int i;
 
@@ -33,7 +33,7 @@ void initTestLib(int argc, char **argv, char **envp)
     printf("\n[TESTLIB FOR VBSLACKER STARTING UP...]\n");
     printf("Making call to __initBasicLib()...");
 
-    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv);
     printf("done.\n");
 } /* initTestLib */
 
@@ -71,14 +71,16 @@ void testEverything(void)
     testConversionFunctions();
     testMathFunctions();
     testFileSystemFunctions();
+    testRandomFunctions();
 } /* testEverything */
 
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
-    initTestLib(argc, argv, envp);
+    initTestLib(argc, argv);
     testEverything();
     deinitTestLib();
+    exit(0);
     return(0);
 } /* main */
 

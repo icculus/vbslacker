@@ -331,22 +331,23 @@ void cleanup(void)
 
 void testConsole(void)
 {
-//    testPrinting();
-//    testClearing();
-//    testLocate();
-//    testScrolling();
-//    testViewPrint();
-//    testColor();
+    testPrinting();
+    testClearing();
+    testLocate();
+    testScrolling();
+    testViewPrint();
+    testColor();
     testBeep();
-//    testSound();
+    testSound();
     cleanup();
 } /* testConsole */
 
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
-    __initBasicLib(INITFLAG_NO_FLAGS, argc, argv, envp);
+    __initBasicLib(INITFLAG_NO_FLAGS, argc, argv);
     testConsole();
+    exit(0);
     return(0);
 } /* main */
 

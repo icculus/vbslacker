@@ -6,9 +6,9 @@ void stackThis(void)
     stackThis();
 } /* stackThis */
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
-    __initBasicLib(INITFLAG_NO_FLAGS, argc, argv, envp);
+    __initBasicLib(INITFLAG_NO_FLAGS, argc, argv);
     __printAsciz("About to cause this BASIClib application "
                  "to have a STACK OVERFLOW.\n");
 
