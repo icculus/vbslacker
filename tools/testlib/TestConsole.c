@@ -58,12 +58,45 @@ void testClearing(void)
 
 void testLocate(void)
 {
-#if 0
     _vbp_cls();
+    __printAsciz("123456789012345678901234567890");
+    __printNewLine();
+    __printAsciz("2");
+    __printNewLine();
+    __printAsciz("3");
+    __printNewLine();
+    __printAsciz("4");
+    __printNewLine();
+    __printAsciz("5");
+    __printNewLine();
+    __printAsciz("6");
+    __printNewLine();
+    __printAsciz("7");
+    __printNewLine();
+    __printAsciz("8");
+    __printNewLine();
+    __printAsciz("9");
+    __printNewLine();
+    __printAsciz("10");
+    __printNewLine();
     __printNewLine();
     __printAsciz("Testing LOCATE...");
-    _vbpii_locate(5
-#endif
+    __printNewLine();
+    __printAsciz("  - The 'X' should be at (x=4, y=5)...");
+    __printNewLine();
+    __printAsciz("  - The 'Y' should be at (x=5, y=8)...");
+    __printNewLine();
+    __printAsciz("  - The 'Z' should be at (x=9, y=8)...");
+    _vbpii_locate(5, 4);
+    __printAsciz("X");
+    _vbpiN_locate(8);
+    __printAsciz("Y");
+    _vbpNi_locate(9);
+    __printAsciz("Z");
+    _vbpii_locate(17, 1);
+    __printAsciz("  ...delaying 10 seconds...");
+    __printNewLine();
+    sleep(10);
 } /* testLocate */
 
 
@@ -72,9 +105,9 @@ void testScrolling(void)
     __integer i;
     __integer n;
     __integer j = 0;
-    __byte buf[10];
+    __byte buf[90];
 
-    __printNewLine();
+    _vbp_cls();
     __printAsciz("About to test scrolling text in 3 seconds...");
     sleep(3);
     _vbp_cls();
@@ -82,15 +115,49 @@ void testScrolling(void)
     for (i = 0; i < 200; i++)
     {
         for (n = 0; n < j; n++)
-            __printAsciz(" ");
-        sprintf(buf, "%d", j);
+            buf[n] = ' ';
+        sprintf(buf + n, "%d", j);
         __printAsciz(buf);
         __printNewLine();
         j++;
         if (j > 70)
             j = 0;
     } /* for */
+    sleep(3);
 } /* testScrolling */
+
+
+void testViewPrint()
+{
+    __ONERRORVARS;
+    __integer i;
+
+    __ONERRORINIT;
+    _vbp_cls();
+    for (i = 0; i < 300; i++)
+        __printAsciz("abcdefghijklmnopqrstuvwxyz");
+
+    _vbpii_viewPrint(10, 15);
+    _vbp_cls();
+    __printAsciz("view print: Lines 10 - 15 should be blank."
+                 " (except this text.)");
+    sleep(5);
+    __printNewLine();
+    testScrolling();
+    _vbp_viewPrint();
+    _vbp_cls();
+    __printAsciz("Whole console should be clear, now...except this text.");
+    sleep(3);
+} /* testViewPrint */
+
+
+void cleanup(void)
+{
+    _vbp_cls();
+    __printAsciz("Console testing complete.");
+    __printNewLine();
+    __printNewLine();
+} /* cleanup */
 
 
 void testConsole(void)
@@ -99,6 +166,8 @@ void testConsole(void)
     testClearing();
     testLocate();
     testScrolling();
+    testViewPrint();
+    cleanup();
 } /* testConsole */
 
 
