@@ -10,22 +10,22 @@ header
 
 options
 {
-	language = "Cpp";       // We want to generate C++ output
+    language = "Cpp";       // We want to generate C++ output
 }
 
 class BasicParser extends Parser;
 options
 {
-	// Import tokens from the lexer
+    // Import tokens from the lexer
     importVocab = Basic;
 
     // Turn off default error handling
-	defaultErrorHandler=false;
+    defaultErrorHandler=false;
 }
 
 {
 private:
-	// Here's the post parser that we'll be passing parsed data to.
+    // Here's the post parser that we'll be passing parsed data to.
     PostParser *pPostParser;
 }
 
@@ -38,24 +38,24 @@ start[PostParser *pNewPostParser]:
  *      none
  */
     {
-	    // Save pointer to the parser being passed to our start method.
+        // Save pointer to the parser being passed to our start method.
         pPostParser = pNewPostParser;
-	}
-	// Continue parsing until we receive an EOF
+    }
+    // Continue parsing until we receive an EOF
     //(statement NEWLINE)*
     //EOF
 
     /* Since we're getting errors when parsing multiple lines in the parser
      * grammar, we're parsing only a single statement.  See the main.cpp for
-	 * reasons why we can't parse using the above statements.
-	 */
+     * reasons why we can't parse using the above statements.
+     */
     statement (NEWLINE)?
     ;
-	exception
-	catch [ParserException ex]
+    exception
+    catch [ParserException ex]
     {
-	    pPostParser->ReportError(&ex);
-	}
+        pPostParser->ReportError(&ex);
+    }
 
 statement:
 /* Description
@@ -65,9 +65,9 @@ statement:
  * Returns
  *      none
  */
-	(dim_statement
+    (dim_statement
     // We'll get a proc_declaration if no scope identifier preceded the
-	// declaration.  We shall assume public then.
+    // declaration.  We shall assume public then.
     | proc_declaration[SCOPE_PUBLIC]
     | scope_statement
     | identifier_statement
@@ -77,7 +77,7 @@ statement:
     | print_statement)?
     (COMMENT)?
     ;
-	
+
 scope_statement
 /* Description
  *      We get here if the statement starts with a scope identifier.  From here
@@ -89,7 +89,7 @@ scope_statement
  * Returns
  *      none
  */
-	{
+    {
         BasicScope scope;
     }:
 
@@ -119,8 +119,8 @@ dim_statement:
  *      none
  */
     // Immediately spawn to the variable declaration method.  The SCOPE_DIM
-	//  can indicate a different scope depending on what the context of
-	//  the DIM statement is.
+    //  can indicate a different scope depending on what the context of
+    //  the DIM statement is.
     DIM var_declaration[SCOPE_DIM]
     ;
 
@@ -274,27 +274,27 @@ Boolean &AsNew]
     }:
     (withevents_token:WITHEVENTS)?
     {
-	    // If we found a 'WithEvents' token
+        // If we found a 'WithEvents' token
         if(withevents_token != NULL) WithEvents = TRUE;
     }
     varname_token:IDENTIFIER
     {
-	    // Retain identifier token
+        // Retain identifier token
         VarName = varname_token;
     }
     (LPAREN (subscripts)? RPAREN)?
-	(
-	// "As" or "As New" is acceptable
-	((AS NEW) => (AS NEW)
-	{
-	    // If "As New" was specified
+    (
+    // "As" or "As New" is acceptable
+    ((AS NEW) => (AS NEW)
+    {
+        // If "As New" was specified
         AsNew = TRUE;
-	}
-	| AS)
+    }
+    | AS)
 
     datatype_token:IDENTIFIER
     {
-	    // Save our datatype that was specified
+        // Save our datatype that was specified
         DataType = datatype_token;
     }
     )?
