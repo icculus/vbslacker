@@ -40,6 +40,7 @@ PBasicString strConst4 = __constString("BITE ME!");
 void butts(int fileNo, PBasicString message)
 {
     PBasicString totalMsg_DC_ = NULL;
+    PBasicString bufferString = NULL;
 
     __assignString(&totalMsg_DC_, strConst1);
     __catString(&totalMsg_DC_, message);
@@ -52,6 +53,7 @@ void butts(int fileNo, PBasicString message)
     print_NC_(10, totalMsg_DC_);
     print(strConst2);
     __deregisterOnEventHandler(&message + sizeof (message), ONERROR);
+    __freeString(bufferString);
     __freeString(totalMsg_DC_);
     return;
 
@@ -61,6 +63,7 @@ crackpipe:   /* error handler... */
     print(stringBuffer);
     __deregisterOnEventHandler(&message + sizeof (message), ONERROR);
     __freeString(totalMsg_DC_);
+    __freeString(bufferString);
 } /* butts */
 
 
