@@ -15,17 +15,17 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
 
 CC = gcc
 LINKER = gcc
-ASM = nasm
+ASM = gcc
 
 # Shipping command lines
-COPTIONS = -D_REENTRANT -Wall -fPIC -fasm -finline-functions -s -O2 -c -o
-LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
-ASMOPTIONS = -f elf -o
+#COPTIONS = -D_REENTRANT -Wall -fPIC -fasm -finline-functions -s -O2 -c -o
+#LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
+#ASMOPTIONS = -f elf -o
 
 # Debug command lines...
-#COPTIONS = -D_REENTRANT -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
-#LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -o
-#ASMOPTIONS = -f elf -o
+COPTIONS = -D_REENTRANT -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
+LOPTIONS = -Wall -shared -Wl,-soname,$(DYNLIBMAJOR) -o
+ASMOPTIONS = -Wall -c -o
 
 all : $(DYNLIBBASE)
 
@@ -88,8 +88,8 @@ BasicFileStream.o : BasicFileStream.c BasicFileStream.h
 FileIOFunctions.o : FileIOFunctions.c FileIOFunctions.h BasicString.h Variant.h
 	$(CC) $(COPTIONS) FileIOFunctions.o FileIOFunctions.c
 
-OnEventsAsm.o : OnEvents.asm
-	$(ASM) $(ASMOPTIONS) OnEventsAsm.o OnEvents.asm
+OnEventsAsm.o : OnEvents.s
+	$(ASM) $(ASMOPTIONS) OnEventsAsm.o OnEvents.s
 
 # end of Makefile ...
 
