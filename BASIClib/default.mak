@@ -53,10 +53,26 @@ GCLIB = $(GCDIR)/gc.a
 # Don't touch anything below this line...
 #----------------------------------------------------------------------------#
 
-WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
+WHOLEVERSION = $(strip $(strip $(MAJORVER)).$(strip $(MINORVER)).$(strip $(REVISIONVER)))
 
-OS = $(shell uname -s)
-ARCH = $(shell uname -m)
+OS = $(strip $(shell uname -s))
+ARCH = $(strip $(shell uname -m))
+
+ifeq ($(findstring $(OS),CYGWIN),CYGWIN)
+  cygwinCheck=true
+endif
+
+ifeq ($(findstring $(OS),cygwin),cygwin)
+  cygwinCheck=true
+endif
+
+ifeq ($(findstring $(OS),CygWin),CygWin)
+  cygwinCheck=true
+endif
+
+ifeq ($(cygwinCheck),true)
+  COPTIONS += -DWIN32_I386
+endif
 
 ifeq ($(OS), Linux)
   ifeq ($(ARCH), ppc)
@@ -64,10 +80,6 @@ ifeq ($(OS), Linux)
   else
     COPTIONS += -DLINUXELF_I386
   endif
-endif
-
-ifeq ($(OS), win32)
-  COPTIONS += -DWIN32_I386
 endif
 
 # !!! I dare you to put -pendantic in here. and -Werror and -ansi
@@ -78,11 +90,11 @@ WARNS += -Wnested-externs -Winline -Wold-style-cast -Wstrict-prototypes
 
 DEFS = -D_REENTRANT -DLINUX_THREADS
 
-ifeq ($(singlethreaded), true)
+ifeq ($(strip $(singlethreaded)), true)
   DEFS += -DSINGLE_THREADED
 endif
 
-ifeq ($(debug), true)
+ifeq ($(strip $(debug)), true)
   DEFS += -DDEBUG
   COPTIONS += -g
   LOPTIONS += -g
@@ -92,18 +104,18 @@ else
   LOPTIONS += -s -O2
 endif
 
-ifneq ($(BASICLIBDIR),)
-  COPTIONS += -I$(BASICLIBDIR)
+ifdef BASICLIBDIR
+  COPTIONS += -I$(strip $(BASICLIBDIR))
 endif
 
 COPTIONS += -I$(GCDIR) $(WARNS) $(DEFS) -fPIC -fasm -finline-functions
 COPTIONS += -fno-omit-frame-pointer -c -o
-LOPTIONS += -Wall -fPIC -shared -Wl,-soname,$(DYNLIBMAJOR) -o
+LOPTIONS += -Wall -fPIC -shared -o
 
 include sources
 
-OBJS1 := $(SRCS:.c=.o)
-OBJS := $(OBJS1:.cpp=.o)
+OBJS := $(SRCS:.c=.o)
+OBJS := $(OBJS:.cpp=.o)
 
 # end of default.mak ...
 
