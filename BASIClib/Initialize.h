@@ -30,11 +30,11 @@ extern "C" {
     /* function prototypes ... */
 char *__getUserAppDir(void);
 __boolean __initializationComplete(void);
-void __initBasicLib(__long flags, int argc, char **argv, char **envp);
+void __initBasicLib(__long flags, int argc, char **argv);
 void __deinitBasicLib(void);
-__long __getInitFlags();
-void __shellOutNotification();
-void __shellRetNotification();
+__long __getInitFlags(void);
+void __shellOutNotification(void);
+void __shellRetNotification(void);
 
 #ifdef __cplusplus
 }
