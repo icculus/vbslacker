@@ -77,7 +77,6 @@ void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType);
 void __deregisterAllOnEventHandlers(STATEPARAMS);
 void __deregisterOnEventHandlers(STATEPARAMS);
 void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
-                              void *basePtr, void *stackPtr,
                               OnEventTypeEnum evType);
 void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
                       OnEventTypeEnum evType);

@@ -247,7 +247,6 @@ POnEventHandler __getOnEventHandler(STATEPARAMS, OnEventTypeEnum evType)
 
 
 void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
-                              void *basePtr, void *stackPtr,
                               OnEventTypeEnum evType)
 /*
  * This is somewhere between "low level but general" and "80x386 specific."
@@ -255,15 +254,14 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
  * Ideally, any module that contains a call to this function should
  *  do something like this:
  *
- *   __getStackPointer(&_stack_ptr_);
- *   __getBasePointer(&_base_ptr);
- *   __registerOnEventHandler(&&handlerLabel, _base_ptr_, _stack_ptr_, ONERROR);
+ *   __setResumeStack;
+ *   __registerOnEventHandler(STATEARGS, &&handlerLabel, ONERROR);
  *
- * __getStackPointer() is an inline assembly macro that simply gives up the
- *  current stack pointer. We need this to be inlined, and done before the call
- *  to this function begins, so we have a stable stack pointer.
- *
- * Same thing applies to _base_ptr_.
+ * __setResumeStack is a macro that simply fills the current base and stack
+ *  pointers into STATEPARAMS. We need this to be inlined, and done before 
+ *  the call to this function begins, so we have a stable stack pointer. The
+ *  parser/compiler inserts this macro at the beginning of each function, so
+ *  the state should be cool for this call at any time.
  *
  * handlerAddr is the goto label we'll be blindly jumping to to handle the
  *  the runtime error.
@@ -275,11 +273,12 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
  *
  * All that said, call this function to register an event handler with
  *  BASIClib that will be called when appropriate. Ideally, the parser/compiler
- *  will generate all the calls to this function.
+ *  will generate all the calls to this function when it finds ON EVENT GOTO
+ *  commands.
  *
  * Only one event handler of each type can be active for any given procedure.
  *  This function will check the handler to see if it should replace a
- *  previous one, based on the basePtr argument, which will be constant for all
+ *  previous one, based on base pointers, which will be constant for all
  *  calls from an instance of a single procedure.
  *
  *     returns : void.
@@ -297,7 +296,7 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
         /* determine if we should replace a currently registered handler. */
     for (i = pState->handlerCount - 1; (i >= 0) && (getOut == false); i--)
     {
-        if (pState->handlers[i]->basePtr != basePtr)
+        if (pState->handlers[i]->basePtr != __stBP)
             getOut = true;
         else if (pState->handlers[i]->evType == evType)
         {
@@ -322,8 +321,8 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
     } /* if */
 
     pHandler->handlerAddr = handlerAddr;
-    pHandler->stackPtr = stackPtr;
-    pHandler->basePtr = basePtr;
+    pHandler->stackPtr = __stSP;
+    pHandler->basePtr = __stBP;
     pHandler->evType = evType;
 } /* __registerOnEventHandler */
 
