@@ -527,14 +527,14 @@ void __doResume(STATEPARAMS, unsigned int retAddrIndex)
                             ( (unsigned long) ptrs->basePtr -
                               (unsigned long) ptrs->stackPtr ) );
 
-    offset += 2;    /* 1 for save base pointer, 1 for return address. */
+    offset += 2;    /* 1 for stored base pointer, 1 for return address. */
 
     resumeAddr = offset[retAddrIndex];
     bp = offset[2];
     sp = offset[3];
 
     if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_RESUME)
-        __fatalRuntimeError(STATEARGS, ERR_FEATURE_UNAVAILABLE);
+        __fatalRuntimeError(STATEARGS, ERR_NO_RESUME);
 
     if ((resumeAddr == NULL) || (bp == NULL) || (sp == NULL))
         __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
