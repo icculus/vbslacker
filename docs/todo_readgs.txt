@@ -5,4 +5,6 @@ parser
    -makefile for ANTLR should build a single .o file.
    -ANTLR generated code tends to generate a lot of useless warnings.  This
     needs to be fixed...either by #pragma, or other.
+   -The parser executable seems a bit big.  No doubt this is due to linking
+    with the ANTLR libraries.  Maybe they can be shrunken down a bit???
    -get it working.
