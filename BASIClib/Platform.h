@@ -40,9 +40,10 @@
  *    __long           ... intrinsic type for BASIC's LONG.    (32-bit int)
  *    __single         ... intrinsic type for BASIC's SINGLE.  (16-bit float)
  *    __double         ... intrinsic type for BASIC's DOUBLE.  (32-bit float)
- *
+ * !!! update these comments.
  *
  *   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *    Written by Ryan C. Gordon.
  */
 
 #ifndef _INCLUDE_STDBASIC_H_
@@ -71,6 +72,9 @@ extern "C" {
 #define false 0
 
 
+/* !!! lose __CURRENTDIRSTR ? */
+
+
 /* Verify that a supported platform has been defined... */
 
     #if defined LINUXELF_I386
@@ -87,6 +91,7 @@ extern "C" {
         #define __EOL_STRING        "\n"
         #define __PATHCHAR          '/'
         #define __CURRENTDIRSTR     "."
+        #define __CURRENTDIRCHAR     '.'
         #define __NODRIVELETTERS
         typedef short __boolean;
         typedef unsigned char __byte;
@@ -109,6 +114,7 @@ extern "C" {
         #define __EOL_STRING        "\n"
         #define __PATHCHAR          '/'
         #define __CURRENTDIRSTR     "."
+        #define __CURRENTDIRCHAR     '.'
         #define __NODRIVELETTERS
         typedef short __boolean;
         typedef unsigned char __byte;
@@ -128,6 +134,7 @@ extern "C" {
         #define __EOL_STRING        "\r\n"
         #define __PATHCHAR          '\\'
         #define __CURRENTDIRSTR     "."
+        #define __CURRENTDIRCHAR     '.'
         typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
