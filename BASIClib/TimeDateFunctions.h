@@ -7,9 +7,7 @@
 #ifndef _INCLUDE_TIMEDATEFUNCTIONS_H_
 #define _INCLUDE_TIMEDATEFUNCTIONS_H_
 
-#include "RegState.h"
-#include "BasicString.h"
-#include "OnOffStopType.h"
+#include "StdBasic.h"
 
 void __initTimeDateFunctions(STATEPARAMS);
 float vbf_timer(STATEPARAMS);

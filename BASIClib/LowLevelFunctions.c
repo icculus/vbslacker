@@ -6,8 +6,8 @@
 
 #include <errno.h>
 #include <sys/io.h>
-#include "ErrorFunctions.h"
-#include "Boolean.h"
+#include "LowLevelFunctions.h"
+
 
 static boolean portAccess = false;
 
@@ -59,7 +59,7 @@ void vbpli_out(STATEPARAMS, long ioport, int byte)
 
 PBasicString vbSi_ioctl_DC_(STATEPARAMS, int devFileNum)
 {
-    return(__createString(""));
+    return(__createString(STATEARGS, "", false));
 } /* vbSi_ioctl_DC_ */
 
 
@@ -74,7 +74,7 @@ long vblA_varptr(STATEPARAMS, void *myVar)
 
 PBasicString vbSA_varptr_DC_(STATEPARAMS, void *myVar)
 {
-    PBasicString retVal = __allocString(STATEPARAMS, sizeof (void *), false);
+    PBasicString retVal = __allocString(STATEARGS, sizeof (void *), false);
 
     memcpy(retVal->data, &myVar, sizeof (void *));
     return(retVal);

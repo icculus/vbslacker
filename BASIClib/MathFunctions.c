@@ -7,7 +7,6 @@
 #include <math.h>
 #include "MathFunctions.h"
 
-
 double vbdd_abs(STATEPARAMS, double x)
 /*
  * Returns the absolute value of a numeric.
@@ -76,14 +75,25 @@ long vbld_fix(STATEPARAMS, double x)
 
 long vbld_int(STATEPARAMS, double x)
 /*
- * Round (x) to the nearest whole number.
+ * Return (next largest integer <= (x)).
  *
  *    params : x == floating point number to round.
- *   returns : x rounded to nearest long.
+ *   returns : x rounded to the next lowest long.
  */
 {
-#warning check __round() vs int()...
-    return((long) (x + 0.5));
+    long retVal;
+
+    if (x < 0.0)
+    {
+        if ( (x - ((long) x)) == 0.0 )   /* already whole number? */
+            retVal = (long) x;
+        else
+            retVal = (long) (x - 1.0);
+    } /* if */
+    else
+        retVal = (long) x;
+
+    return(retVal);
 } /* vbld_int */
 
 

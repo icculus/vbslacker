@@ -7,13 +7,7 @@
 #ifndef _INCLUDE_MATHFUNCTIONS_H_
 #define _INCLUDE_MATHFUNCTIONS_H_
 
-#include "RegState.h"
-
-/* !!! nowhere better for these, currently... */
-#define __min(x, y) ((x) < (y) ? (x) : (y))
-#define __max(x, y) ((x) > (y) ? (x) : (y))
-#define __round(w, x, y, z, num) vbld_int(w, x, y, z, num)
-
+#include "StdBasic.h"
 
 double vbdd_abs(STATEPARAMS, double x);
 double vbdd_sqr(STATEPARAMS, double x);

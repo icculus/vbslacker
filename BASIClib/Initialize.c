@@ -87,9 +87,44 @@ void __deinitThread(STATEPARAMS, int tidx)
 
 
 long __getInitFlags(STATEPARAMS)
+/*
+ * This function allows code to get the value of the (initFlags) variable,
+ *  while protecting it from modification.
+ *
+ *    params : void.
+ *   returns : current value of (initFlags).
+ */
 {
     return(initFlags);
 } /* __getInitFlags */
+
+
+void __shellOutNotification(STATEPARAMS)
+/*
+ * Call this function before spawning another process. Other modules are
+ *  notified from here, so they can do any cleanup they need beforehand.
+ *
+ *     params : void.
+ *    returns : void.
+ */
+{
+    /*__shellOutConsole(STATEARGS);*/
+} /* __shellOutNotification */
+
+
+void __shellRetNotification(STATEPARAMS)
+/*
+ * Call this function after returning from a  spawned process. Other modules
+ *  are notified from here, so they can do any restoration needed.
+ *
+ *     params : void.
+ *    returns : void.
+ */
+{
+    /*__shellRetConsole(STATEARGS);*/
+} /* __shellRetNotification */
+
+
 
 /* !!! still need: */
 /* clear (maybe?) */

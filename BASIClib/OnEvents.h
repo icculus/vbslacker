@@ -4,11 +4,16 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifndef _INCLUDE_STDBASIC_H_
+
+#include "StdBasic.h"
+
+#else
+
 #ifndef _INCLUDE_ONEVENTS_H_
 #define _INCLUDE_ONEVENTS_H_
 
-#include "Threads.h"
-#include "RegState.h"
+#include "StdBasic.h"
 
 typedef enum
 {
@@ -81,6 +86,7 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
 void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
                       OnEventTypeEnum evType);
 
+#endif
 #endif
 
 /* end of OnEvents.h ... */

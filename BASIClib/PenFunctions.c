@@ -11,7 +11,7 @@
  */
 
 #include "PenFunctions.h"
-#include "ErrorFunctions.h"
+
 
 int vbii_pen(STATEPARAMS, int arg)
 {

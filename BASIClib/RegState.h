@@ -6,6 +6,12 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifndef _INCLUDE_STDBASIC_H_
+
+#include "StdBasic.h"
+
+#else
+
 #ifndef _INCLUDE_REGSTATE_H_
 #define _INCLUDE_REGSTATE_H_
 
@@ -42,6 +48,7 @@
                             "pushl   $0\n\t"
 #define STATEARGSSIZESTR    "16"
 
+#endif
 #endif
 
 /* end of RegState.h ... */

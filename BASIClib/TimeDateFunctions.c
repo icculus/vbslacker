@@ -10,9 +10,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include "TimeDateFunctions.h"
-#include "BasicString.h"
-#include "ErrorFunctions.h"
-#include "Boolean.h"
+
 
 #ifdef WIN32
 /* !!! cygwin32 has these functions, but no prototypes.
@@ -28,7 +26,7 @@
     /* to save every byte of storage, these are stored as chars. */
 static char daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
 static char daysInLeapYearMonth[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
-static TimerArgEnum timerSetting = OFF;
+static OnOffStopType timerSetting = OFF;
 static time_t todaySecs;
 
 

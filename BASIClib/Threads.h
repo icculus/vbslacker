@@ -4,10 +4,14 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifndef _INCLUDE_STDBASIC_H_
+
+#include "StdBasic.h"
+
+#else
+
 #ifndef _INCLUDE_THREADS_H_
 #define _INCLUDE_THREADS_H_
-
-#include "RegState.h"
 
 #ifndef _REENTRANT
 #error _REENTRANT not defined!
@@ -44,6 +48,7 @@ void __destroyThreadLock(STATEPARAMS, PThreadLock pThreadLock);
 void __obtainThreadLock(STATEPARAMS, PThreadLock pThreadLock);
 void __releaseThreadLock(STATEPARAMS, PThreadLock pThreadLock);
 
+#endif
 #endif
 
 /* end of Threads.h ... */

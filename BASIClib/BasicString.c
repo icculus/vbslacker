@@ -6,11 +6,8 @@
 
 #include <string.h>
 #include "BasicString.h"
-#include "ErrorFunctions.h"
-#include "InternalMemManager.h"
-#include "MathFunctions.h"
-#include "Boolean.h"
 
+#define __min(x, y) ((x) < (y) ? (x) : (y))
 
 PBasicString __allocString(STATEPARAMS, int length, boolean fixedLength)
 /*
