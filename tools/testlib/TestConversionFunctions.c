@@ -203,7 +203,7 @@ void testConversions(void)
  *   returns : void.
  */
 {
-    printf("Testing conversion functions...\n\n");
+    printf("\n[TESTING CONVERSION FUNCTIONS...]\n");
 
     test_chr_DC_();
     test_str_DC_();
@@ -216,7 +216,7 @@ void testConversions(void)
 
 #ifdef STANDALONE
 
-void main(void)
+int main(void)
 {
     __initBasicLib();
     testConversions();
