@@ -1,0 +1,15 @@
+0  VBcons __initNoConsole
+0  VBcons __initRedirectedConsole
+0  VBcons __initDirectConsole
+0  VBcons __initCursesConsole
+0  VBcons __forceRedirectedConsole
+1  VBSDLcons __initSDL320x200x16
+2  VBSDLcons __initSDL640x200x16
+7  VBSDLcons __initSDL320x200x16
+8  VBSDLcons __initSDL640x200x16
+9  VBSDLcons __initSDL640x350x16
+10 VBSDLcons __initSDL640x350x16
+11 VBSDLcons __initSDL640x480x256
+12 VBSDLcons __initSDL640x480x256
+13 VBSDLcons __initSDL320x200x256
+86 VBSDLcons __initSDL800x600x256
