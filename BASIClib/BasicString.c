@@ -106,7 +106,7 @@ PBasicString __assignString(PBasicString to, PBasicString from)
  *                      string, if it is not NULL. If NULL, it is
  *                      nonfixed length.
  *             from == String to "assign".
- *   returns : copy of (pStrToAssign), newly allocated.
+ *   returns : copy of (to), newly allocated.
  */
 {
     __long copyCount;
