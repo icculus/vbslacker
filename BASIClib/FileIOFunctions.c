@@ -79,7 +79,7 @@ void _VBopen(PBasicString pathName, FileModeEnum *mode, FileAccessEnum *access,
 									/* File number was invalid */
 	if(__invalidFileNumber(fileNumber))
 	{
-		__runtimeError(BAD_FILE_NAME_OR_NUMBER);
+		__runtimeError(ERR_BAD_FILE_NAME_OR_NUMBER);
 		return;
 	}
 
