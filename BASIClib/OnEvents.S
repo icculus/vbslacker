@@ -29,6 +29,7 @@
 #define __calcBasePtrStorage    ___calcBasePtrStorage
 #define __callOnEventHandler    ___callOnEventHandler
 #define __resumeNextHandler     ___resumeNextHandler
+#define printf                  _printf
 #endif
 
 msg1:
@@ -39,7 +40,7 @@ msg1:
 # Here's the Bitch Queen Procedure herself. Let's do the nasty...
 #
 
-.global ___callOnEventHandler
+.global __callOnEventHandler
 
 # This procedure copies the stack from event handling procedure to top
 #  of stack, calls event handler, and deals with returns. Neet, huh?
@@ -120,7 +121,7 @@ stackcopy:                              # loop to move stack...
 returnloc:                              #  ...and (maybe) land right here.
 
         pushl   $msg1
-        call    _printf
+        call    printf
         addl    $4,%esp
 
 
