@@ -118,6 +118,9 @@ GOTOs and Line labels:
     consistent with how C and BASIC treat line labels internally, since labels
     are never accessible outside their given function.
 
+    The serialization of line labels helps a bunch in the supporting of line
+     numbers, however.
+
     __insertLineLabel is needed in three places:
         - In replacement of user-generated BASIC line labels.
         - Between every line of BASIC code (NOT EVERY FUNCTION, JUST EVERY
@@ -145,6 +148,12 @@ GOTOs and Line labels:
      but the label thing is right. The reason for this labelling will
      become clear later.)
 
+Line numbers:
+    Line numbers are still valid in vbSlacker, and are serialized along with
+     the rest of the line labels. (_line1, _line2, _line3, etc...) These do
+     not have ':' after them in the BASIC code like the line labels, however.
+     According to MS docs, line numbers MUST start in column #1 to be valid,
+     and must be unique by module, but do NOT have to be used in numeric order.
 
 Operators; overview:
     C math operators should NEVER directly be used, as BASIC does all sorts
@@ -353,6 +362,8 @@ GOSUB and RETURN:
 
 
 ON ... GOSUB:
+!!! These must round!
+
     x = 3
     On x GOSUB line1, line2, line3
      --== becomes ==--
@@ -365,6 +376,8 @@ ON ... GOSUB:
     __tmp = x;   /* needed in case of function...should run only once. */
     if ((__tmp < 0) || (__tmp > 255))  /* negatives or > 255 are errors. */
         __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* !!! or whatever error... */
+    else if ((__tmp == 0) || (__tmp > 3))   /* 3 items in list... */
+        __jumpLabel(_line4);
     else if (__tmp == 1)
         __doGosub(_line1, _line4);
     else if (__tmp == 2)
@@ -378,6 +391,7 @@ ON ... GOSUB:
 
 
 ON ... GOTO:
+!!! These must round!
     x = 3
     On x GOTO line1, line2, line3
      --== becomes ==--
@@ -390,13 +404,15 @@ ON ... GOTO:
     __tmp = x;   /* needed in case of function...should run only once. */
     if ((__tmp < 0) || (__tmp > 255))  /* negatives or > 255 are errors. */
         __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* or whatever error... */
+    else if ((__tmp == 0) || (__tmp > 3))   /* 3 items in list... */
+        __jumpLabel(_line4);
     else if (__tmp == 1)
         __jumpLabel(_line1);
     else if (__tmp == 2)
         __jumpLabel(_line2);
     else if (__tmp == 3)
         __jumpLabel(_line3);
-
+    __insertLineLabel(_line4);
 
     This must be generated INLINE, EVERYTIME, by the parser/compiler.
     The above example does not include type and overflow checking.
@@ -428,6 +444,15 @@ ON ERROR and RESUME statements:
     ON ERROR GOTO label
       --becomes--
     __setOnErrorHandler(label);
+
+    AT EVERY POSSIBLE EXIT POINT FROM THE FUNCTION, including returns and
+     dropout at the end, you MUST put:
+
+    __exitCleanupOnError;
+
+    (It's a macro.)  Functions returning prematurely due to the throwing of
+     a runtime error automagically clean up their OnError state. But deliberate
+     leaving of a function will need to have this macro in it.
 
 
 ON ERROR RESUME NEXT:
@@ -466,6 +491,11 @@ ON ERROR RESUME NEXT:
 
     ...there's a reason we're called vbSLACKER, after all.  :)
 
+    If you have __insertResumeNextHandler(x) as the last line of a function,
+     there's no need to put __exitCleanupOnError; after it, since we'll never
+     fall out of this end of the function. DO however note the need for it
+     two lines above it in the example...
+
 
 ON ERROR GOTO 0:
     Same as On Error Goto label, but the macro is
@@ -489,7 +519,9 @@ Threading:
 Debugging code:
     This section has yet to be considered fully, but there will be extra code
     inserted into the C output when debugging support is enabled. The extra
-    code will allow for tracing of code flow and variable contents.
+    code will allow for tracing of code flow and variable contents, through
+    interprocess communication, but the programs with debug code inserted can
+    still execute standalone.
     !!!
 
 

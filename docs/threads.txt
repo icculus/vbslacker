@@ -3,15 +3,6 @@ Notes on using BASIClib's Thread support:
 BASIClib is (hopefully) threadsafe, and has an abstraction layer for
 creating and managing threads. Here's all you need to know:
 
-- There's NO POSIX threads on Win95. Cygnus is working on this, but god
-  knows how long it will take them to write a POSIX compliant pthreads
-  package AND make all their libraries thread-safe. WinNT has some DCE
-  threads libraries (older draft of POSIX standard) bundled with the OS,
-  but this is not 100% compatible with Linux (read: POSIX standard) threads.
-  This isn't a problem, necessarily. We can use the Win32 API directly, as
-  the vbSlacker Threads subsystem is pretty abstract, but we need a
-  thread-safe C library.
-
 - For reference, the thread abstraction layer is defined in
   BASIClib/Threads.c ... The current implementation uses POSIX threads, but
   there's not necessarily a need to concern yourself with the underlying
@@ -19,9 +10,23 @@ creating and managing threads. Here's all you need to know:
   needs of BASIClib's API, it can be fitted as the backend. POSIX just seems
   like the best way to go, but BASIClib as a whole is not at all chained to it.
 
+- There're NO POSIX threads on Win95. Cygnus is working on this, but god
+  knows how long it will take them to write a POSIX compliant pthreads
+  package AND make all their libraries thread-safe. WinNT has some DCE
+  threads libraries (older draft of POSIX standard) bundled with the OS,
+  but this is not 100% compatible with Linux (read: POSIX standard) threads.
+  This isn't a problem, necessarily. We can use the Win32 API directly, as
+  the vbSlacker Threads subsystem is pretty abstract, but we need a
+  thread-safe C library. Apparently, the latest code shapshots of cygwin32
+  have the needed support, but after months of existance, STILL have not
+  made it into an official beta release. Microsoft Visual C++ has a thread-safe
+  library, but no POSIX support. I might write POSIX wrappers for Win32 threads
+  someday...
+
 - You should #include "StdBasic.h" in any modules that use threads in
   anyway. Do not directly include Threads.h, as it expects to be included
-  from StdBasic.h ...
+  from StdBasic.h ... #including "BasicLib.h" will also suffice. Do not
+  include both.
 
 - For single-threaded programs and modules, you may define SINGLE_THREADED
   ON THE COMMAND LINE when compiling your code. This replaces all Thread API
@@ -57,10 +62,15 @@ creating and managing threads. Here's all you need to know:
   {
           /*
            * The NULL can be a pointer to anything you like. It will
-           * be passed to myThreadEntryPoint()...
+           * be passed to myThreadEntryPoint() as the only argument...
            */
-      __spinThread((void *) myThreadEntryPoint, NULL);
+      __spinThread(myThreadEntryPoint, NULL);
   } /* main */
+
+- Some thread libraries (like POSIX threads) allow for threads to be "joined",
+   that is, terminating threads can return a value. This threads package
+   does not allow for that (all threads run "detached"), but there are a
+   thousand workarounds for this, and you'll probably never need a single one.
 
 - Every thread has an index number (a "tidx," or "Thread Index"). The first
   thread, the one that runs the mainline, is index (0). The next thread spun
@@ -72,8 +82,8 @@ creating and managing threads. Here's all you need to know:
 - Threads are destroyed automatically when they return. You can have one
   destroy itself by calling __terminateCurrentThread(). You can kill other
   threads, if you know its thread index, by calling __terminateThread(tidx)...
-  the behavior is undefined if you call __terminateThread() with the current
-  thread's index.
+  calling __terminateThread() with the current thread's index will cause
+  BASIClib to call __terminateCurrentThread() for you. It's that smart. :)
 
 - Behavior is ALWAYS undefined if you try to manipulate threads with any
   functions other than BASIClib's threads API. Don't assume that the
@@ -98,25 +108,28 @@ creating and managing threads. Here's all you need to know:
   BASIClib's ThreadLocks instead. This is an abstraction layer over POSIX
   mutexes. Like so:
 
-  (at top of module:)
+  /* (at top of module:) */
 
   #include "StdBasic.h"
-
   ThreadLock myThreadLock;
 
-  (in init code for module:)
+
+  /* (in init code for module:) */
 
   __createThreadLock(&myThreadLock);
 
-  (Whenever you need to protect data from race conditions...)
+
+  /* (Whenever you need to protect data from race conditions...) */
 
   __obtainThreadLock(&myThreadLock);
   /* Mess with data... */
   __releaseThreadLock(&myThreadLock);
 
-  (in deinit code for module:)
+
+  /* (in deinit code for module:) */
 
   __destroyThreadLock(&myThreadLock);
+
 
   Try to group sensitive data by ThreadLocks, so we don't hog too much
   memory/processor time with a ThreadLock for every bit of data, but
@@ -127,8 +140,10 @@ creating and managing threads. Here's all you need to know:
 
 - If you have to wait for a thread to terminate for any reason, you can call
   __waitForThreadToDie(tidx), and the calling thread will block until
-  the thread with index (tidx) terminates. Be careful whenever blocking
-  is involved, like this.
+  the thread with index (tidx) terminates, either by returning or suicide or
+  another thread terminating it. Be careful whenever blocking is involved,
+  like this. Two threads waiting for each other to die will be forever
+  deadlocked.
 
 - If your thread is looping for any amount of time, it might be wise to
   place a call to __timesliceThread in your loop. (Note this is a macro,
