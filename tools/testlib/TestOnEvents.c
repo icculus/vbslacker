@@ -370,11 +370,6 @@ void testResumeNext(STATEPARAMS, int runCount)
 
     printf("Testing RESUME NEXT (run #%d)...\n", runCount);
 
-    printf(" (base pointer is (%p)...)\n", _base_ptr_);
-    printf(" (stack pointer is (%p)...)\n", _stack_ptr_);
-    printf(" (resume addr is (%p)...)\n", &&resumeNextRight);
-
-
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
     __registerOnEventHandler(STATEARGS, &&resumeNextErrHandler,
@@ -391,7 +386,8 @@ resumeNextErrHandler:
     printf(FAILED);
     goto resumeNextEnd;
 
-resumeZeroWrong:    printf("  - Resumed ZERO instead of NEXT.\n");
+resumeZeroWrong:    
+    printf("  - Resumed ZERO instead of NEXT.\n");
     goto resumeNextEnd;
 
 resumeNextRight:
@@ -430,6 +426,88 @@ resumeNextEnd:
 } /* testResumeNext */
 
 
+void testResumeZero(STATEPARAMS, int runCount)
+/*
+ * Test RESUME 0 command. We trigger an event, and see where control goes.
+ *
+ *  Run this multiple times, for the sake of the chaos factor.
+ */
+{
+    int testVar1 = TESTVAR_VALUE1;
+    int testVar2 = TESTVAR_VALUE2;
+    char testVar3[] = TESTVAR_VALUE3;
+
+    __setResumeStack;
+    __setResumeInstructs(&&resumeZeroRight, &&resumeNextWrong);
+
+    printf("Testing RESUME 0 (run #%d)...\n", runCount);
+
+    __getStackPointer(&_stack_ptr_);
+    __getBasePointer(&_base_ptr_);
+    __registerOnEventHandler(STATEARGS, &&resumeZeroErrHandler,
+                             _base_ptr_, _stack_ptr_, ONTIMER);
+
+    recursive = 0;
+    __triggerOnEvent_recurse(STATEARGS, ONTIMER, false);
+
+    printf(FAILED);
+    goto resumeZeroEnd;
+
+resumeZeroErrHandler:
+    __resumeZero(STATEARGS);
+    printf(FAILED);
+    goto resumeZeroEnd;
+
+resumeNextWrong:
+    printf("  - Resumed NEXT instead of ZERO.\n");
+    goto resumeZeroEnd;
+
+resumeZeroRight:
+    __getBasePointer(&_base_ptr2_); 
+    __getStackPointer(&_stack_ptr2_);
+
+    if (_base_ptr2_ != _base_ptr_)
+    {
+        printf("  - Base pointer is damaged.\n");
+        printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
+        printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
+    } /* if */
+
+    if (_stack_ptr2_ != _stack_ptr_)
+    {
+        printf("  - Stack pointer is damaged.\n");
+        printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
+        printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
+    } /* if */
+
+    if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
+    {
+        printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
+                                 testVar1, TESTVAR_VALUE1);
+        printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
+                                 testVar2, TESTVAR_VALUE2);
+        printf("  - testVar3 is [%s], should be legible...\n", testVar3);
+        if (binaryDump("debugErrGoto.bin", _base_ptr_ - 100, 200) == true)
+            printf("  - (That's our supposed [ebp-100] to [ebp+100]...)\n");
+        printf("  - Stack will be FUBAR. Must terminate testing.\n");
+        exit(1);
+    } /* if */
+
+resumeZeroEnd:
+    __deregisterOnEventHandlers(STATEARGS);
+} /* testResumeZero */
+
+
+void testOnEventState(STATEPARAMS)
+{
+    if (__getOnEventsRecursionCount(STATEARGS) != 0)
+    {
+        printf("  - OnEvent was not cleaned up correctly.\n"
+               "  - Later tests will probably fail inexplicably.\n");
+    } /* if */
+} /* testOnEventState */
+
+
 void testOnEventHandling(STATEPARAMS)
 /*
  * Test "on event" handling of various types.
@@ -441,13 +519,28 @@ void testOnEventHandling(STATEPARAMS)
     int i;
 
     for (i = 1; i <= 3; i++)
+    {
         testOnEventGotoHandling(STATEARGS, i);
+        testOnEventState(STATEARGS);
+    } /* for */
 
     for (i = 1; i <= 3; i++)
+    {
         testOnEventGotoRecurseHandling(STATEARGS, i); 
+        testOnEventState(STATEARGS);
+    } /* for */
 
     for (i = 1; i <= 3; i++)
+    {
         testResumeNext(STATEARGS, i);
+        testOnEventState(STATEARGS);
+    } /* for */
+
+    for (i = 1; i <= 3; i++)
+    {
+        testResumeZero(STATEARGS, i);
+        testOnEventState(STATEARGS);
+    } /* for */
 } /* testOnEventHandling */
 
 
