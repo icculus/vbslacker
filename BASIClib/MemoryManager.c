@@ -5,17 +5,15 @@
  */
 
 #include <stdlib.h>
-#include <malloc.h>
 #include <ctype.h>
 #include "gc.h"
 #include "MemoryManager.h"
 
-#define VBSTARTHEAP  "VBSTARTHEAP"
-
+#define ENVVAR_STARTHEAP   "SLACKERSTARTHEAP"
 
 static void increaseDefaultHeap(void)
 {
-    char *env = getenv(VBSTARTHEAP);
+    char *env = getenv(ENVVAR_STARTHEAP);
     char *increaseByChar = NULL;
     __long heapIncrease = 0;
 
@@ -46,10 +44,7 @@ static void increaseDefaultHeap(void)
                 __runtimeError(ERR_OUT_OF_MEMORY);
         } /* if */
     } /* if */
-} // increaseDefaultHeap
-
-
-// jillian@giftedandtalented.org
+} /* increaseDefaultHeap */
 
 
 void __initMemoryManager(void)
@@ -265,7 +260,6 @@ __boolean __memIsGarbageCollectorEnabled(void)
 {
     return(GC_dont_gc ? false : true);
 } /* __memIsGarbageCollectorEnabled */
-
 
 /* end of MemoryManager.c ... */
 
