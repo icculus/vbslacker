@@ -4,7 +4,10 @@
 # * Ryan is NOT an Assembly guru. Nothing here is guaranteed to be
 # * "correct", "clean," or even "well thought out" code.
 # *
-# * Assembled with GAS.
+# * Pass this thing through GCC.
+# *   gcc -Wall -c -o OnEventsAsm.o OnEvents.S
+# *
+# * add -DWIN32 to set up identifiers like cygwin32 expects them.
 # *
 # * Since this code relies on the compiler doing specific things with the
 # *  base pointer, DO NOT EVER COMPILE CODE THAT USES THIS WITH
@@ -16,33 +19,27 @@
 # */
 
 
-#
-# This points to an array of elements by thread index. This array
-#  contains ints that tell how many base pointers we've stacked up on
-#  recursive error handling. This procedure needs to decrement it when
-#  the error has been handled.
 
-.extern basePtrIndexes 
+#ifdef WIN32     /* make symbols friendly for cygwin32... */
+#define basePtrIndexes  _basePtrIndexes
+#define onEventsLock            _onEventsLock
+#define __getCurrentThreadIndex ___getCurrentThreadIndex
+#define __obtainThreadLock      ___obtainThreadLock
+#define __releaseThreadLock     ___releaseThreadLock
+#define __calcBasePtrStorage    ___calcBasePtrStorage
+#define __callOnEventHandler    ___callOnEventHandler
+#define __resumeNextHandler     ___resumeNextHandler
+#endif
 
-# Thread Lock for OnEvents stuff...
-
-.extern onEventsLock 
-
-#
-# Other external stuff...
-#
-
-.extern __getCurrentThreadIndex     # See Threads.c ...
-.extern __obtainThreadLock          # See Threads.c ...
-.extern __releaseThreadLock         # See Threads.c ...
-.extern __calcBasePtrStorage        # See OnEvents.c ...
-
+msg1:
+.ascii "X\12\0"
+.align 4
 
 #
 # Here's the Bitch Queen Procedure herself. Let's do the nasty...
 #
 
-.global __callOnEventHandler 
+.global ___callOnEventHandler
 
 # This procedure copies the stack from event handling procedure to top
 #  of stack, calls event handler, and deals with returns. Neet, huh?
@@ -52,22 +49,22 @@
 #  local, as they were originally. Before calling the handler, we patch
 #  the copied stack so the return address will be in this procedure. This
 #  allows us to clean up and return the stack to its normal state. Also,
-#  This allows us to "skip" any functions called between the handler's
-#  procedure and where the event was triggered, so their stack space isn't
+#  This allows us to "skip" any functions called between the handler
+#  procedure and where the event was triggered, so their stack space is not
 #  overwritten. We need to protect that data in case of a RESUME NEXT.
 #
 # The proper element in basePtrIndexes is decremented to allow memory
-#  shrinkage. See comments for basePtrStacks's declaration in OnEvents.c
+#  shrinkage. See comments for basePtrStacks declaration in OnEvents.c
 #  for a more detailed explanation as to why.
 #
-# This doesn't preserve any registers, since we are going to be hopping
+# This does not preserve any registers, since we are going to be hopping
 #  down the stack to previous procedures that want THEIR preserved
 #  registers returned. That is taken care of by other code.
 #
 #     params : POnEventHandler of handler to call at [esp + 4].
 #    returns : any return value from BASIC routine in EAX.
 
-__callOnEventHandler:		
+__callOnEventHandler:
         pushl   %ebp
         movl    %esp,%ebp               # Move stack ptr to base ptr.
 
@@ -77,7 +74,7 @@ __callOnEventHandler:
         movl    8(%ebp),%ebx            # Store POnEventHandler in ebx.
 
             # Since the C code gives the pOnEventHandler->stackStart as
-            #  (&lastArg + sizeof(lastArg)), we're actually ONE past the start
+            #  (&lastArg + sizeof(lastArg)), it is actually ONE past the start
             #  of the stack (since the sizeof would offset us to the next
             #  variable. This is okay, since the following subtraction would
             #  gives us a byte count of the stack that was one short if we
@@ -118,9 +115,14 @@ stackcopy:                              # loop to move stack...
             #  Yet, we need to preserve all of them for the calling
             #  function. Whew.
 
-        jmp     *(%ebx)                  #  jump blindly into ebx->handlerAddr.
+        jmp     *(%ebx)                 #  jump blindly into ebx->handlerAddr.
 
 returnloc:                              #  ...and (maybe) land right here.
+
+        pushl   $msg1
+        call    _printf
+        addl    $4,%esp
+
 
         pushl   %ebp                    # Save all important registers.
         pushl   %edi
@@ -152,7 +154,7 @@ returnloc:                              #  ...and (maybe) land right here.
 
 
 # We need to decrement the count of base pointers stored up
-#  by these procedures for the current thread. So we find where it's
+#  by these procedures for the current thread. So we find where it is
 #  stored, and alter the value...
 
 __decrementBPIndexes:                   # proc
@@ -160,7 +162,7 @@ __decrementBPIndexes:                   # proc
 
         call    __getCurrentThreadIndex # Get current thread index in eax.
 
-        movl    $onEventsLock,%eax      # Get a lock on Thread-sensitive data.
+        movl    $ onEventsLock,%eax     # Get a lock on Thread-sensitive data.
         pushl   %eax
         call    __obtainThreadLock
         addl    $4,%esp
@@ -173,7 +175,7 @@ __decrementBPIndexes:                   # proc
         decl    %eax                    # decrement it.
         movl    %eax,(%esi)             # store it back in addr esi points to.
 
-        movl    $onEventsLock,%eax      # Drop lock on Thread-sensitive data.
+        movl    $ onEventsLock,%eax     # Drop lock on Thread-sensitive data.
         pushl   %eax
         call    __releaseThreadLock
         addl    $4,%esp
@@ -187,15 +189,15 @@ __decrementBPIndexes:                   # proc
 .global __resumeNextHandler 
 
 #
-# This procedure implements BASIC's RESUME NEXT functionality. Simply,
+# This procedure implements RESUME NEXT functionality. Simply,
 #  it grabs the base pointer that __callOnEventHandler saved, and gets the
 #  needed stack pointer from there. Then, it does some clean up that
 #  __callOnEventHandler would do if it was returned to, and then returns.
 #  The return point should be in __triggerOnEvent() (see OnEvents.c), on
 #  the stack at the point of the latest call to that function. In short,
-#  it's like returning from __callOnEventHandler, but we go back to where
+#  it is like returning from __callOnEventHandler, but we go back to where
 #  the OnEvent was triggered, instead of the function that called the
-#  function with the error handler. Yikes. That's pretty complex for five
+#  function with the error handler. Yikes. That is pretty complex for five
 #  OpCodes.  :)
 #
 #     params : void.
