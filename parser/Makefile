@@ -17,7 +17,7 @@ export ANTLR = java antlr.Tool
 export SEARCHDIRS = -I- -I. -I$(ANTLR_CPP)
 
 default:
-	@echo "No target specified."
+	@echo "Please specify 'make linuxdebug' or 'make win32debug'."
 
 linuxdebug: Makefile.linux
 	@$(MAKE) -f Makefile.linux debug
