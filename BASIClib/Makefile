@@ -62,7 +62,8 @@ Initialize.o : Initialize.c Initialize.h Threads.h OnEvents.h \
                TimeDateFunctions.h BasicFileStream.h
 	$(CC) $(COPTIONS) Initialize.o Initialize.c
 
-OnEvents.o : OnEvents.c OnEvents.h InternalMemManager.h Threads.h
+OnEvents.o : OnEvents.c OnEvents.h InternalMemManager.h Threads.h \
+             ErrorFunctions.h
 	$(CC) $(COPTIONS) OnEvents.o OnEvents.c
 
 ErrorFunctions.o : ErrorFunctions.c ErrorFunctions.h OnEvents.h Threads.h
