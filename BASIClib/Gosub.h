@@ -2,6 +2,7 @@
  * Declares needed for GOSUB and RETURN support in BASIClib.
  *
  *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *   This file written by Ryan C. Gordon.
  */
 
 #ifndef _INCLUDE_STDBASIC_H_
@@ -29,7 +30,7 @@ typedef __GosubState *__PGosubState;
 void __prepareGosub(void *ret, __PGosubState state);
 void *__prepareReturn(__PGosubState state);
 
-/* __jump() and __jumpLabel() are macros defined in Assembler.h ... */
+/* __jump() and __jumpLabel() are macros defined through Assembler.h ... */
 
 #define __GOSUBVARS __GosubState __gosub = {NULL, NULL, 0}
 
