@@ -10,7 +10,8 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
        StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
        ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
-       FileSystemFunctions.o Variant.o BasicError.o
+       FileSystemFunctions.o Variant.o BasicError.o NoConsole.o \
+       DirectConsole.o RedirectedConsole.o CursesConsole.o
 
 CC = gcc
 LINKER = gcc
@@ -77,8 +78,22 @@ LowLevelFunctions.o : LowLevelFunctions.c LowLevelFunctions.h
 SignalHandlers.o : SignalHandlers.c SignalHandlers.h
 	$(CC) $(COPTIONS) SignalHandlers.o SignalHandlers.c
 
-ConsoleFunctions.o : ConsoleFunctions.c ConsoleFunctions.h
+ConsoleFunctions.o : ConsoleFunctions.c ConsoleFunctions.h \
+                     NoConsole.h DirectConsole.h RedirectedConsole.h \
+                     CursesConsole.h
 	$(CC) $(COPTIONS) ConsoleFunctions.o ConsoleFunctions.c
+
+NoConsole.o : NoConsole.c NoConsole.h ConsoleFunctions.h
+	$(CC) $(COPTIONS) NoConsole.o NoConsole.c
+
+DirectConsole.o : DirectConsole.c DirectConsole.h ConsoleFunctions.h
+	$(CC) $(COPTIONS) DirectConsole.o DirectConsole.c
+
+RedirectedConsole.o : RedirectedConsole.c RedirectedConsole.h ConsoleFunctions.h
+	$(CC) $(COPTIONS) RedirectedConsole.o RedirectedConsole.c
+
+CursesConsole.o : CursesConsole.c CursesConsole.h ConsoleFunctions.h
+	$(CC) $(COPTIONS) CursesConsole.o CursesConsole.c
 
 PenFunctions.o : PenFunctions.c PenFunctions.h
 	$(CC) $(COPTIONS) PenFunctions.o PenFunctions.c
