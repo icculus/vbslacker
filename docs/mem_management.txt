@@ -21,8 +21,8 @@ related functions like calloc(). These are always handy, since they are
 portable between platforms, and pretty flexible at the expense of having
 to check errors from every call manually. BASIClib knows nothing of calls
 to these functions, so they will not trigger BASIC runtime errors, and
-they will not interfere with the other two higher-level memory management
-APIs.
+they will not interfere with the other higher-level memory management
+API.
 
 In short, the C library functions just like you'd expect it would.
 
@@ -95,7 +95,7 @@ That doesn't make such systems perfect, however. The problem with such systems
 is that they have to work against C/C++. They are not portable in the least
 between hardware architectures (and frequently even operating systems on the
 same architecture), they are somewhat contrary to concepts like destructors,
-they don't like pointer arithmatic, and data alignment is hard to control in
+they don't like pointer arithmetic, and data alignment is hard to control in
 C and impossible to control in C portably.
 
 Did we mention that garbage collectors are a bitch to implement?
