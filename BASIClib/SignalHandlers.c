@@ -24,7 +24,7 @@ static void __crashHandler(int sig)
  */
 {
     #warning write __crashHandler() !!!
-    printf("__crashHandler() called...\n");
+    printf("\n\n__crashHandler() called...\n");
     exit(0);        /* ...and bail. */
 } /* __crashHandler */
 
@@ -32,7 +32,7 @@ static void __crashHandler(int sig)
 #ifdef WANTSIGWINCH
 static void __sigwinchHandler(int sig)
 {
-    printf("sigwinch handler!\n");
+    printf("\n\nsigwinch handler!\n");
 } /* __sigwinchHandler */
 #endif
 
@@ -42,8 +42,7 @@ static void __sigintHandler(int sig)
  * SIGINT is generated when CTRL-C is hit.
  */
 {
-    __printAsciz("__sigintHandler() called...");
-    __printNewLine();
+    printf("\n\n__sigintHandler() called...\n");
     exit(0);  /* This makes sure __deinitBasicLib() is called. */
 } /* __sigintHandler */
 

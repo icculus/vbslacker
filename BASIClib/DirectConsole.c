@@ -5,6 +5,7 @@
  *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <termios.h>
 #include <ctype.h>
 #include <string.h>
 #include <fcntl.h>
@@ -30,14 +31,12 @@ static __integer winBottom = 0;
 
 static ThreadLock consoleLock;
 
-#ifdef DEBUG
-FILE *debugFile = NULL;
-#endif
-
 #ifdef LINUX   /* Completely non-portable Linux-specific support. */
 
 static int cons = -1;   /* file handle of /dev/vcsa? device... */
 static unsigned char curColor = 7;
+static struct termios termStuff;
+static tcflag_t termAttr;
 
 static void __setCursorXY(__integer _x, __integer _y)
 /*
@@ -69,7 +68,7 @@ static void __scrollConsole(void)
 {
     __integer columnBytes = (columns + 1) * 2;
     __integer scrollStart = winTop + columnBytes;
-    __integer bufSize = winBottom - (scrollStart + 1);
+    __integer bufSize = (winBottom - scrollStart) + 1;
     __byte scrollBuf[bufSize];
     __byte blankBuf[columnBytes];
     __integer i;
@@ -86,10 +85,69 @@ static void __scrollConsole(void)
 
     lseek(cons, winTop, SEEK_SET);  /* copy it back, one line higher... */
     write(cons, scrollBuf, bufSize);
-    lseek(cons, winBottom - columnBytes, SEEK_SET);
+    lseek(cons, (winBottom - columnBytes) + 2, SEEK_SET);
     write(cons, blankBuf, columnBytes);  /* fill last line with spaces... */
     __releaseThreadLock(&consoleLock);
 } /* __scrollConsole */
+
+
+static __boolean __setupInput(char *tty)
+{
+    if (tcgetattr(STDOUT_FILENO, &termStuff) == -1)
+        return(false);
+
+    termAttr = termStuff.c_lflag;
+    termStuff.c_lflag &= !ECHO;
+    termStuff.c_lflag &= !ECHONL;
+
+    if (tcsetattr(STDOUT_FILENO, TCSANOW, &termStuff) == -1)
+        return(false);
+
+    return(true);
+} /* __setupInput */
+
+
+static __boolean __setupOutput(char *tty)
+{
+    char consDev[strlen(tty) + 20];
+    unsigned char br[4];
+
+    strcpy(consDev, "/dev/vcsa");
+    strcat(consDev, tty + 8);       /* "/dev/tty" is 8 chars ... */
+
+    cons = open(consDev, O_RDWR);
+    if (cons != -1)
+    {
+        if (read(cons, &br, 4) != 4)
+        {
+            close(cons);
+            cons = -1;
+        } /* if */
+        else
+        {
+            __createThreadLock(&consoleLock);
+            lines   = ( ((__integer) br[0]) - 1 );
+            columns = ( ((__integer) br[1]) - 1 );
+            x = ( ((__integer) br[2]) - 1 );
+            y = ( ((__integer) br[3]) - 1 );
+            curColor = 7;
+            winTop = __xyToConsoleMatrix(0, 0);
+            winBottom = __xyToConsoleMatrix(columns, lines);
+        } /* else */
+    } /* if */
+
+    return((cons == -1) ? false : true);
+} /* __setupOutput */
+
+
+static __boolean __setupIO(char *tty)
+{
+    __boolean retVal = false;
+
+    if ((__setupInput(tty) == true) && (__setupOutput(tty) == true))
+        retVal = true;
+    return(retVal);
+} /* __setupIO */
 
 
 static __boolean __cons_openConsole(void)
@@ -102,43 +160,15 @@ static __boolean __cons_openConsole(void)
  */
 {
     char *tty = ttyname(STDOUT_FILENO);
-    char consDev[strlen(tty) + 20];
-    unsigned char br[4];
+    __boolean retVal = false;
 
     if (tty != NULL)
     {
         if ( (strncmp("/dev/tty", tty, 8) == 0) && (isdigit(tty[8])) )
-        {
-            strcpy(consDev, "/dev/vcsa");
-            strcat(consDev, tty + 8);       /* "/dev/tty" is 8 chars ... */
-            cons = open(consDev, O_RDWR);
-            if (cons != -1)
-            {
-                if (read(cons, &br, 4) != 4)
-                {
-                    close(cons);
-                    cons = -1;
-                } /* if */
-                else
-                {
-                    __createThreadLock(&consoleLock);
-                    lines   = ( ((__integer) br[0]) - 1 );
-                    columns = ( ((__integer) br[1]) - 1 );
-                    x = ( ((__integer) br[2]) - 1 );
-                    y = ( ((__integer) br[3]) - 1 );
-                    curColor = 7;
-                    winTop = __xyToConsoleMatrix(0, 0);
-                    winBottom = __xyToConsoleMatrix(columns, lines);
-
-                    #ifdef DEBUG
-                        debugFile = fopen("directcons_debug.txt", "w");
-                    #endif
-                } /* else */
-            } /* if */
-        } /* if */
+            retVal = __setupIO(tty);
     } /* if */
 
-    return((cons < 0) ? false : true);
+    return(retVal);
 } /* __cons_openConsole */
 
 
@@ -167,6 +197,9 @@ static void __cons_deinitConsoleHandler(void)
         } /* if */
         __setCursorXY(0, y + 1);
         close(cons);
+#warning comment.
+        termStuff.c_lflag = termAttr;
+        tcsetattr(STDOUT_FILENO, TCSANOW, &termStuff);
         __releaseThreadLock(&consoleLock);
         __destroyThreadLock(&consoleLock);
     } /* if */
@@ -210,7 +243,7 @@ static void __cons_printNChars(__byte *str, __long n)
                 /* check end of line...  !!! */
                 do
                 {
-                    if (x < columns)
+                    if (x <= columns)
                     {    
                         write(cons, matrixChar, sizeof (matrixChar));
                         x++;
@@ -225,7 +258,7 @@ static void __cons_printNChars(__byte *str, __long n)
                 break;
         } /* switch */
 
-        if (x >= columns)
+        if (x > columns)
         {
             y++;
             x = 0;
@@ -277,7 +310,7 @@ static void __cons_vbp_cls(void)
  *    returns : void.
  */
 {
-    __integer max = winBottom - winTop;
+    __integer max = (winBottom + 1) - winTop;
     __byte buffer[max];
     __integer i;
 
@@ -404,14 +437,14 @@ static void __cons_vbpi_color(__integer fore)
  */
 {
     __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-} /* __cons_vbpiii_color */
+} /* __cons_vbpi_color */
 
 
 static void __cons_vbpii_locate(__integer newY, __integer newX)
 {
     newY--;
     newX--;
-
+/* !!! wintop, wwinbottom! */
     if ((newX > columns) || (newY > lines) || (newX < 0) || (newY < 0))
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
