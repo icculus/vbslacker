@@ -1,5 +1,7 @@
 TODO list:
 
+- Move RANDOMIZE and RND from MathFunctions to a new module
+  (RandomNumberFunctions) ?
 - Make current BASIClib code use the boxcar system, where applicable.
 - Rewrite testlib code to use new name-mangling scheme.
 - HOWTO on adding new modules to BASIClib.
@@ -13,18 +15,10 @@ TODO list:
 - Eliminate #warnings in the source, as well.
 - GOSUB/RETURN support.
 - DON'T FORGET TO WRITE TESTLIB CODE FOR ALL IMPORTANT FUNCTIONS!
-- For greg: file i/o functions. NOT FILE SYSTEM FUNCS LIKE MKDIR,ETC...
-- For ryan: finish conversion, and time/date functions.
-- For ryan: READ/DATA/RESTORE
-- For someone: Environment functions (chdir, environ set...)
-- For someone: process functions: shell, end, sleep, etc...
-- For someone: Array functions (lbound, redim, etc...)
-- For someone: Console stuff (print, window, cls, color, locate)
-- For the daring: Sounds (beep, sound, play)
-- For the daring: stick, strig, and ON STRIG. Joystick API. Ugh. :)
-- For the daring: screen procedure and various graphics primitives...
+- Check lists at end of each module for completely unimplemented APIs.
+  Do something about these.
+- Consider how to implement READ/DATA/RESTORE
 - For the daring: com port i/o (COM, ON COM, OPEN COM, etc...)
-- Other miscelleanea: SWAP
 - Design full, detailed timetable.
 - Consider marketing strategy.
 - Write the !@#$ing thing.
