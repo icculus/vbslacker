@@ -1,0 +1,6 @@
+This will eventually document the OnEvents subsystem, and how to use it,
+especially for error handlers, but it doesn't do any of that, yet.
+
+--ryanmikeyrootdownfunkyhellonastymuthafuckah.
+
+
