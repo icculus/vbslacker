@@ -7,12 +7,12 @@ CC = gcc
 LINKER = gcc
 
 # Shipping command lines
-#COPTIONS = -DWIN32 -D_REENTRANT -Wall -fasm -finline-functions -I $(BASICLIBDIR) -s -O2 -c -o
+#COPTIONS = -DWIN32 -D_REENTRANT -DLANG_ENGLISH -DLINUX -Wall -fasm -finline-functions -I $(BASICLIBDIR) -s -O2 -c -o
 #LOPTIONS = -Wall -L $(BASICLIBDIR) -lBASIC -lm -lpthread -s -O2 -o
 
 # Debug command lines...
-COPTIONS = -DWIN32 -DDEBUG -D_REENTRANT -Wall -fasm -finline-functions -I $(BASICLIBDIR) -g -c -o
-LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -g -o
+COPTIONS = -DWIN32 -DDEBUG -D_REENTRANT -DLANG_ENGLISH -DLINUX -Wall -fasm -finline-functions -I $(BASICLIBDIR) -g -c -o
+LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -lncurses -g -o
 
 
 all : testlib.exe
