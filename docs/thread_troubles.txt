@@ -36,6 +36,8 @@ something.
 into a pointer to an array by thread index, each element being a pointer to
 an array of base pointers. Yikes.  HANDLED.
 
+- basicErrno and __basicErrno (in ErrorFunctions.c) will need thread-proofing.
+
 /* end of thread_troubles.txt ... */
 
 
