@@ -4,9 +4,10 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>
 #include <ctype.h>
-#include "BasicStrings.h"
-#include "BasicErrors.h"
+#include "BasicString.h"
+#include "ErrorFunctions.h"
 #include "Variant.h"
 #include "Boolean.h"
 
@@ -47,7 +48,7 @@ PBasicString chr_DC_(double asciiValue)
     else
     {
         retVal = __allocString(1, false);
-        retVal.data[0] = (char) asciiValue;
+        retVal->data[0] = (char) asciiValue;
     } /* else */
 
     return(retVal);
@@ -66,17 +67,22 @@ PBasicString str_DC_(double numeric)
  *   returns : newly allocated BASIC string.
  */
 {
-    PBasicString retVal;
     char buffer[20];        /* !!! Problematic to hard code a "20"? */
-    double i;
+    int i;
     int index = 1;
     int number;
 
+    /*
+     * !!! 1) Probably doesn't work.
+     * !!! 2) Doesn't handle real numbers. Just integers.
+     * !!! 3) Fills me with abject hatred.
+     */
+
     buffer[0] = ((numeric < 0) ? '-' : ' ');   /* negative or positive? */
 
-    for (i = 1.0; (numeric % i) != numeric; i *= 10.0); /* get dec. places */
+    for (i = 1; numeric >= i; i *= 10);         /* get dec. places */
 
-    for (i /= 10.0; i >= 1; i /= 10)
+    for (i /= 10; i >= 1; i /= 10)
     {
         number = ((int) numeric) / i;
         buffer[index] = '0' + number;
@@ -213,7 +219,11 @@ PBasicString hex_DC_(double x)
 
     char buffer[20];
 
-    rounded = ( ((x % 1.0) >= 0.5) ? (int) x + 1 : (int) x );
+    /* !!! This doesn't round, just truncates. */
+    rounded = (int) x;
+
+    /* !!! This next line would work, if it compiled. */
+    /*rounded = ( ((x % 1.0) >= 0.5) ? (int) x + 1 : (int) x );*/
     sprintf(buffer, "%X", rounded);
 
     return(__createString(buffer, false));
@@ -236,7 +246,13 @@ PBasicString oct_DC_(double x)
 
     char buffer[20];
 
-    rounded = ( ((x % 1.0) >= 0.5) ? (int) x + 1 : (int) x );
+
+    /* !!! This doesn't round, just truncates. */
+    rounded = (int) x;
+
+    /* !!! This next line would work, if it compiled. */
+    /*rounded = ( ((x % 1.0) >= 0.5) ? (int) x + 1 : (int) x );*/
+
     sprintf(buffer, "%o", rounded);
 
     return(__createString(buffer, false));
@@ -257,16 +273,16 @@ int __VariantToInt(PVariant var)
 
     switch (var->type)
     {
-        case VariantType.INTEGER:
+        case INTEGER:
             retVal = var->data._integer;
             break;
-        case VariantType.LONG:
+        case LONG:
             retVal = (int) var->data._long;
             break;
-        case VariantType.SINGLE:
+        case SINGLE:
             retVal = (int) var->data._single;
             break;
-        case VariantType.DOUBLE:
+        case DOUBLE:
             retVal = (int) var->data._double;
             break;
         default:
@@ -285,16 +301,16 @@ long __VariantToLong(PVariant var)
 
     switch (var->type)
     {
-        case VarientType.INTEGER:
+        case INTEGER:
             retVal = (long) var->data._integer;
             break;
-        case VarientType.LONG:
+        case LONG:
             retVal = var->data._long;
             break;
-        case VarientType.SINGLE:
+        case SINGLE:
             retVal = (long) var->data._single;
             break;
-        case VarientType.DOUBLE:
+        case DOUBLE:
             retVal = (long) var->data._double;
             break;
         default:
@@ -313,16 +329,16 @@ float __VariantToFloat(PVariant var)
 
     switch (var->type)
     {
-        case VarientType.INTEGER:
+        case INTEGER:
             retVal = (float) var->data._integer;
             break;
-        case VarientType.LONG:
+        case LONG:
             retVal = (float) var->data._long;
             break;
-        case VarientType.SINGLE:
+        case SINGLE:
             retVal = var->data._single;
             break;
-        case VarientType.DOUBLE:
+        case DOUBLE:
             retVal = (float) var->data._double;
             break;
         default:
@@ -341,16 +357,16 @@ double __VariantToDouble(PVariant var)
 
     switch (var->type)
     {
-        case VarientType.INTEGER:
+        case INTEGER:
             retVal = (double) var->data._integer;
             break;
-        case VarientType.LONG:
+        case LONG:
             retVal = (double) var->data._long;
             break;
-        case VarientType.SINGLE:
+        case SINGLE:
             retVal = (double) var->data._single;
             break;
-        case VarientType.DOUBLE:
+        case DOUBLE:
             retVal = var->data._double;
             break;
         default:
@@ -377,12 +393,12 @@ PBasicString __VariantToString(PVariant pVar, boolean byRef)
 
     /* !!! Should we auto-convert numbers? How does BASIC do this? */
 
-    if (pVar->type == VarientType.STRING)
+    if (pVar->type == STRING)
     {
         if (byRef)
             retVal = pVar->data._string;
         else
-            retVal = __CloneString(pVar->data._string);
+            retVal = __cloneString(pVar->data._string);
     } // if
     else
         __runtimeError(ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
