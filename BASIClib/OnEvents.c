@@ -4,10 +4,6 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
-#ifdef DEBUG
-#include <stdio.h>
-#endif
-
 #include <stdlib.h>
 #include "OnEvents.h"
 
