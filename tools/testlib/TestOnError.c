@@ -701,15 +701,13 @@ void testOnError(void)
 
 #ifdef STANDALONE
 
-int main(int argc, char **argv)
+long errors = 0;
+long warnings = 0;
+
+int main(int argc, char **argv, char **envp)
 {
-    void *base;
-
-    __getBasePointer(base);
-
-    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testOnError();
-    __deinitBasicLib();
     return(0);
 } /* main */
 

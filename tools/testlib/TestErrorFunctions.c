@@ -106,11 +106,13 @@ void testErrorFunctions(void)
 
 #ifdef STANDALONE
 
+long errors = 0;
+long warnings = 0;
+
 int main(int argc, char **argv, char **envp)
 {
     __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testErrorFunctions();
-    __deinitBasicLib();
     return(0);
 } /* main */
 

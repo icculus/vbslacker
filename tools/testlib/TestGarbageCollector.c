@@ -20,15 +20,25 @@ void testGarbageCollector(int skipCollector)
  */
 {
     __ONERRORVARS;
-    __long totalBlocks = 150000;
+
+
     __long blockSize = 5004;
+
+        /*
+         * !!! This should be dynamically selected, based on the
+         * !!!  amount of virtual RAM in the box, so that there
+         * !!!  would HAVE to be an allocation failure if this many
+         * !!!  blocks of (blockSize) length were malloc()ed without
+         * !!!  garbage collection.
+         */
+    __long totalBlocks = 150000;
     unsigned long allocated;
     char *ptr;
     int tmp;
 
     __ONERRORINIT;
 
-    printf("\n[TESTING GARBAGE COLLECTOR...]\n");
+    printf("\n[TESTING GARBAGE COLLECTOR. THIS MAY TAKE A LONG TIME...]\n");
 
 
     if (skipCollector)
@@ -85,13 +95,13 @@ __insertLineLabel(__memAllocBailed);
 
 #ifdef STANDALONE
 
+long errors = 0;
+long warnings = 0;
+
 int main(int argc, char **argv, char **envp)
 {
-    void *base;
-
-    __getBasePointer(base);
     __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
-    testGarbageCollection(0);
+    testGarbageCollector(0);
     return(0);
 } /* main */
 

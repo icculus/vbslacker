@@ -8,17 +8,31 @@ export WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
 export BASICLIBDIR = ../../BASIClib
 export GCLIBDIR = ../../libgc
 
+export OBJS = TestLib.o TestConversionFunctions.o TestOnError.o TestThreads.o \
+              TestErrorFunctions.o TestStringFunctions.o TestMathFunctions.o \
+              TestGarbageCollector.o TestFileSystemFunctions.o
+
+export EXES = testconversionfunctions testonerror testthreads \
+              testerrorfunctions teststringfunctions testmathfunctions \
+              testgarbagecollector testfilesystemfunctions
+
 about:
 	@cat ../../docs/about.txt
 
 clean : 
 	rm -f core
-	rm -f $(wildcard *.exe)
 	rm -f testlib testconsole
-	rm -f $(wildcard *.o)
+	rm -f testlib.exe testconsole.exe
+	rm -f TestConsole.o
+	rm -f $(OBJS)
+	rm -f $(EXES)
+
 
 linux : Makefile.linux
 	@$(MAKE) -f Makefile.linux all
+
+linuxstandalone : Makefile.linux
+	@$(MAKE) -f Makefile.linux standalone
 
 win32 : Makefile.win32
 	@$(MAKE) -f Makefile.win32 all

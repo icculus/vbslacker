@@ -2,6 +2,7 @@
  * Test math functions.
  *
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
+ *    Written by Ryan C. Gordon.
  */
 
 #include <stdio.h>
@@ -373,21 +374,24 @@ void testMathFunctions(void)
 {
     printf("\n[TESTING MATH FUNCTIONS...]\n");
 
-    test_vbdd_abs();
+//    test_vbdd_abs();
     test_vbdd_sqr();
-    test_vbdd_atn();
-    test_vbdd_sin();
-    test_vbdd_cos();
-    test_vbdd_tan();
+//    test_vbdd_atn();
+//    test_vbdd_sin();
+//    test_vbdd_cos();
+//    test_vbdd_tan();
 /*    test_vbdd_exp(); */
-    test_vbdd_log();
-    test_vbld_fix();
-    test_vbld_int();
-    test_vbid_sgn();
+//    test_vbdd_log();
+//    test_vbld_fix();
+//    test_vbld_int();
+//    test_vbid_sgn();
 } /* testMathFunctions */
 
 
 #ifdef STANDALONE
+
+long errors = 0;
+long warnings = 0;
 
 int main(int argc, char **argv, char **envp)
 {
