@@ -15,6 +15,7 @@
 
 #define TESTVAR_VALUE1 0xABCD
 #define TESTVAR_VALUE2 0x1234
+#define TESTVAR_VALUE3 "Look for this string in the data dump!"
 
 #define RECURSION_COUNT 3
 
@@ -129,8 +130,8 @@ void testOnErrorGotoHandling(int x)
 {
     int testVar1 = TESTVAR_VALUE1;
     int testVar2 = TESTVAR_VALUE2;
-    char testVar3[] = "Look for this string in the data dump!";
-    int landed = 0;
+    char testVar3[] = TESTVAR_VALUE3;
+    int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
     printf("Testing ON ERROR GOTO handling...\n");
 
@@ -145,16 +146,20 @@ void testOnErrorGotoHandling(int x)
 
 errHandler:
     __markOnEventHandlerAddr;
-    if ((testVar1 != TESTVAR_VALUE1) || (testVar2 != TESTVAR_VALUE2))
+    if ((testVar1 != TESTVAR_VALUE1) || (testVar2 != TESTVAR_VALUE2) ||
+        (strcmp(testVar3, TESTVAR_VALUE3) != 0))
     {
         __getBasePointer(&_base_ptr_); 
-
+        __getStackPointer(&_stack_ptr_);
         printf("  - Base pointer is damaged.\n");
         printf("  - EPB inside error handler is (%p)\n", _base_ptr_);
+        printf("  - ESP inside error handler is (%p)\n", _stack_ptr_);
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
                                  testVar2, TESTVAR_VALUE2);
+        printf("  - testVar3 is [%s], should be legible...\n", testVar3);
+        printf("  - landed is (0x%X)...\n", landed);
         if (binaryDump("debugErrGoto.bin", _base_ptr_ - 100, 200) == true)
             printf("  - (That's our supposed [ebp-100] to [ebp+100]...)\n");
         printf("  - Stack will be FUBAR. Must terminate testing.\n");
