@@ -185,6 +185,22 @@ __byte *__basicStringToAsciz(PBasicString pStr)
     return(retVal);
 } /* __basicStringToAsciz */
 
+
+__byte *__copyAscizString(__byte *copyThis)
+/*
+ * Allocates a new, garbage collectable object, and copies (copyThis) into it.
+ *  The newly allocated object must never be used to store ANY pointers.
+ *
+ *      params : copyThis == string to copy.
+ *     returns : newly-allocated copy of (copyThis).
+ */
+{
+    __byte *retVal = __memAllocNoPtrs(strlen(copyThis) + 1);
+    strcpy(retVal, copyThis);
+    return(retVal);
+} /* __copyAscizString */
+
+
 /* end of BasicString.c ... */
 
 
