@@ -6,7 +6,13 @@
  *    Written by Ryan C. Gordon.
  */
 
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <sys/stat.h>
+#include <ctype.h>
 #define __VBUNIXDIRDEFINED__
 #include "StdBasic.h"
 
@@ -104,7 +110,7 @@ static __boolean casedSearch(DIR *dir, __byte *file)
     do
     {
         pDir = &dirEntry;
-        rc = readdir_r(dirInfo, pDir, &pDir);
+        rc = readdir_r(dir, pDir, &pDir);
         if (rc == 0)
         {
             if (strcasecmp(file, pDir->d_name) == 0)    /* match. */
@@ -239,7 +245,7 @@ static DIR *openDirRelativeOrAbsolute(__byte **dirToParse)
     DIR *retVal;
 
     if ((*dirToParse)[0] != __PATHCHAR)  /* doesn't start with a path char? */
-        retVal = __CURRENTDIRSTR;
+        retVal = opendir(__CURRENTDIRSTR);
     else
     {
         (*dirToParse)++;
@@ -305,7 +311,6 @@ void __parsePathForInsensitiveMatches(__byte *dirToParse)
  *     returns : void. (dirToParse) is updated.
  */
 {
-    struct stat statBuf;
     __byte *pathPtr = dirToParse;
     DIR *tmpDir = openDirRelativeOrAbsolute(&pathPtr);
     __byte *endEntry = strchr(pathPtr, __PATHCHAR);
@@ -341,7 +346,7 @@ void __parsePathForInsensitiveMatches(__byte *dirToParse)
 
         pathPtr = endEntry;
         if (*endEntry != '\0')                      /* end of string? */
-            endEntry = strchr(endEntry + 1);
+            endEntry = strchr(endEntry + 1, __PATHCHAR);
     } while (*endEntry != '\0');
 
     closedir(tmpDir);
