@@ -47,7 +47,7 @@ struct tm *__getBrokenTime(void)
 } /* __getBrokenTime */
 
 
-time_t __getTodaySecs()
+time_t __getTodaySecs(void)
 /*
  * Figure out how many seconds have elasped between Midnight Jan, 1970,
  *  GMT, and the beginning of today. Calculating this once will help the
