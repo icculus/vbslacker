@@ -27,6 +27,8 @@ options
 private:
     // Here's the post parser that we'll be passing parsed data to.
     PostParser *pPostParser;
+
+    bool blnSkipToEnd;
 }
 
 start[PostParser *pNewPostParser]:
@@ -40,19 +42,16 @@ start[PostParser *pNewPostParser]:
     {
         // Save pointer to the parser being passed to our start method.
         pPostParser = pNewPostParser;
-    }
-    // Continue parsing until we receive an EOF
-    //(statement NEWLINE)*
-    //EOF
 
-    /* Since we're getting errors when parsing multiple lines in the parser
-     * grammar, we're parsing only a single statement.  See the main.cpp for
-     * reasons why we can't parse using the above statements.
-     */
-    statement (NEWLINE)?
+        // Don't skip to end of line by default
+        blnSkipToEnd = false;
+    }
+    (statement
+    {blnSkipToEnd}? (~(NEWLINE | EOF))
+    (NEWLINE)?)*
     ;
-    exception
-    catch [ParserException ex]
+    // Our global parser exception handler
+    exception catch [ParserException ex]
     {
         pPostParser->ReportError(&ex);
     }
@@ -77,6 +76,14 @@ statement:
     | print_statement)?
     (COMMENT)?
     ;
+    // Exception handler for failed statements.
+    exception catch [ParserException ex]
+    {
+        pPostParser->ReportError(&ex);
+        
+        // We want to skip to the end of the line if we got an error
+        blnSkipToEnd = true;
+    }
 
 scope_statement
 /* Description
