@@ -10,6 +10,8 @@
 #include "TimeDateFunctions.h"
 #include "BasicFileStream.h"
 #include "ErrorFunctions.h"
+#include "Boolean.h"
+
 
 void __initBasicLib(void)
 /*
@@ -22,6 +24,7 @@ void __initBasicLib(void)
  */
 {
     __initErrorFunctions();
+    __initOnEvents();
     __initTimeDateFunctions();
     __initBasicFileStream();
     __initThreads();
@@ -36,6 +39,7 @@ void __deinitBasicLib(void)
  */
 {
     __deinitThreads();
+    __deinitOnEvents();
 } /* __deinitBasicLib */
 
 
