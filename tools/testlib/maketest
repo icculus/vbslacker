@@ -1,0 +1,12 @@
+#!/bin/sh
+
+clear
+echo "This is only going to work with Linux and a miracle."
+echo " Desperately seeking makefiles."
+echo " Attempting to build testlib program..."
+gcc -L ../../BASIClib -I ../../BASIClib -g -Wall -lm -lBASIC  -o testlib \
+TestLib.c TestConversionFunctions.c
+
+# end of maketest ...
+
+
