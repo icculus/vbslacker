@@ -23,8 +23,9 @@ extern "C" {
 #define INITFLAG_DISABLE_NUM_OVERFLOW  2
 #define INITFLAG_DISABLE_VARIANTS      4
 #define INITFLAG_DISABLE_CONSOLE       8
-#define INITFLAG_UNIX_FILE_SYSTEM      16
+#define INITFLAG_WINDOWS_FILESYSTEM    16
 #define INITFLAG_ENABLE_GUIFRONTEND    32
+#define INITFLAG_FILENAMES_IGNORECASE  64
 
     /* function prototypes ... */
 char *__getUserAppDir(void);
