@@ -46,12 +46,12 @@ void butts(int fileNo, PBasicString message)
     __assignString(&totalMsg_DC_, strConst1);
     __catString(&totalMsg_DC_, message);
 
-    __enterCriticalThreadSection();
+    __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
     __registerOnEventHandler(&&crackpipe, &message + sizeof (message),
                              _stack_ptr_, _base_ptr_, ONERROR);
-    __exitCriticalThreadSection();
+    __releaseThreadLock(&registerLock);
 
     print_NC_(10, totalMsg_DC_);
     print(strConst2);
