@@ -51,7 +51,7 @@ __long    __vbFileSystemErrors(void);
 
 #ifdef __VBUNIXDIRDEFINED__
     __boolean __getCasedDirEntry(DIR *dir, __byte *path, __byte *origFile);
-      void    __parsePathForInsensitiveMatches(__byte *dirToParse)
+      void    __parsePathForInsensitiveMatches(__byte *dirToParse);
       void    __parseDir(__byte *dirToParse, DIR **dirInfo,
                          __byte **fileName, __byte **path);
 #endif
