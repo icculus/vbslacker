@@ -4,11 +4,28 @@ TODO list:
    OnEventTypeEnum, argument. Check to see where this would increase
    efficiency.
 - Examine the "!!!" and "***" comments in the source.
+- RESUME 0 returns to statement that threw error. Ugh!
+- GOSUB/RETURN support.
 - Implement BASIC arrays.
-- For greg: design the file i/o abstraction layer.
-- For ryan: finish conversion, and time/date functions.
-- For greg: finish math functions.
 - Don't forget to write testlib code for all important functions!
+- For greg: file i/o functions. NOT FILE SYSTEM FUNCTIONS LIKE MKDIR, ETC...
+- For greg: finish math functions.
+- For ryan: finish conversion, and time/date functions.
+- For ryan: string functions.
+- For ryan: READ/DATA/RESTORE
+- For someone: Environment functions (chdir, environ set...)
+- For someone: File system stuff. (mkdir, kill, etc...)
+- For someone: process functions: shell, end, sleep, etc...
+- For someone: Non-file i/o functions. (input$, etc...)
+- For someone: Array functions (lbound, redim, etc...)
+- For someone: Low-level functions (peek, poke, inp, outp, varptr,
+                 call absolute, wait...)
+- For someone: Console stuff (print, window, cls, color, locate, etc...)
+- For someone: Randomosity functions (RANDOMIZE and RND...)
+- For the daring: Sounds (beep, sound, play)
+- For the daring: stick, strig, and ON STRIG. Joystick API. Ugh. :)
+- For the daring: screen procedure and various graphics primitives...
+- Other miscelleanea: SWAP, TAB
 - Design full, detailed timetable.
 - Figure out a good name mangling scheme.
 - Consider marketing strategy.
