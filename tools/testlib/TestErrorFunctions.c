@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
+extern long errors;
+extern long warning;
+
 
 void test_err(void)
 /*
@@ -27,6 +30,7 @@ void test_err(void)
 
     __runtimeError(ERR_TOO_MANY_FILES);
     printf("  - Didn't call error handler.\n");
+    errors++;
 
     __exitCleanupOnError;
     return;
@@ -38,6 +42,7 @@ __insertLineLabel(errError);              /* error handler... */
     {
         printf("  - ERR() returned (%d), should have returned (%d)!\n",
                         rc, ERR_TOO_MANY_FILES);
+        errors++;
     } /* if */
 
     __exitCleanupOnError;
@@ -65,6 +70,7 @@ void test_error(void)
 
     _vbpl_error(ERR_DISK_FULL);
     printf("  - Didn't call error handler.\n");
+    errors++;
     __exitCleanupOnError;
     return;
 
@@ -74,6 +80,7 @@ __insertLineLabel(errorErrorHandler);
     {
         printf("  - returned (%d), should have returned (%d)!\n",
                         rc, ERR_DISK_FULL);
+        errors++;
     } /* if */
 
     __exitCleanupOnError;
@@ -99,12 +106,9 @@ void testErrorFunctions(void)
 
 #ifdef STANDALONE
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
-    void *base;
-
-    __getBasePointer(base);
-    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testErrorFunctions();
     __deinitBasicLib();
     return(0);

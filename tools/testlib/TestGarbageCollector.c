@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
+extern long errors;
+extern long warnings;
+
 void testGarbageCollector(int skipCollector)
 /*
  * This code tests the BASIClib garbage collector.
@@ -29,12 +32,15 @@ void testGarbageCollector(int skipCollector)
 
 
     if (skipCollector)
+    {
         printf(" - Test skipped by user request.\n");
+        warnings++;
+    } /* if */
     else
     {
         __setOnErrorHandler(__memAllocBailed);
 
-        printf("Testing brute force allocation: %ld blocks of %ld bytes...",
+        printf("Testing brute force allocation: %ld blocks of %ld bytes...\n",
                 totalBlocks, blockSize);
 
         for (allocated = 0; allocated < totalBlocks; allocated++)
@@ -49,10 +55,6 @@ void testGarbageCollector(int skipCollector)
             for (tmp = 0; tmp < blockSize; tmp++)
                 ptr[tmp] = '\0';    /* touch all allocated bytes... */
         } /* for */
-
-        printf("done.\n");
-        printf(" - Please compile with WANT_MALLOC_NOT_MEMALLOC "
-                   "for comparison.\n");
     } /* else */
 
     __exitCleanupOnError;
@@ -65,9 +67,13 @@ __insertLineLabel(__memAllocBailed);
     {
         printf("\n"
                " - Ran out of memory! Something's wrong with the collector!\n");
+        errors++;
     } /* if */
     else
+    {
         printf(" - Some strange runtime error was thrown. (#%d)\n", tmp);
+        errors++;
+    } /* else */
 
     printf(" - %ld blocks of %ld bytes (%ld bytes total) were allocated.\n",
                 allocated, blockSize, allocated * blockSize);

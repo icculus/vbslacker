@@ -8,6 +8,11 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
+
+extern long warnings;
+extern long errors;
+
+
 static __boolean changed = false;
 
 
@@ -39,6 +44,7 @@ void test__spinThread(void)
     tidx = __spinThread((void *) threadFunc, NULL);
     if (tidx == -1)
     {
+        warnings++;
         printf("  - Couldn't spin thread. retVal == -1.\n"
                "  -  (If this is a single-threaded app, this is normal.)\n");
     } /* if */
@@ -48,7 +54,10 @@ void test__spinThread(void)
             __threadTimeslice;
         __waitForThreadToDie(tidx);
         if (changed != true)
+        {
             printf("  - Thread didn't run, or didn't change flag.\n");
+            errors++;
+        } /* if */
     } /* else */
 } /* test__spinThread */
 
@@ -72,9 +81,9 @@ void testThreads(void)
 
 #ifdef STANDALONE
 
-int main(void)
+int main(int argc, char **argv, char **envp)
 {
-    __initBasicLib(INITFLAG_DISABLE_CONSOLE);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testThreads();
     __deinitBasicLib();
     return(0);
