@@ -57,7 +57,7 @@ PBasicString __constString(char *asciz)
  *  constant string values in the converted BASIC code, so we don't have
  *  to have two copies of every string literal floating about.
  *
- * Constant BASIC strings are inherently fixed length.
+ * Constant BASIC strings are inherently fixed-length.
  *
  *      params : asciz == ASCII null-terminated "C" string to put in BASIC str.
  *     returns : newly created BASIC string.
@@ -115,20 +115,18 @@ void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign)
     PBasicString pStr = *ppBasicStr;
 
     if (pStr == NULL)
-        *ppBasicStr = __createString(pStrToAssign->data, false);
+        pStr = *ppBasicStr = __allocString(pStrToAssign->length, false);
+
+    if (pStr->fixedLength == true)
+        copyCount = __min(pStr->length, pStrToAssign->length);
     else
     {
-        if (pStr->fixedLength == true)
-            copyCount = __min(pStr->length, pStrToAssign->length);
-        else
-        {
-            copyCount = pStrToAssign->length;
-            pStr->data = __memRealloc(pStr->data, copyCount);
-            pStr->length = copyCount;
-        } /* else */
-
-        memcpy(pStr->data, pStrToAssign, copyCount);
+        copyCount = pStrToAssign->length;
+        pStr->data = __memRealloc(pStr->data, copyCount);
+        pStr->length = copyCount;
     } /* else */
+
+    memcpy(pStr->data, pStrToAssign->data, copyCount);
 } /* __assignString */
 
 
