@@ -95,14 +95,6 @@ void VBclose_Params(short handleCount, short firstFileHandle, ...)
                                     /* Allocate memory for handle array */
     pFileHandles = (short *) __memAlloc(handleCount * sizeof(short));
 
-                                    /* If we couldn't allocate memory */
-                                    /*  return with runtime error. */
-    if(pFileHandles == NULL)
-    {
-        __runtimeError(ERR_OUT_OF_MEMORY);
-        return;
-    }
-
     va_start(pArgs, firstFileHandle);
     
     pTemp = pFileHandles;           /* Save pointer to start of array */
@@ -180,7 +172,7 @@ void __VBopen(PBasicString pathName, FileModeEnum mode, FileAccessEnum *access,
     strPathName = (char *)__memAlloc(pathName->length + 1);
     memcpy(strPathName, pathName->data, pathName->length);
                                     /* Add NULL terminator */
-    strPathName[pathName->length + 1] = 0x00;
+    strPathName[pathName->length] = 0x00;
     
     /* We're all good...let's go */
                                     /* Try to create a new stream object */
@@ -404,19 +396,50 @@ void VB_LOF(short fileNumber)
 /*** FreeFile Statement ***/
 short __VBFreeFile(short rangeNumber)
 {
-    return 0;
+    short sStart;                   /* Start and end of search loop */
+    short sEnd;
+    short i;                        /* Generic loop counter */
+    short sReturnedFileNumber = -1; /* File number to return */
+
+    if(rangeNumber == 0)             /* Private file numbers */
+    {
+        sStart = 1;
+        sEnd = 255;
+    }
+    else                            /* Public file number */
+    {
+        sStart = 256;
+        sEnd = 511;
+    }
+
+    for(i = sStart; i <= sEnd; i++)
+    {
+                                    /* If we found our man...err...number */
+        if(__getFileStream(i) == NULL)
+        {
+            sReturnedFileNumber = i;
+            break;                  /* Break out of loop */
+        }
+    }
+
+                                    /* If all of the file handles were taken */
+    if(sReturnedFileNumber == -1)
+    {
+        __runtimeError(ERR_TOO_MANY_FILES);
+        return 0;
+    }
+    
+    return sReturnedFileNumber;     /* Return the free file handle */
 }
 
 short VBFreeFile_Range(short rangeNumber)
 {
-    __VBFreeFile(rangeNumber);
-    return 0;
+    return __VBFreeFile(rangeNumber);
 }
 
 short VBFreeFile_NoRange(void)
 {
-    __VBFreeFile(-1);
-    return 0;
+    return __VBFreeFile(0);         /* Specify default range */
 }
 /*** End FreeFile Statement ***/
 
