@@ -8,12 +8,23 @@
 #include "MemoryManager.h"
 
 
+    /*
+     * ABOVESTACK is a comparison operator based on which
+     *  direction the stack grows on a given platform...
+     */
+#if (STACK_DIRECTION == -1)
+#    define ABOVESTACK <=
+#else
+#    define ABOVESTACK >=
+#endif
+
+#define SLACKCOLLECT "SLACKCOLLECT"
+
 typedef struct _Boxcar
 {
-    unsigned long id;
+    void *id;
     unsigned int totalPtrs;
     void **ptrs;
-    ThreadLock lock;
     struct _Boxcar *next;
     struct _Boxcar *prev;
 } Boxcar;
@@ -21,33 +32,78 @@ typedef struct _Boxcar
 typedef Boxcar *PBoxcar;
 
 
-static ThreadLock boxcarListLock;
-static PBoxcar firstCar = NULL;
-static unsigned long totalBoxcars = 0;
-static int partialReleaseMax = 20; /* override by env. var... */
+static int collectionMax = 20;       /* override by env. var... */
+static PBoxcar *trains = NULL;
+static ThreadLock trainLock = NULL;
 
 
 void __initMemoryManager(STATEPARAMS)
+/*
+ * Create the memory manager's ThreadLock, and checks the SLACKCOLLECT
+ *  environment variable.
+ *
+ *    params : void.
+ *   returns : void.
+ *
+ */
 {
-    /* !!! check VBSLACKCOLLECTION variable */
-    __createThreadLock(STATEARGS, &boxcarListLock);
+    char *rc;
+
+    __createThreadLock(STATEARGS, &trainLock);
+
+    rc = getenv(SLACKCOLLECT);
+    if (rc != NULL)
+        collectionMax = atoi(rc);
 } /* __initMemoryManager */
 
 
 void __deinitMemoryManager(STATEPARAMS)
 {
-    __destroyThreadLock(STATEARGS, &boxcarListLock);
-} /* __initMemoryManager */
+    __destroyThreadLock(STATEARGS, &trainLock);
+} /* __deinitMemoryManager */
 
 
-void __initThreadMemoryManager(STATEPARAMS)
+void __initThreadMemoryManager(STATEPARAMS, int tidx)
 {
+    void *rc;
+
+    rc = malloc(__getHighestThreadIndex(STATEARGS) * sizeof (PBoxcar));
+    if (rc == NULL)
+        __fatalRuntimeError(STATEARGS, ERR_OUT_OF_MEMORY);
+    else
+    {
+        __obtainThreadLock(STATEARGS, &trainLock);
+        free(trains);
+        trains = rc;
+        __releaseThreadLock(STATEARGS, &trainLock);
+    } /* else */
 } /* __initThreadMemoryManager */
 
 
-void __deinitThreadMemoryManager(STATEPARAMS)
+void __deinitThreadMemoryManager(STATEARGS, int tidx)
 {
+    __memReleaseAllBoxcars(STATEARGS);
 } /* __deinitThreadMemoryManager */
+
+
+static void __setStartOfTrain(STATEPARAMS, PBoxcar newStart)
+{
+    __obtainThreadLock(STATEARGS, &trainLock);
+    trains[__getCurrentThreadIndex(STATEARGS)] = retVal;
+    __releaseThreadLock(STATEARGS, &trainLock);
+} /* __setStartOfTrain */
+
+
+static PBoxcar __getStartOfTrain(STATEPARAMS)
+{
+    PBoxcar retVal;
+
+    __obtainThreadLock(STATEARGS, &trainLock);
+    retVal = trains[__getCurrentThreadIndex(STATEARGS)];
+    __releaseThreadLock(STATEARGS, &trainLock);
+
+    return(retVal);
+} /* __getTrainCurrentThread */
 
 
 void *__memAlloc(STATEPARAMS, size_t byteCount)
@@ -132,38 +188,8 @@ void __memFree(STATEPARAMS, void *ptr)
 } /* __memFree */
 
 
-PBoxcar __createBoxcar(STATEPARAMS)
-/*
- *  This function allocates a boxcar and initializes it. Huzzah.
- *
- *     params : void.
- *    returns : ptr to newly allocated boxcar.
- */
-{
-    PBoxcar retVal = NULL;
-
-    __obtainThreadLock(STATEARGS, &boxcarListLock);
-
-    retVal = malloc(sizeof (Boxcar));
-    if (retVal != NULL)
-    {
-        retVal->id = __stBP;   /* part of STATEPARAMS ... */
-        retVal->totalPtrs = 0;
-        retVal->ptrs = NULL;
-        __createThreadLock(STATEARGS, &retVal->lock);
-        retVal->next = NULL;
-        retVal->prev = NULL;
-        totalBoxcars++;
-    } /* if */
-
-    __releaseThreadLock(STATEARGS, &boxcarListLock);
-
-    return(retVal);
-} /* __createBoxcar */
-
-
 #if 0
-void __memAllocBoxcar(STATEPARAMS, unsigned long boxcarId)
+void __memAllocBoxcar(STATEPARAMS)
 /*
  * This function creates a new boxcar, and sticks it at the start of the
  *  list. This is for efficiency in programs that definitely know when to
@@ -175,29 +201,28 @@ void __memAllocBoxcar(STATEPARAMS, unsigned long boxcarId)
  *  identical IDs, and the first one will stop being used; pointers will
  *  probably be lost.
  *
- *    params : boxcarID == new boxcar's ID.
+ *    params : void.
  *   returns : void.
  */
 {
     PBoxcar pCar;
 
-    __obtainThreadLock(STATEARGS, &boxcarListLock);
 
-    pCar = __createBoxcar(STATEARGS, boxcarId);
+    pCar = __createBoxcar(STATEARGS);
     if (pCar != NULL)
     {
+        __obtainThreadLock(STATEARGS, &boxcarListLock);
         pCar->next = firstCar;
         if (firstCar != NULL)
             firstCar->prev = pCar;
         firstCar = pCar;
+        __releaseThreadLock(STATEARGS, &boxcarListLock);
     } /* if */
-
-    __releaseThreadLock(STATEARGS, &boxcarListLock);
-} /* __memAllocInBoxcar */
+} /* __memAllocBoxcar */
 #endif
 
 
-PBoxcar __retrieveBoxcar(STATEPARAMS)
+static PBoxcar __retrieveBoxcar(STATEPARAMS)
 /*
  * Find a boxcar in the linked list by ID. If a particular ID does
  *  not exist, a new boxcar with that ID is created. The desired boxcar
@@ -206,25 +231,30 @@ PBoxcar __retrieveBoxcar(STATEPARAMS)
  *  especially if there are multiple accesses to the same boxcar, or the
  *  boxcar IDs represent a stack, like the base pointer of a function to
  *  allow for automatic deallocation.
- *
+ * !!! reexamine this comment.
  *     params : boxcarID == ID of boxcar to find/create.
  *    returns : ptr to desired boxcar. NULL if not found, and creation failed.
  */
 {
+    PBoxcar firstCar = __getStartOfTrain(STATEARGS);
     PBoxcar retVal;
 
-#warning does __retrieveBoxcar even WORK?!
-
-    __obtainThreadLock(STATEARGS, &boxcarListLock);
-
-    for (retVal = firstCar; (retVal != NULL) && (retVal->next != NULL);
+    for (retVal = firstCar;
+         ((retVal != NULL) && (retVal->id != __stBP);
          retVal = retVal->next)
-        /* do nothing. */ ;
+            /* do nothing. */ ;
 
     if (retVal == NULL)     /* Create a new boxcar? */
-        retVal = __createBoxcar(STATEARGS);
+    {
+        PBoxcar retVal = __memAlloc(STATEARGS, sizeof (Boxcar));
+        retVal->id = __stBP;   /* part of STATEPARAMS ... */
+        retVal->totalPtrs = 0;
+        retVal->ptrs = NULL;
+        retVal->next = NULL;
+        retVal->prev = NULL;
+    } /* if */
 
-    if ((retVal != NULL) && (retVal != firstCar))
+    if (retVal != firstCar)
     {
             /* shift boxcar to start of list... */
         if (retVal->prev != NULL)
@@ -232,13 +262,13 @@ PBoxcar __retrieveBoxcar(STATEPARAMS)
         if (retVal->next != NULL)
             retVal->next->prev = retVal->prev;
         retVal->next = firstCar;
+        retVal->prev = NULL;
         if (firstCar != NULL)
             firstCar->prev = retVal;
-        firstCar = retVal;
+        __setStartOfTrain(STATEARGS, retVal);
     } /* if */
 
-    __releaseThreadLock(STATEARGS, &boxcarListLock);
-
+                  /* !!! comment that crap better... */
     return(retVal);
 } /* __retrieveBoxcar */
 
@@ -250,45 +280,27 @@ void *__memAllocInBoxcar(STATEPARAMS, size_t byteCount)
  *  so we need not keep track of them all.
  *
  *     params : byteCount == amount of bytes to allocate.
- *    returns : pointer to newly allocated block. If you want to free this
- *              block you may either use one of the releaseBoxcar functions,]
+ *    returns : pointer to newly allocated object. If you want to free this
+ *              object you may either use the __releaseBoxcar() function,
  *              or call __memFreeInBoxcar().
  */
 {
     void *retVal = NULL;
-    void *newBlock = NULL;
     PBoxcar pCar = __retrieveBoxcar(STATEARGS);
 
-    if (pCar != NULL)
-    {
-        __obtainThreadLock(STATEARGS, &pCar->lock);
+    pCar->ptrs = __memRealloc(STATEARGS, pCar->ptrs,
+                              (pCar->totalPtrs + 1) * sizeof (void *));
 
-        newBlock = realloc(pCar->ptrs, (pCar->totalPtrs+1) * sizeof (void *));
-        if (newBlock != NULL)
-        {
-            pCar->ptrs = newBlock;
-
-            retVal = malloc(byteCount);
-            if (retVal != NULL)
-            {
-                pCar->ptrs[pCar->totalPtrs] = retVal;
-                pCar->totalPtrs++;
-            } /* if */
-        } /* if */
-
-        __releaseThreadLock(STATEARGS, &pCar->lock);
-    } /* if */
-
-    if (retVal == NULL)
-        __runtimeError(STATEARGS, ERR_OUT_OF_MEMORY);
+    retVal = pCar->ptrs[pCar->totalPtrs] = __memAlloc(STATEARGS, byteCount);
+    pCar->totalPtrs++;
 
     return(retVal);
 } /* __memAllocInBoxcar */
 
 
-int __locateBoxcarPtrIndex(STATEPARAMS, PBoxcar pCar, void *ptr)
+static int __locateBoxcarPtrIndex(STATEPARAMS, PBoxcar pCar, void *ptr)
 /*
- * Searches an individual boxcar's array to see what index (oldPtr) is
+ * Searches an individual boxcar's array to see what index (ptr) is
  *  stored at.
  *
  *    params : pCar == ptr to Boxcar to check.
@@ -301,35 +313,24 @@ int __locateBoxcarPtrIndex(STATEPARAMS, PBoxcar pCar, void *ptr)
     int i;
     int retVal = -1;
 
-    __obtainThreadLock(STATEARGS, &pCar->lock);
-
-    if (pCar->ptrs != NULL)
+    for (i = 0; (i < pCar->totalPtrs) && (retVal == -1); i++)
     {
-        for (i = 0; (i < pCar->totalPtrs) && (retVal == -1); i++)
-        {
-            if (pCar->ptrs[i] == ptr)
-                retVal = i;
-        } /* for */
-    } /* if */
-
-    __releaseThreadLock(STATEARGS, &pCar->lock);
+        if (pCar->ptrs[i] == ptr)
+            retVal = i;
+    } /* for */
 
     return(retVal);
 } /* __locateBoxcarPtrIndex */
 
 
-void *__memReallocInBoxcar(STATEPARAMS,
-                           unsigned long boxcarId,
-                           void *ptr,
-                           size_t byteCount)
+void *__memReallocInBoxcar(STATEPARAMS, void *ptr, int byteCount)
 /*
  * Reallocate a block of memory that is stored in a boxcar. Never use
  *  __memRealloc() on pointers in boxcars, since the boxcars records won't
  *  be updated, and never use C's realloc(), since BASIClib may use a
  *  completely non-standard means of allocation.
  *
- *     params : boxcarID == The ID to assign to this boxcar.
- *              ptr == old pointer to reallocate.
+ *     params : ptr == old pointer to reallocate.
  *              byteCount == amount of bytes needed in allocation.
  *    returns : pointer to newly reallocated block. If you want to free this
  *              block you may either use one of the releaseBoxcar functions,
@@ -338,35 +339,27 @@ void *__memReallocInBoxcar(STATEPARAMS,
 {
     void *retVal = NULL;
     int index;
-    PBoxcar pCar = __retrieveBoxcar(STATEARGS, boxcarId);
+    PBoxcar pCar = __retrieveBoxcar(STATEARGS);
 
-    if (pCar != NULL)
+    index = __locateBoxcarPtrIndex(STATEARGS, pCar, ptr);
+    if (index == -1)
+        retVal = __memAllocInBoxcar(STATEARGS, byteCount);
+    else
     {
-        index = __locateBoxcarPtrIndex(STATEARGS, pCar, ptr);
-        if (index == -1)
-            retVal = __memAllocInBoxcar(STATEARGS, boxcarId, byteCount);
-        else
-        {
-            __obtainThreadLock(STATEARGS, &pCar->lock);
-            retVal = realloc(pCar->ptrs[index], byteCount);
-            if (retVal != NULL)
-                pCar->ptrs[index] = retVal;
-            __releaseThreadLock(STATEARGS, &pCar->lock);
-        } /* else */
-    } /* if */
-
-    if (retVal == NULL)
-        __runtimeError(STATEARGS, ERR_OUT_OF_MEMORY);
+        retVal = pCar->ptrs[index] = __memRealloc(STATEARGS,
+                                                  pCar->ptrs[index],
+                                                  byteCount);
+    } /* else */
 
     return(retVal);
 } /* __memReallocInBoxcar */
 
 
-void __memFreeInBoxcar(STATEPARAMS, unsigned long boxcarId, void *ptr)
+void __memFreeInBoxcar(STATEPARAMS, void *ptr)
 /*
  * Free a block of memory that is stored in a boxcar. Never use
  *  __memFree() on pointers in boxcars, since the boxcars records won't
- *  be updated, and never use C's fre(), since BASIClib may use a
+ *  be updated, and never use C's free(), since BASIClib may use a
  *  completely non-standard means of allocation.
  *
  *  (Calling this with a bogus ID will still create a boxcar, even though
@@ -378,25 +371,25 @@ void __memFreeInBoxcar(STATEPARAMS, unsigned long boxcarId, void *ptr)
 {
     int index;
     int i;
-    PBoxcar pCar = __retrieveBoxcar(STATEARGS, boxcarId);
+    PBoxcar pCar;
 
-    if (pCar != NULL)
+    if (ptr != NULL)
     {
+        pCar = __retrieveBoxcar(STATEARGS);
+
         index = __locateBoxcarPtrIndex(STATEARGS, pCar, ptr);
         if (index != -1)
         {
-            __obtainThreadLock(STATEARGS, &pCar->lock);
             free(pCar->ptrs[index]);
             pCar->totalPtrs--;
             for (i = index; i < pCar->totalPtrs; i++);
                 pCar->ptrs[i] = pCar->ptrs[i + 1];
-            __releaseThreadLock(STATEARGS, &pCar->lock);
         } /* if */
     } /* if */
 } /* __memFreeInBoxcar */
 
 
-int __memReleaseBoxcarByPtr(STATEPARAMS, PBoxcar pCar)
+static int __releaseBoxcar(STATEPARAMS, PBoxcar pCar)
 /*
  * Free a boxcar, and all contained pointers.
  *
@@ -404,50 +397,31 @@ int __memReleaseBoxcarByPtr(STATEPARAMS, PBoxcar pCar)
  *  returns : number of ptrs contained in boxcar before release.
  */
 {
-/* !!! race conditions? */
-
     int i;
 
-    if (pCar != NULL)
-    {
-        __obtainThreadLock(STATEARGS, &pCar->lock);
-        for (i = 0; i < pCar->totalPtrs; i++)
-            free(pCar->ptrs[i]);
-        free(pCar->ptrs);
-        pCar->totalPtrs = 0;
-        __obtainThreadLock(STATEARGS, &boxcarListLock);
-        if (pCar->prev == NULL)
-            firstCar = pCar->next;
-        else
-            pCar->prev->next = pCar->next;
+    for (i = 0; i < pCar->totalPtrs; i++)
+        __memFree(pCar->ptrs[i]);
+    __memFree(pCar->ptrs);
 
-        if (pCar->next != NULL)
-            pCar->next->prev = pCar->prev;
+    if (pCar->prev == NULL)
+        __setStartOfTrain(STATEARGS, pCar->next);
+    else
+        pCar->prev->next = pCar->next;
 
-        __releaseThreadLock(STATEARGS, &pCar->lock);
-        __destroyThreadLock(STATEARGS, &pCar->lock);
-        free(pCar);
-        __releaseThreadLock(STATEARGS, &boxcarListLock);
-    } /* if */
-} /* __memReleaseBoxcarByPtr */
+    if (pCar->next != NULL)
+        pCar->next->prev = pCar->prev;
 
-
-void __memReleaseBoxcar(STATEPARAMS, unsigned long boxcarId)
-/*	
- * Free a boxcar, and all contained pointers.
- *
- *   params : boxcarId == ID of boxcar to release.
- */
-{
-    __memReleaseBoxcarByPtr(STATEARGS, __retrieveBoxcar(STATEARGS, boxcarId));
+    __memFree(pCar);
 } /* __memReleaseBoxcar */
 
 
-void __forceFullBoxcarRelease(STATEPARAMS)
+void __memForceFullBoxcarRelease(STATEPARAMS)
 /*
  * Force the "garbage collector" to reclaim every possible bit of
  *  memory. Could potentially take awhile to run, and blocks until
- *  complete.
+ *  complete. Returns immediately without any cleanup if SLACKCOLLECT
+ *  environment variable is set <= 0. In short, big memory leaks, since
+ *  garbage collection is disabled.
  *
  *     params : void.
  *    returns : void.
@@ -455,55 +429,82 @@ void __forceFullBoxcarRelease(STATEPARAMS)
 {
     PBoxcar pCar;
     PBoxcar next;
+    void *base_ptr;
 
-    __obtainThreadLock(STATEARGS, &boxcarListLock);
-
-    for (pCar = firstCar; pCar != NULL; pCar = next)
+    if (collectionMax > 0)
     {
-        next = pCar->next;
-        if (pCar->id <= boxcarId)
-#warning Take stack direction into account...
-            __memReleaseBoxcarByPtr(STATEARGS, pCar);
-    } /* for */
+        __getBasePointer(&base_ptr);
 
-    __releaseThreadLock(STATEARGS, &boxcarListLock);
+        for (pCar = __getStartOfTrain(STATEARGS); pCar != NULL; pCar = next)
+        {
+            next = pCar->next;
+            if (pCar->id ABOVESTACK base_ptr)
+                __memReleaseBoxcar(STATEARGS, pCar);
+        } /* for */
+    } /* if */
+} /* __memForceFullBoxcarRelease */
 
-} /* __forceFullGarbageCollection */
 
-
-boolean __forcePartialBoxcarRelease(STATEPARAMS)
+boolean __memForcePartialBoxcarRelease(STATEPARAMS)
 /*
  * Force the "garbage collector" to release whatever boxcars can be
  *  cleaned up in a relatively timely manner. Good to call this in
  *  an idle loop, so collection is done a little at a time until
  *  either the loop exits, or all garbage has been collected.
  *
+ * For each call, up to 20 pointers are freed, unless the SLACKCOLLECT
+ *  environment variable has been set, in which case the pointer count
+ *  is taken from there. A number <= 0 in SLACKCOLLECT disables
+ *  garbage collection, and effectively enables massive memory leaking.
+ *
  *     params : void.
  *    returns : boolean (true) if garbage remains, boolean (false) otherwise.
  */
 {
-    PBoxcar pCar;
+#warning Partial collections can exceed SLACKCOLLECT.
     PBoxcar next;
+    void *base_ptr;
     int ptrCount = 0;
+    PBoxcar pCar = (PBoxcar) __getStartOfTrain(STATEARGS);
 
-    __obtainThreadLock(STATEARGS, &boxcarListLock);
+    __getBasePointer(&base_ptr);
 
-    for (pCar = firstCar;
-         (pCar != NULL) && (ptrCount < partialReleaseMax) && ((pCar->id));
-         pCar = next)
+    while ((pCar != NULL) &&
+           (ptrCount < collectionMax) &&
+           (pCar->id ABOVESTACK base_ptr))
     {
         next = pCar->next;
-#warning Take stack direction into account...
-        if (pCar->id <= boxcarId)
-            ptrCount += __memReleaseBoxcarByPtr(STATEARGS, pCar);
-    } /* for */
-
-    __releaseThreadLock(STATEARGS, &boxcarListLock);
+        ptrCount += __memReleaseBoxcar(STATEARGS, pCar);
+        pCar = next;
+    } /* while */
 
     return((pCar == NULL) ? false : true);
-} /* __forcePartialBoxcarRelease */
+} /* __memForcePartialBoxcarRelease */
 
+
+static void __memReleaseAllBoxcars(STATEPARAMS)
+/*
+ * Free all boxcars in this thread, regardless of whether they're in
+ *  use or not. Dangerous, so we made it static. This is only called
+ *  from __deinitThreadMemoryManager() right now, so no leaks are
+ *  left when threads terminate.
+ *
+ *      params : void.
+ *     returns : void.
+ */
+{
+    PBoxcar next;
+    PBoxcar pCar;
+
+    if (collectionMax > 0)
+    {
+        for (pCar = __getStartOfTrain(STATEARGS); pCar != NULL; pCar = next)
+        {
+            next = pCar->next;
+            __memReleaseBoxcar(STATEARGS, pCar);
+        } /* for */
+    } /* if */
+} /* __memReleaseAllBoxcars */
 
 /* end of MemoryManager.c ... */
-
 
