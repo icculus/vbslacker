@@ -8,6 +8,22 @@
 
 #include "Variant.h"
 
+
+void __freeVariant(STATEPARAMS, PVariant var)
+/*
+ * Free the resources occupied by a variant. The variant (and contained
+ *  data) is inaccessible after this call.
+ *
+ *     params : var == variant to free.
+ *    returns : void.
+ */
+{
+    if (var->type == STRING)
+        __freeString(STATEARGS, var->data._string);
+    __memFree(STATEARGS, var);
+} /* __freeVariant */
+
+
 int __variantToInt(STATEPARAMS, PVariant var)
 {
     int retVal = 0;
