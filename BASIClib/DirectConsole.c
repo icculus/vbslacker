@@ -39,7 +39,7 @@ FILE *debugFile = NULL;
 static int cons = -1;   /* file handle of /dev/vcsa? device... */
 static unsigned char curColor = 7;
 
-static void __setCursorXY(unsigned char _x, unsigned char _y)
+static void __setCursorXY(__integer _x, __integer _y)
 /*
  * update our cursor position variables, and /dev/vcsa?'s records.
  *
@@ -47,14 +47,13 @@ static void __setCursorXY(unsigned char _x, unsigned char _y)
  *     returns : void.
  */
 {
-    unsigned char buf[2] = {_x, _y};
-
-    x = (__integer) _x;
-    y = (__integer) _y;
+    unsigned char buf[2] = {(unsigned char) _x, (unsigned char) _y};
 
     __obtainThreadLock(&consoleLock);
-    lseek(cons, 2, SEEK_SET);   /* position in /dev/vcsa? of X cursor. */
-    write(cons, buf, 2);        /* update the cursor. */
+    x = _x;
+    y = _y;
+    lseek(cons, 2, SEEK_SET);        /* position in /dev/vcsa? of X cursor. */
+    write(cons, buf, sizeof (buf));  /* update the cursor. */
     __releaseThreadLock(&consoleLock);
 } /* __setCursorXY */
 
@@ -408,6 +407,46 @@ static void __cons_vbpi_color(__integer fore)
 } /* __cons_vbpiii_color */
 
 
+static void __cons_vbpii_locate(__integer newY, __integer newX)
+{
+    newY--;
+    newX--;
+
+    if ((newX > columns) || (newY > lines) || (newX < 0) || (newY < 0))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    else
+        __setCursorXY(newX, newY);
+} /* __cons_vbpii_locate */
+
+
+static void __cons_vbpNi_locate(__integer newX)
+{
+    newX--;
+
+    if ((newX < 0) || (newX > columns))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    else
+        __setCursorXY(newX, y);
+} /* __cons_vbpNi_locate */
+
+
+static void __cons_vbpiN_locate(__integer newY)
+{
+    newY--;
+
+    if ((newY < 0) || (newY > lines))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    else
+        __setCursorXY(x, newY);
+} /* __cons_vbpiN_locate */
+
+
+static void __cons_vbp_locate(void)
+{
+    /* do nothing. */
+} /* __cons_vbp_locate */
+
+
 static void __cons_getConsoleHandlerName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
@@ -446,6 +485,10 @@ __boolean __initDirectConsole(void)
         _vbpiii_color = __cons_vbpiii_color;
         _vbpil_color = __cons_vbpil_color;
         _vbpi_color = __cons_vbpi_color;
+        _vbpii_locate = __cons_vbpii_locate;
+        _vbpNi_locate = __cons_vbpNi_locate;
+        _vbpiN_locate = __cons_vbpiN_locate;
+        _vbp_locate = __cons_vbp_locate;
     } /* if */
 
     return(retVal);
