@@ -76,7 +76,7 @@ language.
 
 Anyhow, wherever your BASIC "RETURN" statement would be, put this instead:
 
-__doReturn;
+__doReturn();
 
 ...and program flow jumps to the label you specified as the second parameter
 to __doGosub(). Presumably, this a label for the line of code immediately
@@ -88,10 +88,10 @@ __doReturnLabel(aSpecificLineLabel);
 
 Overall, pretty easy.
 
-Note that all of these things are C macros. That is why __doReturn has no
-parentheses after it. You shouldn't have to worry about increment/decrement
-operators with these, as they ask for line labels as parameters. In fact, you
-can't pass pointers to them; they don't know how to handle them.
+Note that all of these things are C macros. You shouldn't have to worry about
+increment/decrement operators with these, as they ask for line labels as
+parameters. In fact, you can't pass pointers to them; they don't know how to
+handle them.
 
 Don't use "__gosub" as a variable name, as __GOSUBSUPPORT will reserve that.
 
