@@ -262,6 +262,7 @@ void testConversionFunctions(void)
     test_asc(1);
     test_str_DC_();
     test_str_DC_and_val();
+#warning test_val() is commented out! Fix val()!!!
 /*    test_val();  !!! */
     test_hex_DC_();
     test_oct_DC_();
