@@ -8,8 +8,6 @@
 #include <math.h>
 #include "BasicLib.h"
 
-int __basicErrno;
-
 void test_vbdd_abs(void)
 /*
  * Test abs() functionality.
@@ -60,12 +58,12 @@ void test_vbdd_sqr(void)
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
-        __basicErrno = ERR_NO_ERROR;
+        __runtimeError(ERR_NO_ERROR);
         correct = sqrt(i);
 __insertLineLabel(trySqr);
         rc = vbdd_sqr(i);
 __insertLineLabel(trySqrNext);
-        if ((__basicErrno == ERR_NO_ERROR) && (rc != correct))
+        if ((vbi_err() == ERR_NO_ERROR) && (rc != correct))
             printf("  - sqr(%f) returned (%f) incorrectly!\n", i, rc);
     } /* for */
     __exitCleanupOnError;
@@ -230,12 +228,12 @@ void test_vbdd_log(void)
 
     for (i = -1000.0932; i < 99999.999; i += 213.42)
     {
-        __basicErrno = ERR_NO_ERROR;
+        __runtimeError(ERR_NO_ERROR);
         correct = log(i);
 __insertLineLabel(tryLog);
         rc = vbdd_log(i);
 __insertLineLabel(tryLogNext);
-        if ((__basicErrno == ERR_NO_ERROR) && (rc != correct))
+        if ((vbi_err() == ERR_NO_ERROR) && (rc != correct))
             printf("  - log(%f) returned (%f) incorrectly!\n", i, rc);
     } /* for */
     __exitCleanupOnError;
