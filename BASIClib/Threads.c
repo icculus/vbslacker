@@ -21,6 +21,8 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include "Threads.h"
+
 #include <stdlib.h>
 
 #ifndef WIN32
@@ -29,7 +31,6 @@
 #include <signal.h>
 #endif
 
-#include "Threads.h"
 
 /*
  * This structure contains the arguments to be

@@ -297,7 +297,7 @@ static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
 #ifdef WIN32   /* stubs for now for win32. */
 static int  __cons_openConsole(STATEPARAMS) { return(-1); }
 static void __cons_deinitConsoleHandler(STATEPARAMS) {}
-static void __cons_printNChars(STATEPARAMSm char *str, int n) {}
+static void __cons_printNChars(STATEPARAMS, char *str, int n) {}
 static void __cons_vbp_cls(STATEPARAMS) {}
 static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord) {}
 static void __cons_printNewLine(STATEPARAMS) {}

@@ -8,7 +8,7 @@
 #include "BasicError.h"
 
 
-/* basicErrno and __basicErrno need thread-proofing! */
+#warning !!! basicErrno and __basicErrno need thread-proofing!
 
 /*
  * We keep an extra copy of the BASIC error number around. Both are set
@@ -21,6 +21,7 @@ int basicErrno = ERR_NO_ERROR;
 int __basicErrno = ERR_NO_ERROR;
 
 static char *errStrings[MAX_ERRS];
+
 
 void __initErrorFunctions(STATEPARAMS)
 /*
@@ -89,7 +90,7 @@ void __initErrorFunctions(STATEPARAMS)
 } /* __initErrorFunctions */
 
 
-void __defaultRuntimeErrorHandler(STATEPARAMS)
+static void __defaultRuntimeErrorHandler(STATEPARAMS)
 {
     char *errStr;
 

@@ -7,6 +7,7 @@
 #include <math.h>
 #include "MathFunctions.h"
 
+
 double vbdd_abs(STATEPARAMS, double x)
 /*
  * Returns the absolute value of a numeric.
@@ -27,6 +28,9 @@ double vbdd_sqr(STATEPARAMS, double x)
  *  returns : absolute value.
  */
 {
+    if (x < 0)
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
+
     return(sqrt(x));
 } /* vbdd_sqr */
 
@@ -55,14 +59,16 @@ double vbdd_tan(STATEPARAMS, double x)
 } /* vbdd_tan */
 
 
-double vbddd_exp(STATEPARAMS, double x, double y)
+double vbdd_exp(STATEPARAMS, double x)
 {
-    return(pow(x, y));
+    return(pow(2.718282, 2.0));
 } /* vbddd_exp */
 
 
 double vbdd_log(STATEPARAMS, double x)
 {
+    if (x <= 0)
+        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     return(log(x));
 } /* vbdd_log */
 
@@ -110,10 +116,6 @@ int vbid_sgn(STATEPARAMS, double x)
 
     return(retVal);
 } /* vbid_sgn */
-
-/* !!! still need: */
-/* rnd */
-/* randomize */
 
 /* end of MathFunctions.c ... */
 

@@ -15,8 +15,7 @@
 #ifndef _INCLUDE_REGSTATE_H_
 #define _INCLUDE_REGSTATE_H_
 
-
-#if (ARCHITECTURE == "i386")
+#if (defined I386)
 
 /* God, inline assembly is SCARY lookin' in gcc, isn't it? */
 
@@ -81,7 +80,7 @@
 
 
 /*
- *  __setResumeStack fills in the current base pointer and stack
+ *  __setStateStack fills in the current base pointer and stack
  *   to the current STATEPARAMS...
  */
 
@@ -89,7 +88,7 @@
                          __getStackPointer(&__stSP)
 
 /*
- *  __setResumeInstructs fills in the current instruction pointer and the
+ *  __setStateInstructs fills in the current instruction pointer and the
  *   "next" instruction pointer to the current STATEPARAMS...
  */
 #define __setStateInstructs(ptr1, ptr2)  __stIP = ptr1; \

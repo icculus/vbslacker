@@ -12,7 +12,7 @@ OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
        FileSystemFunctions.o Variant.o BasicError.o NoConsole.o \
        DirectConsole.o RedirectedConsole.o CursesConsole.o \
-       EnvrFunctions.o Gosub.o
+       EnvrFunctions.o Gosub.o MiscFunctions.o ArrayFunctions.o
 
 CC = gcc
 LINKER = gcc
@@ -51,6 +51,9 @@ OnEvents.o : OnEvents.c OnEvents.h
 
 Gosub.o : Gosub.c Gosub.h
 	$(CC) $(COPTIONS) Gosub.o Gosub.c
+
+MiscFunctions.o : MiscFunctions.c MiscFunctions.h
+	$(CC) $(COPTIONS) MiscFunctions.o MiscFunctions.c
 
 ErrorFunctions.o : ErrorFunctions.c ErrorFunctions.h
 	$(CC) $(COPTIONS) ErrorFunctions.o ErrorFunctions.c
@@ -116,6 +119,9 @@ BasicError.o : BasicError.c BasicError.h
 
 EnvrFunctions.o : EnvrFunctions.c EnvrFunctions.h
 	$(CC) $(COPTIONS) EnvrFunctions.o EnvrFunctions.c
+
+ArrayFunctions.o : ArrayFunctions.c ArrayFunctions.h
+	$(CC) $(COPTIONS) ArrayFunctions.o ArrayFunctions.c
 
 # end of Makefile.win32 ...
 

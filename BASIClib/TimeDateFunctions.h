@@ -17,7 +17,7 @@ void vbpS_time_DC_(STATEPARAMS, PBasicString newTimeStr);
 PBasicString vbS_date_DC_(STATEPARAMS);
 void vbpS_date_DC_(STATEPARAMS, PBasicString newDateStr);
 
-#endif
+#endif /* _INCLUDE_TIMEDATEFUNCTIONS_H_ */
 
 /* end of TimeDateFunctions.h ... */
 

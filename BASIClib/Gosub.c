@@ -20,11 +20,8 @@ void __prepareGosub(STATEPARAMS, void *ret, PGosubState state)
  */
 {
     state->count++;
-
-    /* !!! memory leak! */
-    state->addrs = __memRealloc(STATEARGS, state->addrs,
+    state->addrs = __memReallocInBoxcar(STATEARGS, state->addrs,
                                 sizeof (void *) * state->count);
-
     state->addrs[state->count - 1] = ret;
 } /* __prepareGosub */
 
@@ -50,7 +47,7 @@ void *__prepareReturn(STATEPARAMS, void *addr, PGosubState state)
     else
     {
         state->count--;
-        retVal = ((addr == NULL) ? state->addrs[count] : addr);
+        retVal = ((addr == NULL) ? state->addrs[state->count] : addr);
     } /* else */
 
     return(retVal);

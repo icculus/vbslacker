@@ -4,6 +4,8 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include "ArrayFunctions.h"
+
 static void __arrayEraseStatic(STATEPARAMS, PBasicArray array)
 /*
  * Handles the ERASE command for dynamic arrays.
@@ -61,17 +63,17 @@ static PBasicArray __getArrayDimension(STATEPARAMS,
 
     if (dimension < 1)
         __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
-    else    
+    else
     {
         for (currentDim = 1; currentDim != dimension; currentDim++)
         {
-            if (array->isMultidimensional == true)
+            if (array->multiDimensional == true)
                 array = (PBasicArray) array->data;
             else
                 __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL); /* correct? !!! */
         } /* for */
     } /* else */
-    
+
     return(array);
 } /* __getArrayDimension */
 

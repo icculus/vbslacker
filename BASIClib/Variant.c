@@ -136,7 +136,7 @@ double __variantToDouble(STATEPARAMS, PVariant var)
 
 
 
-PBasicString __variantToString(STATEPARAMS, PVariant pVar, boolean byRef)
+PBasicString __variantToString(STATEPARAMS, PVariant pVar, __boolean byRef)
 /*
  * The parser/compiler will be responsible for free()ing the return value
  *  from this call after the program is done with it...

@@ -83,8 +83,8 @@
 extern int __basicErrno;
 
 void __initErrorFunctions(STATEPARAMS);
-void __runtimeError(STATEPARAMS, int errNum);
 void __fatalRuntimeError(STATEPARAMS, int errorNum);
+void __runtimeError(STATEPARAMS, int errorNum);
 
 #endif
 #endif
