@@ -8,7 +8,7 @@
 #include "Initialize.h"
 #include "TestLib.h"
 
-void main(void)
+int main(void)
 {
     setbuf(stdout, NULL);
     printf("Making call to __initBasicLib()...\n"); 
@@ -19,6 +19,7 @@ void main(void)
         /* !!! This will be done automatically, eventually... */
     printf("Making call to __deinitBasicLib()...\n"); 
     __deinitBasicLib();
+    return(0);
 } /* main */
 
 /* end of TestLib.c ... */
