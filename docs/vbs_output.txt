@@ -50,15 +50,35 @@ Name mangling:
     for how BASIC API calls should be formatted. End user BASIC identifiers
     should be completely lowercased, but otherwise named identically to its
     BASIC counterpart. The exception to this rule are line labels, which
-    should be serialized as line0, line1, line2, etc...
+    should be serialized as _line0, _line1, _line2, etc...and C-unfriendly
+    characters (like "varname$"), which is also covered in name_mangling.txt...
+
+    Identifiers >= 32 characters in the BASIC code should throw a
+    WARNING currently, but compilation should still be attempted. ANSI C
+    only considers the first 31 characters of an identifier significant,
+    but that's not to say specific compilers won't permit more; perhaps a
+    BASIC compiler option to enable/disable this warning for various platforms?
 
 
 BASIC intrinsic data types:
-    !!! more.
+    Intrinsic data types in BASIC convert to C-style variables directly.
+    They are wrapped in typedefs, to guarantee the correct size (so
+    __integer is always 16-bits on any given platform, for example. int,
+    short, and long are not constant between platforms or compilers.)
+
+    INTEGER     __integer
+    LONG        __long
+    SINGLE      __single
+    DOUBLE      __double
+    BOOLEAN     __boolean
+    BYTE        __byte
 
 
 BASIC complex data types:
     !!! more.
+
+
+BASIC arrays:
 
 
 GOTOs and Line labels:
@@ -100,9 +120,9 @@ GOTOs and Line labels:
 
     would need:
 
-    __insertLineLabel(line0);
+    __insertLineLabel(_line0);
     vbPrint("Hello world!")
-    __insertLineLabel(line1);
+    __insertLineLabel(_line1);
     vbPrint("My Name is " + "Mudd.");
 
     (Note that the vbPrint syntax is wrong, but the label thing is right.
@@ -286,7 +306,7 @@ Debugging code:
     This section has yet to be considered fully, but there will be extra code
     inserted into the C output when debugging support is enabled. The extra
     code will allow for tracing of code flow and variable contents.
-
+    !!!
 
 Object-oriented details:
     !!! more.
@@ -299,7 +319,7 @@ vbSlacker extension; BASIC thread API.
     !!! more.
 
 Command lines:
-    (This section is not yet complete)
+    (!!!This section is not yet complete)
     gcc -fno-omit-frame-pointer -fasm -finline-functions -Wall
         -DLANG_ENGLISH
         -DLINUXELF_I386 or -DLINUXAOUT_I386 or -DWIN32_I386
