@@ -4,148 +4,59 @@
  *    Copyright (c) Ryan C. Gordon and Gregory S. Read.
  */
 
-#include <curses.h>
 #include "ConsoleFunctions.h"
+#include "DirectConsole.h"
+#include "NoConsole.h"
+#include "CursesConsole.h"
+#include "RedirectedConsole.h"
+
+static boolean inGraphicsState = false;
+
+/* variable function pointers... */
+void (*__vbpS_print)(STATEPARAMS, PBasicString x) = NULL;
+void (*__vbpii_viewPrint)(STATEPARAMS, int top, int bottom) = NULL;
+void (*__vbp_viewPrint)(STATEPARAMS) = NULL;
+void (*__vbp_cls)(STATEPARAMS) = NULL;
+int  (*__vbi_csrline)(STATEPARAMS) = NULL;
+int  (*__vbiA_pos)(STATEPARAMS, void *pVar) = NULL;
+void (*__vbpiii_color)(STATEPARAMS, int fore, int back, int bord) = NULL;
+void (*__deinitConsole)(STATEPARAMS);
 
 
-boolean consoleAllowed = true;
-boolean inGraphicsMode = false;
-WINDOW *cons = NULL;
-ThreadLock consoleLock;
-
-
-void inline __getConsoleAccess(STATEPARAMS)
+void __initConsoleFunctions(STATEPARAMS)
+/*
+ * Run down the possible console handlers, in order of precedence,
+ *  until we either find one that works, or we run out of options.
+ *  If we run out of options, we force the redirected console to init,
+ *  which performs simple output to stdout.
+ *
+ *      params : void.
+ *     returns : void.
+ */
 {
-    if (consoleAllowed == false)
-        __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
-} /* __getConsoleAccess */
+    if (__initNoConsole(STATEARGS) == true);
+    else if (__initDirectConsole(STATEARGS) == true);
+    else if (__initRedirectedConsole(STATEARGS) == true);
+    else if (__initCursesConsole(STATEARGS) == true);
+    else __forceRedirectedConsole(STATEARGS);
+} /* __initConsoleFunctions */
 
 
-void __initConsole(STATEPARAMS)
+void __deinitConsoleFunctions(STATEPARAMS)
 {
-    consoleAllowed = ((__getInitFlags(STATEARGS) & INITFLAG_DISABLE_CONSOLE) ?
-                       false : true);
+    __deinitConsole(STATEARGS);   /* call handler-specific de-init. */
 
-    if (consoleAllowed == true)
-    {
-        __createThreadLock(STATEARGS, &consoleLock);
-        initscr();
-        cons = newwin(0, 0, 0, 0);   /* full screen virtual window. */
-        keypad(cons, TRUE);
-        (void) nonl();
-        (void) cbreak();
-        (void) noecho();
-        (void) scrollok(cons, TRUE);
-    } /* if */
-} /* __initConsole */
+    __vbpS_print = NULL;        /* blank all the func pointers out... */
+    __vbpii_viewPrint = NULL;
+    __vbp_viewPrint = NULL;
+    __vbp_cls = NULL;
+    __vbi_csrline = NULL;
+    __vbiA_pos = NULL;
+    __vbpiii_color = NULL;
+    __deinitConsole = NULL;
+} /* __deinitConsoleFunctions */
 
 
-void __deinitConsole(STATEPARAMS)
-{
-    if (consoleAllowed == true)
-    {
-        endwin();
-        __destroyThreadLock(STATEARGS, &consoleLock);
-    } /* if */
-} /* __deinitConsole */
-
-
-void vbpV_print(STATEPARAMS, PVariant pVar)
-{
-    PBasicString str;
-    int i;
-    int max;
-    char *data;
-
-    __getConsoleAccess(STATEARGS);
-
-    str = __variantToString(STATEARGS, pVar, true);
-    max = str->length;
-    data = str->data;
-
-    __obtainThreadLock(STATEARGS, &consoleLock);
-    for (i = 0; i < max; i++)
-        waddch(cons, data[i]);
-    wrefresh(cons);
-    __releaseThreadLock(STATEARGS, &consoleLock);
-} /* vbpV_print */
-
-
-void vbpii_ViewPrint(STATEPARAMS, int topRow, int bottomRow)
-{
-    int lines;
-    int columns;
-
-    __getConsoleAccess(STATEARGS);
-
-    __obtainThreadLock(STATEARGS, &consoleLock);
-    getmaxyx(stdscr, lines, columns);
-
-    if ( (topRow < 0) || (bottomRow < topRow) || (bottomRow > lines) )
-    {
-        __releaseThreadLock(STATEARGS, &consoleLock);
-        __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
-    } /* if */
-
-    else
-    {
-        wresize(cons, (bottomRow - topRow) + 1, columns);
-        mvwin(cons, topRow, 0);
-    } /* else */
-
-    __releaseThreadLock(STATEARGS, &consoleLock);
-} /* vbpii_viewPrint */
-
-
-void vbp_ViewPrint(STATEPARAMS)
-{
-    int lines;
-    int columns;
-
-    __getConsoleAccess(STATEARGS);
-
-    __obtainThreadLock(STATEARGS, &consoleLock);
-    getmaxyx(stdscr, lines, columns);
-    mvwin(cons, 0, 0);
-    wresize(cons, lines, columns);
-    __releaseThreadLock(STATEARGS, &consoleLock);
-} /* vbp_viewPrint */
-
-
-void vbp_cls(STATEPARAMS)
-{
-    __getConsoleAccess(STATEARGS);
-    __obtainThreadLock(STATEARGS, &consoleLock);
-    wclear(cons);
-    wrefresh(cons);
-    __releaseThreadLock(STATEARGS, &consoleLock);
-} /* vbp_cls */
-
-
-int vbi_csrline(STATEPARAMS)
-{
-    int x;
-    int y;
-
-    __getConsoleAccess(STATEARGS);
-    __obtainThreadLock(STATEARGS, &consoleLock);
-    getsyx(y, x);
-    __releaseThreadLock(STATEARGS, &consoleLock);
-    return(y);
-} /* vbi_csrline */
-
-
-int vbiA_pos(STATEPARAMS, void *pVar)
-{
-    int x;
-    int y;
-
-    __getConsoleAccess(STATEARGS);
-    __obtainThreadLock(STATEARGS, &consoleLock);
-    getsyx(y, x);
-    __releaseThreadLock(STATEARGS, &consoleLock);
-    return(x);
-} /* vbiA_pos */
 
 /* color */
 /* locate */
