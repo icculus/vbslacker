@@ -16,6 +16,7 @@
 #ifndef _INCLUDE_STDBASIC_H_
 #define _INCLUDE_STDBASIC_H_
 
+#include "Platform.h"
 #include "Language.h"
 #include "RegState.h"
 #include "Boolean.h"
