@@ -1,0 +1,93 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="Version" content="8.0.3410">
+<meta name="Date" content="10/11/96">
+<meta name="Template"
+content="C:\Program Files\Microsoft Office\Office\HTML.DOT">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>VBSlacker - Design Specification - Parser</title>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
+vlink="#800080">
+
+<h1 align="center"><font size="4" face="Arial"><b>VBSlacker -
+Design Specification</b></font></h1>
+
+<h2 align="center"><font face="Arial"><b><i>Parser</i></b></font></h2>
+
+<h3><font face="Arial"><b><i>Introduction</i></b></font></h3>
+
+<p>The VBSlacker Parser, to put it simply, is a Visual
+Basic&trade; language interpreter that converts Visual Basic
+compatible source-code into C. It relies on VBSlacker's BasicLIB
+library for many of the C functions calls that it generates from
+interpretation. The parser is also responsible for interpreting
+NON-VB files such as&#133;</p>
+
+<blockquote>
+    <ul>
+        <li>Visual Basic Project Files (.vbp)</li>
+        <li>Forms (.frm)</li>
+        <li>Form binary data (.frx)</li>
+        <li><i>&#133;probably some others I missed.</i></li>
+    </ul>
+</blockquote>
+
+<h3><font face="Arial"><b><i>Overview</i></b></font></h3>
+
+<p>The parser will be nothing more than a command-line
+application&#133;much like gcc, awk, and so forth. It will have
+various command-line arguments for various parsing options, and
+also options to pass to the C compiler that it will eventually
+spawn to.</p>
+
+<p>From here on out, the parser will be referred to as 'vbs'.</p>
+
+<p>Below is a diagram of the interpretation procedure&#133;</p>
+
+<blockquote>
+    <ol>
+        <li><b><i>vbs (converts to C code)</i></b></li>
+        <li><b><i>gcc/egcs/some C compiler</i></b></li>
+        <li><b><i>link with BasicLIB and other libraries</i></b></li>
+        <li><b><i>final executable</i></b></li>
+    </ol>
+</blockquote>
+
+<h3><font face="Arial"><b><i>Source Code Structure</i></b></font></h3>
+
+<p>'vbs' will be written in C++ given it's object oriented
+structure. Below is the internal class structure...</p>
+
+<p><strong><u>CvbsProject (Base Class)</u></strong></p>
+
+<p>This class is a base class for all project types. It includes
+code that parses .VBP files, and creates appropriate CvbsModule
+instances based on the modules it finds in the project.</p>
+
+<blockquote>
+    <p><em>Derived Classes...</em></p>
+    <p><strong>CvbsActiveX_EXE<br>
+    CvbsActiveX_OCX<br>
+    CvbsActiveX_DLL<br>
+    CvbsStandard_EXE</strong></p>
+</blockquote>
+
+<p><strong><u>CvbsModule (Base Class)</u></strong></p>
+
+<p>All Visual Basic module classes are based on this class. It
+includes standard parsing code, plus the ability to override for
+special parsing of special modules like Forms, etc...</p>
+
+<blockquote>
+    <p><em>Derived Classes...</em></p>
+    <p><strong>CvbsBAS_Module<br>
+    CvbsForm_Module<br>
+    CvbsClass_Module</strong></p>
+</blockquote>
+</body>
+</html>
