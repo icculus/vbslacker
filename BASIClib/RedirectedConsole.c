@@ -152,6 +152,26 @@ static void __redir_vbpi_color(__integer fore)
 } /* __redir_vbpi_color */
 
 
+static void __redir_vbpii_locate(__integer newY, __integer newX)
+{
+} /* __redir_vbpii_locate */
+
+
+static void __redir_vbpNi_locate(__integer newX)
+{
+} /* __redir_vbpNi_locate */
+
+
+static void __redir_vbpiN_locate(__integer newY)
+{
+} /* __redir_vbpiN_locate */
+
+
+static void __redir_vbp_locate(void)
+{
+} /* __redir_vbp_locate */
+
+
 static void __redir_getConsoleHandlerName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
@@ -207,6 +227,10 @@ void __forceRedirectedConsole(void)
     _vbpiii_color = __redir_vbpiii_color;
     _vbpil_color = __redir_vbpil_color;
     _vbpi_color = __redir_vbpi_color;
+    _vbpii_locate = __redir_vbpii_locate;
+    _vbpNi_locate = __redir_vbpNi_locate;
+    _vbpiN_locate = __redir_vbpiN_locate;
+    _vbp_locate = __redir_vbp_locate;
 } /* __forceRedirectedConsole */
 
 /* end of RedirectedConsole.c ... */
