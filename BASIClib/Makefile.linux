@@ -6,7 +6,8 @@ DYNLIBMAJOR = $(DYNLIBBASE).$(MAJORVER)
 
 OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ErrorFunctions.o MathFunctions.o InternalMemManager.o Threads.o \
-       TimeDateFunctions.o OnEventsAsm.o FileIOFunctions.o BasicFileStream.o
+       TimeDateFunctions.o OnEventsAsm.o FileIOFunctions.o BasicFileStream.o \
+       StringFunctions.o
 
 CC = gcc
 LINKER = gcc
@@ -75,6 +76,10 @@ FileIOFunctions.o : FileIOFunctions.c FileIOFunctions.h BasicString.h Variant.h
 
 OnEventsAsm.o : OnEvents.S
 	$(ASM) $(ASMOPTIONS) OnEventsAsm.o OnEvents.S
+
+StringFunctions.o : StringFunctions.c StringFunctions.h BasicString.h \
+                    ErrorFunctions.h
+	$(CC) $(COPTIONS) StringFunctions.o StringFunctions.c
 
 # end of Makefile ...
 
