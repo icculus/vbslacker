@@ -80,7 +80,7 @@ FILE SYSTEM AND FILE I/O:
    case-insensitive.
 
   Note the dangers of this, though: If two files match a criteria, the first
-   one is selected, even if it iis not the intended file. The solution to this
+   one is selected, even if it is not the intended file. The solution to this
    is to specify the correct case from the beginning, since the exact match
    is always selected over the case-insensitive match. However, if you could
    always do that, why would you use this option in the first place?
