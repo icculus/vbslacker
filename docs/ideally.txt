@@ -1,3 +1,5 @@
+THIS FILE IS PROBABLY HORRIBLY OUT OF DATE. DO =NOT= RELY ON IT.
+
 IDEALLY we'll want a conversion to look SOMETHING like this:
 
 (Remember that BASIC is NOT case sensitive, even though historically
