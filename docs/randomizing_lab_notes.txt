@@ -1,0 +1,355 @@
+Greg:
+
+Spent the night trying to reverse engineer Microsoft's libraries to figure
+out how their random number algorithm ticks. After much struggling with crappy
+shareware (and crappy pirated commercial) disassemblers, nothing beat the
+simplicity of CodeView for DOS. :)
+
+These are my notes. Thought you'd get a kick out of it.
+
+First, recall I had discovered that VBDOS will output assembly code. So, I
+gave it this do-nothing program:
+
+RANDOMIZE
+PRINT RND
+
+
+...which produced this assembly listing...
+
+Offset  Data    Source Line      Microsoft (R) Visual Basic (TM) for MS-DOS (R)
+
+ 0030   0006    
+ 0030   0006    RANDOMIZE
+ 0030   0006    PRINT RND
+ 0030   0006    
+ 0030   0006    
+ 0030    **        I00002:   call    B$RNZ0
+ 0035    **                  call    B$RND0
+ 003A    **                  mov     bx,ax
+ 003C    **                  push    02h[bx]
+ 003F    **                  push    [bx]
+ 0041    **                  call    B$PER4
+ 0046    **                  call    B$CENP
+ 004B   0006    
+
+42347 Bytes Available
+42197 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+
+To break that down...
+
+The BASIC API appears to follow this name-mangling scheme: "B$" + a four-digit
+string. I guess that's for streamlining the compiler or something. The names
+therefore don't always make sense, or at least aren't very descriptive, as
+you'll see.
+
+Presumably "B$RNZ0" is the function name for RANDOMIZE without arguments, and
+"B$RND0" is RND without arguments (both have integer-accepting equivalents).
+Functions return data in register AX, which is moved to BX. BX serves as a
+pointer to the SINGLE value that RND returned. This value is pushed onto the
+stack (two bytes at a time; two PUSHes, total), for a call to "B$PER4", which
+is presumably an incarnation of PRINT. (I wonder if there are separate PRINT
+functions for each data type...) "B$CENP" is probably the low-level equivalent
+of exit() for BASIC. "ENP" is probably "ENd Program."
+
+Using LIB.EXE on VBDCL10E.LIB (VBDOS support library), showed that all the
+random functions were placed in one object file, "random", so hopefully this
+means all the code would be clumped together in the final EXE. (Turns out I
+was right about that.)
+
+(From LIB.EXE outputted listings...)
+
+Library name
+  |
+  |
+  V
+random            Offset: 00073be0H  Code and data size: a6H
+  B$RND0            B$RND1            B$RNZ0            B$RNZP
+    ^                 ^                 ^                 ^
+    |                 |                 |                 |
+    |                 |                 |                 |
+  function name     function name     function name     function name
+
+...So I compiled my dinky little program with CodeView support (which VBDOS
+has an option for) loaded it into CodeView, set a breakpoint on B$RND0(),
+which I had identified earlier as the RND function without arguments, (thanks
+to the assembly output from BC.EXE...) and found everything I wanted clumped
+together. CodeView even lets you dump the disassembly to a file.
+
+Some notes on VBDOS calling conventions:
+According to the VBDOS Professional Features manual, "Basic always uses a FAR
+call," (page 51) which means that any given function pointer is FOUR bytes
+(segment + offset). They also pass an extra parameter on the stack to
+functions that plan on returning anything other than 2 or 4 byte integers
+(INTEGER and LONG). This extra parameter is an offset in memory where the
+return value is copied by the called function. This offset is also returned
+in AX, for convenience. Yikes. Apparently only BASIC code needs to follow
+this, and internal routines like RND do not. I guess.
+
+The argument is an INTEGER, which means that floating point values may round
+(2.49999 gives you 2, 2.5 gives you 3)...be careful.
+
+RANDOMIZE x does NOT set the same seed everytime; the randomize function
+does NOT completely reset everything, but a specific seed will alter the last
+one. You are only guaranteed the same sequence of numbers with the same
+sequence of RANDOMIZE and RND calls from the start of execution.
+
+The exeception seems to be RND(x), where (x < 0). Apparently, this overwrites
+the random seed. This has been confirmed in Qbasic tests to make sure I'm not
+hallucinating. The number returned by a negative argument will be identical
+every time, and resets the random seed. RND(-5) will always return
+the same thing, which will be different from RND(-4), etc...furthermore,
+after you call RND(-5), RND(1) : RND(2) : RND(n) will return a definite
+duplicatable pattern with every execution, regardless of what you did with
+RANDOMIZE. I would guess this is a holdover from very primitive BASICs, where
+RND() would be used for what modern BASICs separates into RANDOMIZE and RND.
+
+Some other identifiers of importance: B$TIMR == TIMER(), as you'll see in
+B$RNZ0 (RANDOMIZE without arguments), since it gets it's seed from the
+timer...quite literally from the TIMER function. b$RndVar is where VBDOS
+stores it's random number seed, and every call to the RNG (random number
+generator), and RANDOMIZE modifies it. RND() with a negative argument
+downright changes it. b$RndVar seems to initialize at program startup to
+0x50000. The program also makes use of an identifier called b$EightSpaces,
+which I suspect is a scratch buffer, but I'm not sure yet.
+
+Here it is. CodeView adds a few comments (and somewhat human-readable
+identifiers, but I've even changed some of those), but most of them are
+my own. In fact, this looks very little like the original CodeView output
+at this point.
+
+B$RND0:   ; RND with NO arguments.
+;
+; RND with no arguments is identical to RND(1) (or any value > 0).
+;  In fact, it calls right into the RND-with-argument version of the function.
+;
+3563:0000 55             PUSH      BP                   ; Save base pointer.
+3563:0001 8BEC           MOV       BP,SP                ; setup new base.
+3563:0003 E82D00         CALL      rndNextEntry         ; call into B$RND1
+3563:0006 5D             POP       BP                   ; restore base pointer.
+3563:0007 CB             RETF                           ; return far.
+
+
+B$RND1:   ; RND with integer argument (the other RND just calls into here...)
+
+;
+; Qbasic help file on RND tells this about param's value:
+;        Less than 0                    The same number for any n#
+;        Greater than 0 (or omitted)    The next random number
+;        0                              The last number generated
+;
+;
+;
+; The stack after frame setup:      bp+8   1/2 of parameter (SINGLE).
+;                                   bp+6   1/2 of parameter (SINGLE).
+;                                   bp+4   return address segment.
+;                                   bp+2   return address offset.
+;                                   bp+0   prev base pointer
+
+3563:0008 55          PUSH      BP                   ; Save base pointer.
+3563:0009 8BEC        MOV       BP,SP                ; setup new base.
+3563:000B 8B4608      MOV       AX,WORD PTR [BP+08]  ; put param into AX.
+3563:000E 0BC0        OR        AX,AX                ; is it 0?
+3563:0010 741A        JZ        rndLastGen           ; yes? goto rndlastGen.
+3563:0012 7913        JNS       rndNextGen           ; if > 0, get next num.
+
+                                                     ; if here, param is < 0.
+3563:0014 8B5606      MOV       DX,WORD PTR [BP+06]  ; other half of arg->dx.
+3563:0017 02D4        ADD       DL,AH                ; add high byte of AH->DL
+3563:0019 80D600      ADC       DH,00                ; add w/ carry 0 -> DH.
+3563:001C 1400        ADC       AL,00                ; add w/ carry 0 -> AL.
+3563:001E 32E4        XOR       AH,AH                ; zero AH.
+3563:0020 89168D03    MOV       WORD PTR [b$RndVar (038D)],DX
+3563:0024 A38F03      MOV       WORD PTR [b$RndVar+0002 (038F)],AX  
+
+        ; positive and negative params to RND(x), and RND(void) fall here.
+
+rndNextGen:     ; Get next random number.
+3563:0027 E80900      CALL      rndNextEntry         ; Call entry point.    
+3563:002A EB03        JMP       rndGetOut            ; jump to exit point.
+
+
+rndLastGen:     ; Get last random number.
+3563:002C E83600      CALL      rndLastEntry         ; Call entry point.    
+
+
+rndGetOut:      ; exit point for function.
+3563:002F 5D          POP       BP                   ; cleanup...
+3563:0030 CA0400      RETF      0004                 ;  ...and return far.
+
+
+        ; Apparently, the code is expecting some extra krapola on the
+        ;  stack, since it has to expect a CALL into it from B$RND0, so
+        ;  this procedure will even CALL into itself for generating the next
+        ;  or last number in the sequence. Hence, entry points.
+
+rndNextEntry:   ; Entry to next number in sequence generation algorithm...
+3563:0033 57          PUSH      DI                   ; Save DI; we need reg.
+3563:0034 A18D03      MOV       AX,WORD PTR [b$RndVar (038D)]  
+3563:0037 8B0E4606    MOV       CX,WORD PTR [b$EightSpaces-000C (0646)]  
+3563:003B F7E1        MUL       CX  
+3563:003D 97          XCHG      AX,DI  
+3563:003E 8BDA        MOV       BX,DX  
+3563:0040 A18F03      MOV       AX,WORD PTR [b$RndVar+0002 (038F)]  
+3563:0043 F7E1        MUL       CX  
+3563:0045 03D8        ADD       BX,AX  
+3563:0047 A14606      MOV       AX,WORD PTR [b$EightSpaces-000C (0646)]  
+3563:004A F7268D03    MUL       WORD PTR [b$RndVar (038D)]
+3563:004E 03D8        ADD       BX,AX  
+3563:0050 033E4A06    ADD       DI,WORD PTR [b$EightSpaces-0008 (064A)]  
+3563:0054 121E4A06    ADC       BL,BYTE PTR [b$EightSpaces-0008 (064A)]  
+3563:0058 32FF        XOR       BH,BH  
+3563:005A 8BD7        MOV       DX,DI  
+3563:005C 89168D03    MOV       WORD PTR [b$RndVar (038D)],DX  
+3563:0060 891E8F03    MOV       WORD PTR [b$RndVar+0002 (038F)],BX  
+3563:0064 5F          POP       DI  
+
+rndLastEntry:   ; Entry to last number in sequence generation algorithm...
+3563:0065 CD37068D03  INT       37 ;FILD     DWORD PTR [b$RndVar (038D)]
+3563:006A CD34364E06  INT       34 ;FDIV     DWORD PTR [b$EightSpaces-0004 (064E)] 
+3563:006F BB4401      MOV       BX,0144  
+3563:0072 CD351F      INT       35 ;FSTP     DWORD PTR [BX] 
+3563:0075 93          XCHG      AX,BX  
+3563:0076 CD3D        INT       3D ;fwait 
+3563:0078 C3          RET         
+
+
+B$RNZP:   ; RANDOMIZE with specific seed.
+3563:0079 55          PUSH      BP  
+3563:007A 8BEC        MOV       BP,SP  
+3563:007C 8D5E0A      LEA       BX,WORD PTR [BP+0A]  
+3563:007F 8B07        MOV       AX,WORD PTR [BX]  
+3563:0081 334702      XOR       AX,WORD PTR [BX+02]  
+3563:0084 A38E03      MOV       WORD PTR [b$RndVar+0001 (038E)],AX  
+3563:0087 5D          POP       BP  
+3563:0088 CA0800      RETF      0008  
+
+
+B$RNZ0:   ; RANDOMIZE without specific seed.
+3563:008B 9AD0066335  CALL      B$TIMR               ; Call TIMER.
+3563:0090 93          XCHG      AX,BX                ; Put retval offset in BX.
+3563:0091 8B07        MOV       AX,WORD PTR [BX]  
+3563:0093 334702      XOR       AX,WORD PTR [BX+02]  
+3563:0096 A38E03      MOV       WORD PTR [b$RndVar+0001 (038E)],AX  
+3563:0099 CB          RETF        
+
+; That's all the ASM we should need...
+
+
+So at this point, we have: (C pointers are 16-bit (2 bytes))
+
+#include "StdBasic.h"
+
+typedef struct
+{
+    __byte h;
+    __byte l;
+} ByteRegisters;
+
+typedef union
+{
+    __integer X;
+    ByteRegisters H;
+} RegUnion;
+
+__long rndVar = 0x50000;
+
+RegUnion AX;
+RegUnion BX;
+RegUnion CX;
+RegUnion DX;
+
+
+void rnd0(__single *retVal)
+{
+    (void (*entryPoint)(void)) &&rndNextEntry();
+} /* rnd0 */
+
+
+void rnd1(__single *retVal, __integer operation)
+{
+    AX.X = operation;
+
+    if (AX.X == 0)
+        goto rndLastGen;
+    else if (AX.X > 0)
+        goto rndNextGen;
+
+    DX.X = (__integer) retVal;
+    DX.H.l += AX.H.h;
+
+    __addWithCarry(DX.H.h, 0h);   /* !!! */
+    __addWithCarry(AX.H.l, 0h);   /* !!! */
+
+    AX.H.h = 0;
+
+    ((__integer *) &seed)[0] = DX.X;    /* overwrite seed. */
+    ((__integer *) &seed)[1] = AX.X;
+
+rndNextGen:
+    (void (*entryPoint)(void)) &&rndNextEntry();
+    goto rndGetOut;
+
+rndLastGen:
+    (void (*entryPoint)(void)) &&rndLastEntry();
+
+rndGetOut:
+    return;
+
+rndNextEntry:
+    PUSH      DI                                ; Save DI; we need reg.
+    MOV       AX,WORD PTR [b$RndVar]            ; Move 1st word of seed to AX.
+    MOV       CX,WORD PTR [b$EightSpaces-000C]  ; Move ??? to CX.
+    MUL       CX                                ; Multiply that by AX.
+    XCHG      AX,DI                             ;
+    MOV       BX,DX  
+    MOV       AX,WORD PTR [b$RndVar+0002]  
+    MUL       CX  
+    ADD       BX,AX  
+    MOV       AX,WORD PTR [b$EightSpaces-000C]  
+    MUL       WORD PTR [b$RndVar]
+    ADD       BX,AX  
+    ADD       DI,WORD PTR [b$EightSpaces-0008]  
+    ADC       BL,BYTE PTR [b$EightSpaces-0008]  
+    XOR       BH,BH  
+    MOV       DX,DI  
+    MOV       WORD PTR [b$RndVar],DX  
+    MOV       WORD PTR [b$RndVar+0002],BX  
+    POP       DI  
+
+
+rndLastEntry:
+
+} /* rnd1 */
+
+
+void randomizeP(__single seed)
+{
+    char *globalSeed = ((char *) &rndVar) + 1;
+    union
+    {
+        __single single;
+        __integer integers[2];
+    } unionedSeed;
+
+    unionedSeed.single = seed;
+    unionedSeed.integers[0] ^= unionedSeed.integers[1];
+    *((__integer *) globalVar = unionedSeed.integers[0];
+} /* randomizeP */
+
+
+void randomize0(__void)
+{
+    randomizeP(TIMER());
+} /* randomize0 */
+
+
+That's all!
+
+(*yawn*)
+
+--ryan.
+
+
