@@ -163,11 +163,12 @@ generated code optimizations. Just wanted to point that out.
 
 Anyhow, the code:
 
-;
-; RND with no arguments is identical to RND(1) (or any value > 0).
-;  In fact, it calls right into the middle of the RND-with-argument
-;  version of the function.
-;
+        ;
+        ; RND with no arguments is identical to RND(1) (or any value > 0).
+        ;  In fact, it calls right into the middle of the RND-with-argument
+        ;  version of the function.
+        ;
+
 B$RND0:   ; RND with NO arguments.
 3563:0000 55             PUSH      BP                   ; Save base pointer.
 3563:0001 8BEC           MOV       BP,SP                ; setup new base.
@@ -176,17 +177,17 @@ B$RND0:   ; RND with NO arguments.
 3563:0007 CB             RETF                           ; return far.
 
 
-;
-; Qbasic help file on RND tells this about param's value:
-;        Less than 0                    The same number for any n#
-;        Greater than 0 (or omitted)    The next random number
-;        0                              The last number generated
-;
-; The stack after frame setup:      bp+8   1/2 of parameter (SINGLE).
-;                                   bp+6   1/2 of parameter (SINGLE).
-;                                   bp+4   return address segment.
-;                                   bp+2   return address offset.
-;                                   bp+0   prev base pointer
+        ;
+        ; Qbasic help file on RND tells this about param's value:
+        ;        Less than 0                    The same number for any n#
+        ;        Greater than 0 (or omitted)    The next random number
+        ;        0                              The last number generated
+        ;
+        ; The stack after frame setup:      bp+8   1/2 of parameter (SINGLE).
+        ;                                   bp+6   1/2 of parameter (SINGLE).
+        ;                                   bp+4   return address segment.
+        ;                                   bp+2   return address offset.
+        ;                                   bp+0   prev base pointer
 
 B$RND1:   ; RND with integer argument (the other RND just calls into here...)
 3563:0008 55          PUSH      BP                   ; Save base pointer.
@@ -194,7 +195,7 @@ B$RND1:   ; RND with integer argument (the other RND just calls into here...)
 3563:000B 8B4608      MOV       AX,WORD PTR [BP+08]  ; put param into AX.
 3563:000E 0BC0        OR        AX,AX                ; is it 0?
 3563:0010 741A        JZ        rndLastGen           ; yes? goto rndlastGen.
-3563:0012 7913        JNS       rndNextGen           ; if > 0, get next num.
+3563:0012 7913        JNS       rndNextGen           ; if !neg, get next num.
 
                                                      ; if here, param is < 0.
 3563:0014 8B5606      MOV       DX,WORD PTR [BP+06]  ; other half of arg->dx.
@@ -314,8 +315,8 @@ rndNextEntry:   ; Entry to next number in sequence generation algorithm...
         ;  integer format, once this is on the coprocessor stack, it
         ;  actually is 16777216.0 (or 0x1000000; it might as well be
         ;  an integer, but the coprocessor is probably faster and easier
-        ;  to code. This calculation is to make sure the next number in
-        ;  the sequence is always between 0.0 and 1.0.
+        ;  to code. This calculation is probably to make sure the next number
+        ;  in the sequence is always between 0.0 and 1.0.
         ;
         ; Remember that functions returning a floating point number return the
         ;  address in memory where you can find the real retval. 0x144
@@ -336,40 +337,42 @@ rndLastEntry:   ; Entry to last number in sequence generation algorithm...
 3563:0078 C3          RET         
 
 
-;
-; Qbasic help file on RANDOMIZE tells this about param's value:
-;
-;     Any type of numeric expression; used to initialize the
-;     random-number generator; if omitted, the value of the
-;      TIMER function is used.
-;
-; Where the comment is "stick in seed." below, the random seed is only
-;  partially overwritten. We stick 16 new bits into the middle of a block
-;  of 32.
-;
-; What happens is this: The argument is 8 bytes long, and we don't care that
-;  it's a DOUBLE so much as it is a collection of 64 bits. The bottom half of
-;  the parameter is thrown away, and the third word (16 bits) is XOR'd with
-;  the fourth. The new word produced by this XOR operation is then placed into
-;  the seed variable, at a one byte offset, which gives us a completely new
-;  set of bits, and is more or less suitable for reseeding the random number
-;  generator. The new seed then can be viewed as a SINGLE number again,
-;  instead of as a collection of 32 bits.
-;
-; Note that since we leave the first and last bytes of the seed "as-is", this
-;  function is not suitable for a complete resetting of the random number
-;  sequence. You need to use RND(x) where x < 0, or restart your program to
-;  get a consistent sequence from a value passed to this function. Yuck.
-;
-; The stack after frame setup:      bp+0C  1/4 of parameter (DOUBLE).
-;                                   bp+0A  1/4 of parameter (DOUBLE).
-;                                   bp+08  1/4 of parameter (DOUBLE).
-;                                   bp+06  1/4 of parameter (DOUBLE).
-;                                   bp+04  return address segment.
-;                                   bp+02  return address offset.
-;                                   bp+00  prev base pointer
-;
-
+        ;
+        ; Qbasic help file on RANDOMIZE tells this about param's value:
+        ;
+        ;     Any type of numeric expression; used to initialize the
+        ;     random-number generator; if omitted, the value of the
+        ;      TIMER function is used.
+        ;
+        ; Where the comment is "stick in seed." below, the random seed is only
+        ;  partially overwritten. We stick 16 new bits into the middle of a
+        ;  block of 32.
+        ;
+        ; What happens is this: The argument is 8 bytes long, and we don't
+        ;  care that it's a DOUBLE so much as it is a collection of 64 bits.
+        ;  The bottom half of the parameter is thrown away, and the third word
+        ;  (16 bits) is XOR'd with the fourth. The new word produced by this
+        ;  XOR operation is then placed into the seed variable, at a one byte
+        ;  offset, which gives us a completely new set of bits, and is more or
+        ;  less suitable for reseeding the random number generator. The new
+        ;  seed then can be viewed as a SINGLE number again, instead of as a
+        ;  collection of 32 bits.
+        ;
+        ; Note that since we leave the first and last bytes of the seed
+        ;  "as-is", this function is not suitable for a complete resetting of
+        ;  the random number sequence. You need to use RND(x) where x < 0, or
+        ;  restart your program to get a consistent sequence from a value
+        ;  passed to this function. Yuck.
+        ;
+        ; The stack after frame setup:      bp+0C  1/4 of parameter (DOUBLE).
+        ;                                   bp+0A  1/4 of parameter (DOUBLE).
+        ;                                   bp+08  1/4 of parameter (DOUBLE).
+        ;                                   bp+06  1/4 of parameter (DOUBLE).
+        ;                                   bp+04  return address segment.
+        ;                                   bp+02  return address offset.
+        ;                                   bp+00  prev base pointer
+        ;
+    
 B$RNZP:   ; RANDOMIZE with specific seed.
 3563:0079 55          PUSH      BP                          ; Save base ptr.
 3563:007A 8BEC        MOV       BP,SP                       ; Set new base.
@@ -381,19 +384,20 @@ B$RNZP:   ; RANDOMIZE with specific seed.
 3563:0088 CA0800      RETF      0008                        ; Return far.
 
 
-;
-; RANDOMIZE without an argument is more or less just shorthand for
-;  RANDOMIZE TIMER, and makes your code a few opcodes smaller, since it does
-;  the work inside the runtime library. So the code below does just that;
-;  CALLs B$TIMR (BASIC's TIMER function, not the statement version), takes the
-;  retval, and gives it the same XOR treatment as above. Note that TIMER
-;  returns a SINGLE, even though RANDOMIZE-with-an-argument needs a DOUBLE.
-;  This would explain why four bytes of the argument you pass to RANDOMIZE are
-;  thrown away; for compatibility with this (and probably legacy BASIC) code.
-;
-; The stack after frame setup:      bp+02  return address segment.
-; (there is no setup, really.)      bp+00  return address offset.
-;
+        ;
+        ; RANDOMIZE without an argument is more or less just shorthand for
+        ;  RANDOMIZE TIMER, and makes your code a few opcodes smaller, since
+        ;  it does the work inside the runtime library. So the code below
+        ;  does just that; CALLs B$TIMR (BASIC's TIMER function, not the
+        ;  statement version), takes the retval, and gives it the same XOR
+        ;  treatment as above. Note that TIMER returns a SINGLE, even though
+        ;  RANDOMIZE-with-an-argument needs a DOUBLE. This would explain why
+        ;  four bytes of the argument you pass to RANDOMIZE are thrown away;
+        ;  for compatibility with this (and probably legacy BASIC) code.
+        ;
+        ; The stack after frame setup:      bp+02  return address segment.
+        ; (there is no setup, really.)      bp+00  return address offset.
+        ;
 
 B$RNZ0:   ; RANDOMIZE without specific seed.
 3563:008B 9AD0066335  CALL      B$TIMR                      ; Call TIMER().
@@ -603,7 +607,7 @@ __single _vbf_timer(void);   /* need this for _vbp_randomize() .. */
     /* These are the (hopefully) constants in b$EightSpaces... */
 #define ENTROPY1 0x43FD                     // -000C
 #define ENTROPY2 0x9EC3                     // -0008
-#define ENTROPY3 0x195                      // just first char of -0008.
+#define ENTROPY3 0xC3                       // just first char of -0008.
 #define ENTROPY4 (__single) 0x1000000       // -0004  (dword)
 
     /* The psuedorandom seed. */
