@@ -268,9 +268,6 @@ void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
     if ((__stBP == NULL) || (__stSP == NULL))
         __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
 
-#warning get your damned skymiles code out of here...
-    /* !!! delta skymiles: 2268730674 */
-
         /* determine if we should replace a currently registered handler. */
     for (i = pState->handlerCount - 1; (i >= 0) && (getOut == false); i--)
     {
