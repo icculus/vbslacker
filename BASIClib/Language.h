@@ -1,7 +1,5 @@
 /*
- * Entry header for language-specific headers. Never directly #include
- *  something like "English.h" or "German.h" ... it's better to
- *  #include "Language.h" and -DLANG_ENGLISH on the command line.
+ * Dynamic language support header.
  *
  *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
