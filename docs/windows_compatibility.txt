@@ -38,7 +38,7 @@ FILE SYSTEM AND FILE I/O:
 
   Of course, that sounds good on paper.
 
-  Java has it easy, since they could warn their programmers not to embed
+  Java has it easy, since Sun could warn their programmers not to embed
    filenames right from the start; they supply an interface to abstract
    filename entry and output, so it works the same on any interface.
 
@@ -47,7 +47,7 @@ FILE SYSTEM AND FILE I/O:
    expects to be able to find those path characters and filenames in
    return values.
 
-  If nothing else, they ARE going to expect a drive letter...
+  If nothing else, all that legacy code IS going to expect a drive letter...
 
   So here's what I think: First, the programmer should be encouraged,
    whether using vbSlacker or regular ol' VB or VisualAge for BASIC, or
@@ -57,18 +57,19 @@ FILE SYSTEM AND FILE I/O:
    dialogs, or be user-specified at all times through input or config
    files or whatnot. Things like curdir$() and curdrive$() should be
    avoided like the plague, as you should never concern yourself with
-   what the current working directory is.
+   the current working directory.
 
   Failing that...
 
   APIs that accept filenames (KILL, OPEN, NAME, etc...) will always accept
-   both Windows-like filenames and unix-like filenames. On Unix-like systems,
-   the drive letter (if specified) must be "C:" or a runtime error is
-   thrown (this is okay for legacy code...after all, on Windows, if I don't
-   have a "D:" and try to access it, you can expect an error. Therefore Linux
-   and friends have, as far as the vbSlacker process is concerned, only a
-   "C:" drive. There is no "A:" and "B:" drives, which is still plausible
-   under Windows. The "\" characters in a path are converted to "/".
+   both Windows-like filenames and unix-like filenames. On Unix-like and
+   Macintosh systems, the drive letter (if specified) must be "C:" or a
+   runtime error is thrown (this is okay for legacy code...after all, on
+   Windows, if I don't have a "D:" and try to access it, you can expect an
+   error. Therefore Linux and friends have, as far as the vbSlacker
+   process is concerned, only a "C:" drive. There are no "A:" and "B:"\ 
+   drives, which is still plausible under Windows. The "\" characters in a
+   path are converted to "/".
 
   If the "ignore filename case" runtime option is NOT set, case will still
    be significant. If set, anything that must access files will access the
@@ -103,10 +104,17 @@ FILE SYSTEM AND FILE I/O:
 
   Things that expect various file attributes are treated differently:
 
+    (On win32 and OS/2, these are just checked against the various flags
+     inherent in the file system. Other platform differences are noted
+     below.)
+
     vbNormal    : same as always.
     vbReadOnly  : The file is checked to see if the process does NOT
                    have permission to write to the file.
-    vbHidden    : ignored. There is no such thing as a "hidden" file.
+    vbHidden    : On unix-based systems, files starting with '.' are
+                   considered to be "hidden." On MacOS, no files ever
+                   match this attribute, since there is no such thing
+                   as a "hidden" file on MacOS. !!! is this wrong? 
     vbSystem    : ignored. There is no such thing as a "system" file.
     vbVolume    : ignored. There is no such thing as a "volume" file.
     vbDirectory : same as always.
