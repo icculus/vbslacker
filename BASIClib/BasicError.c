@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <string.h>
 #include "BasicError.h"
 
@@ -142,7 +141,7 @@ void __initThreadBasicError(__integer tidx)
 
 
 
-char *__findErrorString(__long errorNumber)
+static const char *__findErrorString(__long errorNumber)
 /*
  * Get the ASCIZ error message related to a specific runtime error number.
  * Returned value is the original. Do not modify or free!
@@ -162,12 +161,12 @@ char *__findErrorString(__long errorNumber)
     for (i = 0; i < max; i++)
     {
         if (errorNumber == (__long) errMsgTable[i].errNum)
-            return(__BASIClibStrings[errMsgTable[i].strIndex]);
+            return(__getLanguageString(errMsgTable[i].strIndex));
     } /* for */
 
         // !!! the above search could be made more efficient.
 
-    return(__BASIClibStrings[(__BASIClibStringIndex) STR_UNKNOWN_ERR]);
+    return(__getLanguageString((__BASIClibStringIndex) STR_UNKNOWN_ERR));
 } /* __findErrorString */
 
 
@@ -450,8 +449,7 @@ static void __defaultRuntimeErrorHandler(__long bErr)
 {
     char numeric[20];
     char consDriverName[25];
-    char *errStr = __findErrorString(bErr);
-    char *introMsg = __BASIClibStrings[STR_UNHANDLED_RT_ERROR];
+    const char *errStr = __findErrorString(bErr);
 
     sprintf(numeric, "(#%ld)", bErr);
 
@@ -465,7 +463,7 @@ static void __defaultRuntimeErrorHandler(__long bErr)
             __printNewLine();
             __printNewLine();
             __printAsciz("***");
-            __printAsciz(introMsg);
+            __printAsciz(__getLanguageString(STR_UNHANDLED_RT_ERROR));
             __printAsciz("***");
             __printNewLine();
             __printAsciz("  \"");
@@ -474,6 +472,8 @@ static void __defaultRuntimeErrorHandler(__long bErr)
             __printAsciz(numeric);
             __printNewLine();
             __printNewLine();
+
+#warning need keyboard i/o functions!
             sleep(3);  /* !!! this is temporary. Need to hit a key... */
         } /* if */
     } /* else */
@@ -494,9 +494,14 @@ static void __preInitRuntimeError(__long errorNum)
  *    returns : void.
  */
 {
-    fprintf(stderr,
-            "\n\nInit error (#%ld) has been thrown. Aborting...\n\n",
-            errorNum);
+    const char *errStr = __findErrorString(errorNum);
+
+    fprintf(stderr, "\n\nInit error (#%ld) has been thrown.\n", errorNum);
+
+    if (errStr != NULL)
+        fprintf(stderr, "  \"%s\"\n", errStr);
+
+    fprintf(stderr, "Aborting...\n\n");
     exit(0);
 } /* __preInitRuntimeError */
 
