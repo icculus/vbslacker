@@ -5,7 +5,7 @@ W32DIR = ./platform/win32
 LIBBASE = libBASIC
 LIBWHOLE = $(LIBBASE)$(MAJORVER)$(MINORVER).a
 
-OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
+OBJS = BasicString.o ConversionFunctions.o Initialize.o \
        ErrorFunctions.o MathFunctions.o MemoryManager.o Threads.o \
        TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
        StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
@@ -45,9 +45,6 @@ ConversionFunctions.o : ConversionFunctions.c ConversionFunctions.h
 
 Initialize.o : Initialize.c Initialize.h
 	$(CC) $(COPTIONS) Initialize.o Initialize.c
-
-OnEvents.o : OnEvents.c OnEvents.h
-	$(CC) $(COPTIONS) OnEvents.o OnEvents.c
 
 Gosub.o : Gosub.c Gosub.h
 	$(CC) $(COPTIONS) Gosub.o Gosub.c
@@ -111,7 +108,7 @@ ProcessFunctions.o : ProcessFunctions.c ProcessFunctions.h
 FileSystemFunctions.o : FileSystemFunctions.c FileSystemFunctions.h
 	$(CC) $(COPTIONS) FileSystemFunctions.o FileSystemFunctions.c
 
-Variant.o : Variant.c Variant.h Boolean.h
+Variant.o : Variant.c Variant.h
 	$(CC) $(COPTIONS) Variant.o Variant.c
 
 BasicError.o : BasicError.c BasicError.h
