@@ -10,8 +10,8 @@
 #include "BasicFileStream.h"
 
 /*** Private variables ***/
-#define MAX_FILE_HANDLES    512
-static __PBasicFileStream __fileNumbers[MAX_FILE_HANDLES];
+                                    /* We're 1-based...so add one */
+static __PBasicFileStream __fileNumbers[MAX_FILE_HANDLES + 1];
 
 /*** File stream functions ***/
 boolean __invalidFileNumber(short fileNumber)
@@ -107,6 +107,7 @@ void __initBasicFileStream(void)
  */
 {
                                     /* Reset entire array to NULL pointers */
-    memset(__fileNumbers, 0, MAX_FILE_HANDLES * sizeof(__PBasicFileStream));
+                                    /* Compensate for 1-based array also. */
+    memset(__fileNumbers, 0, (MAX_FILE_HANDLES + 1) * sizeof(__PBasicFileStream));
 }
 /*** End File stream functions ***/

@@ -10,6 +10,8 @@
 #ifndef _INCLUDE_BASICFILESTREAM_H_
 #define _INCLUDE_BASICFILESTREAM_H_
 
+#define MAX_FILE_HANDLES    511
+
 typedef struct
 {
 	PBasicString	pathName;

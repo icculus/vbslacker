@@ -36,7 +36,7 @@ typedef enum
 } FileLockEnum;
 
 /*** Function Declarations ***/
-void VBclose_Params(short firstFileHandle, ...);
+void VBclose_Params(short handleCount, short firstFileHandle, ...);
 void VBclose_NoParams(void);
 void VBopen_NoAccess_NoLock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
 									 short fileNumber);
