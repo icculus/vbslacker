@@ -1,0 +1,10 @@
+SRCS = BasicString.c ConversionFunctions.c Initialize.c \
+       ErrorFunctions.c MathFunctions.c MemoryManager.c Threads.c \
+       TimeDateFunctions.c BasicFileSystem.c \
+       StringFunctions.c LowLevelFunctions.c SignalHandlers.c \
+       ConsoleFunctions.c ProcessFunctions.c FileSystemFunctions.c \
+       Variant.c BasicError.c EnvrFunctions.c Gosub.c \
+       MiscFunctions.c ArrayFunctions.c GUIFrontEnd.c \
+       RegistryFunctions.c Language.c DynamicLoader.c \
+       RandomFunctions.c FileIOFunctions.c BasicConsole.c
+
