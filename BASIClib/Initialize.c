@@ -28,8 +28,7 @@ void __initBasicLib(STATEPARAMS, long flags, int argc, char **argv)
 
         __initMemoryManager(STATEARGS);
         __initSignalHandlers(STATEARGS);
-        __initErrorFunctions(STATEARGS);
-        __initOnEvents(STATEARGS);
+        __initBasicError(STATEARGS);
         __initConsoleFunctions(STATEARGS);
         __initEnvrFunctions(STATEARGS, argc, argv);
         __initTimeDateFunctions(STATEARGS);
@@ -55,7 +54,7 @@ void __deinitBasicLib(void)
         __deinitEnvrFunctions(NULLSTATEARGS);
         __deinitThreads(NULLSTATEARGS);
         __deinitConsoleFunctions(NULLSTATEARGS);
-        __deinitOnEvents(NULLSTATEARGS);
+        __deinitBasicError(NULLSTATEARGS);
         __deinitMemoryManager(NULLSTATEARGS);
         initialized = false;
     } /* if */
@@ -73,7 +72,7 @@ void __initThread(STATEPARAMS, int tidx)
  */
 {
     __initThreadMemoryManager(STATEARGS, tidx);
-    __initThreadOnEvents(STATEARGS, tidx);
+    __initThreadBasicError(STATEARGS, tidx);
 } /* __initThread */
 
 
@@ -87,7 +86,6 @@ void __deinitThread(STATEPARAMS, int tidx)
  *   returns : void.
  */
 {
-    __deinitThreadOnEvents(STATEARGS, tidx);
     __deinitThreadMemoryManager(STATEARGS, tidx);
 } /* __deinitThread */
 
