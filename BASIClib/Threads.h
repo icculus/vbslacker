@@ -33,14 +33,14 @@
             typedef unsigned long ThreadLock;
             typedef ThreadLock *PThreadLock;
 
-#           define __terminateCurrentThread     vbp_end()
+#           define __terminateCurrentThread()   vbp_end()
 #           define __terminateThread(tidx)
 #           define __waitForThreadToDie(tidx)
-#           define __spinThread(fn, args)      -1
-#           define __getThreadCount             1
-#           define __getHighestThreadIndex      0
-#           define __getCurrentThreadIndex      0
-#           define __threadTimeslice
+#           define __spinThread(fn, args)       -1
+#           define __getThreadCount()           1
+#           define __getHighestThreadIndex()    0
+#           define __getCurrentThreadIndex()    0
+#           define __threadTimeslice()
 #           define __createThreadLock(pLock)    *(pLock) = 0
 #           define __destroyThreadLock(pLock)
 #           define __obtainThreadLock(pLock)
@@ -66,14 +66,14 @@
             void __obtainThreadLock_f(PThreadLock pThreadLock);
             void __releaseThreadLock_f(PThreadLock pThreadLock);
 
-#           define __terminateCurrentThread    __terminateCurrentThread_f()
+#           define __terminateCurrentThread()  __terminateCurrentThread_f()
 #           define __terminateThread(tidx)     __terminateThread_f(tidx)
 #           define __waitForThreadToDie(tidx)  __waitForThreadToDie_f(tidx)
 #           define __spinThread(fn, args)      __spinThread_f(fn, args)
-#           define __getThreadCount            __getThreadCount_f()
-#           define __getHighestThreadIndex     __getHighestThreadIndex_f()
-#           define __getCurrentThreadIndex     __getCurrentThreadIndex_f()
-#           define __threadTimeslice           __threadTimeslice_f()
+#           define __getThreadCount()          __getThreadCount_f()
+#           define __getHighestThreadIndex()   __getHighestThreadIndex_f()
+#           define __getCurrentThreadIndex()   __getCurrentThreadIndex_f()
+#           define __threadTimeslice()         __threadTimeslice_f()
 #           define __createThreadLock(pLock)   __createThreadLock_f(pLock)
 #           define __destroyThreadLock(pLock)  __destroyThreadLock_f(pLock)
 #           define __obtainThreadLock(pLock)   __obtainThreadLock_f(pLock)
