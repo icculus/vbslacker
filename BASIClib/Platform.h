@@ -84,6 +84,7 @@ extern "C" {
         #define __EOL_STRING        "\n"
         #define __PATHCHAR          '/'
         #define __CURRENTDIRSTR     "."
+        #define __NODRIVELETTERS
         typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
@@ -102,6 +103,7 @@ extern "C" {
         #define __EOL_STRING        "\n"
         #define __PATHCHAR          '/'
         #define __CURRENTDIRSTR     "."
+        #define __NODRIVELETTERS
         typedef short __boolean;
         typedef unsigned char __byte;
         typedef short  __integer;
