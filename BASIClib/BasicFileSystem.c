@@ -7,6 +7,8 @@
  */
 
 #include <sys/stat.h>
+#define __VBUNIXDIRDEFINED__
+#include "StdBasic.h"
 
 __byte __getCurrentDriveLetter(void)
 /*
@@ -415,6 +417,26 @@ void __parseDir(__byte *dirToParse, DIR **dirInfo,
     if (fileName != NULL)
         *fileName = retValFileName;
 } /* __parseDir */
+
+
+void __registerFileHandle(__byte *filename, __integer handle)
+{
+} /* __registerFileHandle */
+
+
+void __deregisterFileHandle(__byte *filename, __integer handle)
+{
+} /* __deregisterFileHandle */
+
+
+__integer __searchForFileHandle(__integer handle)
+{
+} /* __searchForFileHandle */
+
+
+__integer __searchForFileHandleByName(__byte *filename)
+{
+} /* __searchForFileHandleByName */
 
 
 /* end of BasicFileSystem.c ... */
