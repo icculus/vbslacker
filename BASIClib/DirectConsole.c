@@ -5,8 +5,6 @@
  *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
-#warning DirectConsole.c needs ThreadLocks!
-
 #include <ctype.h>
 #include <string.h>
 #include <fcntl.h>
@@ -24,6 +22,8 @@ static unsigned char columns = 0;
 static int winTop = 0;
 static int winBottom = 0;
 
+static ThreadLock consoleLock;
+
 
 #ifdef LINUX   /* Completely non-portable Linux-specific support. */
 
@@ -31,26 +31,45 @@ static int cons = -1;   /* file handle of /dev/vcsa? device... */
 static unsigned char curColor = 7;
 
 #define __xyToConsoleMatrix(x, y)  ((((columns * 2) * y) + (x * 2)) + 4)
+#define __consoleMatrixToX(pos) ((pos - 4) % (columns * 2))
+#define __consoleMatrixToY(pos) ((pos - 4) / (columns * 2))
 
-static void __setConsoleXY(unsigned char _x, unsigned char _y)
+
+static void __setCursorXY(STATEPARAMS, unsigned char _x, unsigned char _y)
+/*
+ * update our cursor position variables, and /dev/vcsa?'s records.
+ *
+ *      params : _x, _y == new cursor position.
+ *     returns : void.
+ */
 {
     unsigned char buf[2] = {_x, _y};
 
     x = _x;
     y = _y;
 
+    __obtainThreadLock(STATEARGS, &consoleLock);
     lseek(cons, 2, SEEK_SET);   /* position in /dev/vcsa? of X cursor. */
     write(cons, buf, 2);        /* update the cursor. */
-} /* __setConsoleXY */
+    __releaseThreadLock(STATEARGS, &consoleLock);
+} /* __setCursorXY */
 
 
 static void __scrollConsole(STATEPARAMS)
+/*
+ * Move all but the top line of the printable window up one line, and
+ *  blank the bottom line.
+ *
+ *    params : void.
+ *   returns : void.
+ */
 {
     int columnBytes = columns * 2;
     int scrollStart = winTop + (columnBytes);
     int bufSize = winBottom - scrollStart;
     char scrollBuf[bufSize];
     char blankBuf[columnBytes];
+    int i;
 
     for (i = 0; i < columnBytes; i += 2)
     {
@@ -58,12 +77,14 @@ static void __scrollConsole(STATEPARAMS)
         blankBuf[i + 1] = ' ';
     } /* for */
 
+    __obtainThreadLock(STATEARGS, &consoleLock);
     lseek(cons, scrollStart, SEEK_SET); /* read the console. */
     read(cons, scrollBuf, bufSize);
 
     lseek(cons, winTop, SEEK_SET);  /* copy it back, one line higher... */
     write(cons, scrollBuf, bufSize);
     write(cons, blankBuf, columnBytes);  /* fill last line with spaces... */
+    __releaseThreadLock(STATEARGS, &consoleLock);
 } /* __scrollConsole */
 
 
@@ -96,6 +117,7 @@ static int __cons_openConsole(STATEPARAMS)
                 } /* if */
                 else
                 {
+                    __createThreadLock(STATEARGS, &consoleLock);
                     lines = (int) br[0];
                     columns = (int) br[1];
                     x = (int) br[2];
@@ -113,59 +135,78 @@ static int __cons_openConsole(STATEPARAMS)
 
 
 static void __cons_deinitConsoleHandler(STATEPARAMS)
+/*
+ * Move the cursor to the start of the next line, and close the console
+ *  device.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
     if (cons != -1)
     {
-        __setCursorXY(0, y + 1);
+        __obtainThreadLock(STATEARGS, &consoleLock);
+        __setCursorXY(STATEARGS, 0, y + 1);
         close(cons);
+        __releaseThreadLock(STATEARGS, &consoleLock);
+        __destroyThreadLock(STATEARGS, &consoleLock);
     } /* if */
 } /* __cons_deinitConsole */
 
 
 static void __cons_vbpS_print(STATEPARAMS, PBasicString pStr)
+/*
+ * Write a string to the printable window, scrolling if needed, and
+ *  moving the cursor to the new position.
+ *
+ *   params : pStr == BASIC string to write.
+ *  returns : void.
+ */
 {
+/*
     int max = pStr->length * 2;
-    char data[max * 2];
+    char data[max];
     int i;
     int n;
     int seekpos = __xyToConsoleMatrix(x, y);
     int bw = 0;
     int bytesInRow = columns * 2;
+*/
+    
 
-    for (i = n = 0; i < max; i++, n += 2)
-    {
-        data[n]     = curColor;
-        data[n + 1] = pStr->data[i];
-    } /* for */
 
-    max *= 2;  /* actual byte count to write. */
-
-    lseek(cons, seekpos, SEEK_SET);  /* seek to first write position. */
-    bw = bottomRow - seekpos;   /* first write: to bottom of window. */
-    if (bw > max)               /* won't touch bottom? */
-    {
-        bw = max;
-        x = __consoleMatrixToX(seekpos + max);
-        y = __consoleMatrixToY(seekpos + max);
-    } /* if */
-    else
-        y = lines;
-
-    write(cons, data, bw);
-
-    while (bw < max)        /* until all is written. */
-    {
-        __scrollConsole(STATEARGS);
-        x = min(bytesInRow, max - bw);
-        write(cons, data + bw, x);
-        bw += x;
-    } /* while */
-
-    __setConsoleXY(x, y);
 } /* __cons_vbpS_print */
 
 
+static void __cons_printNewLine(STATEPARAMS)
+/*
+ * Move the cursor down to the start of the next line. Scroll if necessary.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+    x = 0;
+    y++;
+
+    if (__xyToConsoleMatrix(x, y) > winBottom)
+    {
+        y--;
+        __scrollConsole(STATEARGS);
+        __setCursorXY(STATEARGS, x, y);
+    } /* if */
+} /* __cons_printNewLine */
+
+
 static void __cons_vbp_cls(STATEPARAMS)
+/*
+ * Clear the current printable window. The window will be blanked of
+ *  characters, and set to the background color. The cursor is moved to
+ *  the upper-left hand corner of the printable window.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
     int max = winBottom - winTop;
     unsigned char buffer[max];
@@ -177,14 +218,24 @@ static void __cons_vbp_cls(STATEPARAMS)
         buffer[i + 1] = ' ';
     } /* for */
 
+    __obtainThreadLock(STATEARGS, &consoleLock);
     lseek(cons, winTop, SEEK_SET);
     write(cons, buffer, max);
-
-    __setConsoleXY(__consoleMatrixToX(winTop), __consoleMatrixToY(winTop));
+    __setCursorXY(STATEARGS, __consoleMatrixToX(winTop),
+                   __consoleMatrixToY(winTop));
+    __releaseThreadLock(STATEARGS, &consoleLock);
 } /* __cons_vbp_cls */
 
 
 static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
+/*
+ * Set a new printing color.
+ *
+ *    params : fore == new foreground color of text.
+ *             back == new background color of text.
+ *             bord == ignored, screen border color.
+ *   returns : void.
+ */
 {
 } /* __cons_vbpiii_color */
 
@@ -197,26 +248,47 @@ static void __cons_deinitConsoleHandler(STATEPARAMS) {}
 static void __cons_vbpS_print(STATEPARAMS, PBasicString pStr) {}
 static void __cons_vbp_cls(STATEPARAMS) {}
 static void __cons_vbpiii_color(STATEPARAMS, int fore, int back, int bord) {}
+static void __cons_printNewLine(STATEPARAMS) {}
 #endif
 
 static void __cons_vbpii_viewPrint(STATEPARAMS, int top, int bottom)
+/*
+ * Set console lines (top) to (bottom) as the printable window.
+ *
+ *     params : top    == highest line, option base 1.
+ *              bottom == lowest line, option base 1.
+ *    returns : void.
+ */
 {
-    if ( (top < 0) || (bottom < top) || (bottomRow > (lines + 1)) )
+    top--;      /* Make parameters option base 0. */
+    bottom--;
+
+    if ( (top < 0) || (bottom < top) || (bottom > lines) )
         __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
-        __setConsoleXY(0, top);
+        __obtainThreadLock(STATEARGS, &consoleLock);
         winTop = __xyToConsoleMatrix(0, top);
         winBottom = __xyToConsoleMatrix(columns, bottom);
+        __setCursorXY(STATEARGS, 0, top);
+        __releaseThreadLock(STATEARGS, &consoleLock);
     } /* else */
 } /* __cons_vbpii_viewPrint */
 
 
 static void __cons_vbp_viewPrint(STATEPARAMS)
+/*
+ * Set the whole console window printable.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
-    __setConsoleXY(0, 0);
+    __obtainThreadLock(STATEARGS, &consoleLock);
     winTop = __xyToConsoleMatrix(0, 0);
     winBottom = __xyToConsoleMatrix(columns, lines);
+    __setCursorXY(STATEARGS, 0, 0);
+    __releaseThreadLock(STATEARGS, &consoleLock);
 } /* __cons_vbp_viewPrint */
 
 
@@ -233,7 +305,7 @@ static int __cons_vbi_csrline(STATEPARAMS)
 } /* __cons_vbi_csrline */
 
 
-static int __cons_vbiA_pos(STATEPARAMS, void *pVar)
+static int __cons_vbia_pos(STATEPARAMS, void *pVar)
 /*
  * Return current cursor column.
  *
@@ -242,7 +314,7 @@ static int __cons_vbiA_pos(STATEPARAMS, void *pVar)
  */
 {
     return(x);
-} /* __cons_vbiA_pos */
+} /* __cons_vbia_pos */
 
 
 static void __cons_vbpil_color(STATEPARAMS, int fore, long feh)
@@ -266,6 +338,14 @@ static void __cons_vbpi_color(STATEPARAMS, int fore)
 
 
 static void __cons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+/*
+ * (Getting rather object-oriented...) copy the name of this console
+ *  handler to a buffer.
+ *
+ *      params : buffer == allocated buffer to copy name to.
+ *               size   == maximum bytes to copy to buffer.
+ *     returns : void.
+ */
 {
     strncpy(buffer, "DirectConsole", size);
 } /* __cons_getConsoleHandlerName */
@@ -285,17 +365,20 @@ boolean __initDirectConsole(STATEPARAMS)
     {
         __deinitConsoleHandler = __cons_deinitConsoleHandler;
         __getConsoleHandlerName = __cons_getConsoleHandlerName;
+        __printNewLine = __cons_printNewLine;
         vbpS_print = __cons_vbpS_print;
         vbpii_viewPrint = __cons_vbpii_viewPrint;
-        vbp_viewPrint = __cons_vbpii_viewPrint;
+        vbp_viewPrint = __cons_vbp_viewPrint;
         vbp_cls = __cons_vbp_cls;
         vbi_csrline = __cons_vbi_csrline;
-        vbiA_pos = __cons_vbiA_pos;
+        vbia_pos = __cons_vbia_pos;
         vbpiii_color = __cons_vbpiii_color;
         vbpil_color = __cons_vbpil_color;
         vbpi_color = __cons_vbpi_color;
         retVal = true;
     } /* if */
+
+    return(retVal);
 } /* __initDirectConsole */
 
 /* end of DirectConsole.c ... */

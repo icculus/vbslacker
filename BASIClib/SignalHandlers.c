@@ -4,9 +4,10 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdio.h>  /* !!! remove this when signal handlers are written! */
 #include <signal.h>
 
-#warning Get around to writing the signal handlers!
+#warning Get around to writing the signal handlers
 
 static void __sigintHandler(int sig)
 {

@@ -4,6 +4,7 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <string.h>
 #include "BasicError.h"
 
 
@@ -19,7 +20,7 @@
 int basicErrno = ERR_NO_ERROR;
 int __basicErrno = ERR_NO_ERROR;
 
-static char **errStrings[MAX_ERRS];
+static char *errStrings[MAX_ERRS];
 
 void __initErrorFunctions(STATEPARAMS)
 /*
@@ -78,7 +79,7 @@ void __initErrorFunctions(STATEPARAMS)
     errStrings[ERR_DEVICE_UNAVAILABLE] = STR_DEVICE_UNAVAILABLE;
     errStrings[ERR_COMMUNICATION_BUFFER_OVERFLOW] =
                STR_COMMUNICATION_BUFFER_OVERFLOW;
-    errStrings[ERR_PERMISSION_DENIED] = STR_ERR_PERMISSION_DENIED;
+    errStrings[ERR_PERMISSION_DENIED] = STR_PERMISSION_DENIED;
     errStrings[ERR_DISK_NOT_READY] = STR_DISK_NOT_READY;
     errStrings[ERR_DISK_MEDIA_ERROR] = STR_DISK_MEDIA_ERROR;
     errStrings[ERR_FEATURE_UNAVAILABLE] = STR_FEATURE_UNAVAILABLE;

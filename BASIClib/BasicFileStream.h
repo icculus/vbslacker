@@ -13,10 +13,8 @@
 #ifndef _INCLUDE_BASICFILESTREAM_H_
 #define _INCLUDE_BASICFILESTREAM_H_
 
-#include "Boolean.h"
-#include "BasicString.h"
-#include "FileIOFunctions.h"
-#include "RegState.h"
+#include "FileIOFunctions.h"  /* !!! temp !!! */
+
 
 #define MAX_FILE_HANDLES    511
 

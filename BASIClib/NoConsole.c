@@ -5,6 +5,7 @@
  *    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <string.h>
 #include "ConsoleFunctions.h"
 #include "NoConsole.h"
 
@@ -14,6 +15,11 @@ static void __nocons_vbpS_print(STATEPARAMS, PBasicString x)
 {
     __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpS_print */
+
+static void __nocons_printNewLine(STATEPARAMS)
+{
+    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+} /* __nocons_printNewLine */
 
 static void __nocons_vbpii_viewPrint(STATEPARAMS, int top, int bottom)
 {
@@ -33,12 +39,14 @@ static void __nocons_vbp_cls(STATEPARAMS)
 static int __nocons_vbi_csrline(STATEPARAMS)
 {
     __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+    return(0);  /* never hits this. */
 } /* __nocons_vbi_csrline */
 
-static int  __nocons_vbiA_pos(STATEPARAMS, void *pVar)
+static int  __nocons_vbia_pos(STATEPARAMS, void *pVar)
 {
     __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
-} /* __nocons_vbiA_pos */
+    return(0);  /* never hits this. */
+} /* __nocons_vbia_pos */
 
 static void __nocons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
 {
@@ -55,12 +63,18 @@ static void __nocons_vbpi_color(STATEPARAMS, int fore)
     __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpi_color */
 
-
 static void __nocons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+/*
+ * (Getting rather object-oriented...) copy the name of this console
+ *  handler to a buffer.
+ *
+ *      params : buffer == allocated buffer to copy name to.
+ *               size   == maximum bytes to copy to buffer.
+ *     returns : void.
+ */
 {
     strncpy(buffer, "NoConsole", size);
 } /* __nocons_getConsoleHandlerName */
-
 
 boolean __initNoConsole(STATEPARAMS)
 /*
@@ -77,12 +91,13 @@ boolean __initNoConsole(STATEPARAMS)
     {
         __getConsoleHandlerName = __nocons_getConsoleHandlerName;
         __deinitConsoleHandler = __nocons_deinitConsoleHandler;
+        __printNewLine = __nocons_printNewLine;
         vbpS_print = __nocons_vbpS_print;
-        vbpii_ViewPrint = __nocons_vbpii_ViewPrint;
-        vbp_ViewPrint = __nocons_vbpii_ViewPrint;
+        vbpii_viewPrint = __nocons_vbpii_viewPrint;
+        vbp_viewPrint = __nocons_vbp_viewPrint;
         vbp_cls = __nocons_vbp_cls;
         vbi_csrline = __nocons_vbi_csrline;
-        vbiA_pos = __nocons_vbiA_pos;
+        vbia_pos = __nocons_vbia_pos;
         vbpiii_color = __nocons_vbpiii_color;
         vbpil_color = __nocons_vbpil_color;
         vbpi_color = __nocons_vbpi_color;
