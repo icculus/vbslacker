@@ -9,8 +9,16 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void vbp_clear(void);
 void vbpNNl_clear(__long stackSize);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_MISCFUNCTIONS_H_ */
 

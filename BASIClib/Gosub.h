@@ -13,6 +13,10 @@
 #ifndef _INCLUDE_GOSUB_H_
 #define _INCLUDE_GOSUB_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     void **addrs;
@@ -35,6 +39,10 @@ void *__prepareReturn(__PGosubState state);
 
 #define __doReturnLabel(label) __prepareReturn(&__gosub); \
                                __jumpLabel(label);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* defined _INCLUDE_GOSUB_H_ */
 #endif /* defined _INCLUDE_STDBASIC_H_ */

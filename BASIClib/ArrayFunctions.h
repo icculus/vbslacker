@@ -9,9 +9,17 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void vbpAn_erase(__PBasicArray array);
 int vbiAi_lbound(__PBasicArray array, int dimension);
 int vbiAi_ubound(__PBasicArray array, int dimension);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_ARRAYFUNCTIONS_H_ */
 

@@ -9,6 +9,10 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void (*__getConsoleHandlerName)(char *buf, int size);
 extern void (*__deinitConsoleHandler)(void);
 extern void (*__printNewLine)(void);
@@ -28,6 +32,10 @@ void __deinitConsoleFunctions(void);
 void vbpV_print(PVariant pVar);
 void vbpS_print(PBasicString str);
 void __printAsciz(char *str);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_CONSOLEFUNCTIONS_H_ */
 

@@ -9,6 +9,10 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void __initEnvrFunctions(int argc, char **argv);
 void __deinitEnvrFunctions(void);
 void vbpS_chdir(PBasicString newDir);
@@ -20,6 +24,10 @@ void vbpS_environ(PBasicString newEnvrStr);
 int vbii_fre(int arg);
 int vbiS_fre(PBasicString strExp);
 PBasicString vbS_command_DC_(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _INCLUDE_ENVRFUNCTIONS_H_ */
 

@@ -13,6 +13,10 @@
 #ifndef _INCLUDE_INITIALIZE_H_
 #define _INCLUDE_INITIALIZE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define INITFLAG_NO_FLAGS              0
 #define INITFLAG_NOT_INITIALIZED       0
 #define INITFLAG_DISABLE_RANGE_CHECKS  1
@@ -27,6 +31,10 @@ void __deinitBasicLib(void);
 long __getInitFlags();
 void __shellOutNotification();
 void __shellRetNotification();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_INITIALIZE_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

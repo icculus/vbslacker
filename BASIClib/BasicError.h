@@ -10,9 +10,12 @@
 
 #else
 
-
 #ifndef _INCLUDE_BASICERROR_H_
 #define _INCLUDE_BASICERROR_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * Runtime error codes. Some of these aren't applicable, but have been
@@ -147,6 +150,10 @@ int __getBasicErrno(void);
 
 #define __insertResumeNextHandler(label)  __insertLineLabel(label); \
                                           __resumeNext
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _INCLUDE_BASICERROR_H_ */
 #endif  /* _INCLUDE_STDBASIC_H_   */

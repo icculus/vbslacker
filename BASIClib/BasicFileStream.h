@@ -15,6 +15,9 @@
 
 #include "FileIOFunctions.h"  /* !!! temp !!! */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MAX_FILE_HANDLES    511
 
@@ -36,6 +39,10 @@ __boolean __deleteFileStream(short fileNumber);
 void __initBasicFileStream(void);
 __boolean __invalidFileNumber(short fileNumber);
 __PBasicFileStream __createFileStream(short fileNumber);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 #endif

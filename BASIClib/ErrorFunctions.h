@@ -9,11 +9,19 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int vbi_err(void);
 void vbpi_error(int newErr);
 int vbi_erl(void);
 int vbi_erdev(void);
 PBasicString vbS_erdev_DC_(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_ERRORFUNCTIONS_H_ */
 

@@ -54,6 +54,10 @@
 #ifndef _INCLUDE_PLATFORM_H_
 #define _INCLUDE_PLATFORM_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
     /* just in case... */
 #if (defined __GNUG__) && (!defined __GNUC__)
 #   define __GNUC___
@@ -134,6 +138,10 @@
         #error  -DWIN32_I386
 
     #endif /* defined platform */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_PLATFORM_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

@@ -9,7 +9,15 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 __boolean __initCursesConsole(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -11,6 +11,10 @@
 #   ifndef _INCLUDE_ASSEMBLER_H_
 #       define _INCLUDE_ASSEMBLER_H_
 
+#       ifdef __cplusplus
+            extern "C" {
+#       endif
+
 #       define _INCLUDING_LOCAL_ASM_CODE_
 
 #       if (defined __GNUC__)
@@ -37,6 +41,9 @@
 #           error No ASM written for this platform/compiler, yet...
 #       endif /* defined ___NOASM___ */
 
+#       ifdef __cplusplus
+            }
+#       endif
 #   endif /* defined _INCLUDE_ASSEMBLER_H_ */
 #endif /* defined _INCLUDE_STDBASIC_H_ */
 

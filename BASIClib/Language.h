@@ -15,6 +15,11 @@
 #ifndef _INCLUDE_LANGUAGE_H_
 #define _INCLUDE_LANGUAGE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define _INCLUDING_LOCAL_LANGUAGE_CODE_
 
 #if defined LANG_ENGLISH
     #include "English.h"
@@ -23,6 +28,11 @@
     #error   "-DLANG_ENGLISH"
 #endif
 
+#undef _INCLUDING_LOCAL_LANGUAGE_CODE_
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* #ifndef INCLUDE_LANGUAGE_H_ */
 #endif /* #ifndef INCLUDE_STDBASIC_H_ */

@@ -95,6 +95,7 @@
 #endif /* defined _INCLUDE_I386_GNU_H_ */
 #endif /* defined _INCLUDING_LOCAL_ASM_CODE__ */
 
+
 /* end of Asm_I386_GNU.h ... */
 
 

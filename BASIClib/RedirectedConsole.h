@@ -9,8 +9,16 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 __boolean __initRedirectedConsole(void);
 void    __forceRedirectedConsole(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_REDIRECTEDCONSOLE_H_ */
 
