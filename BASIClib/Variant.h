@@ -48,6 +48,7 @@ typedef struct
 typedef Variant *PVariant;
 
 /* !!! need __intrinsicToVariant() calls, too. */
+void __freeVariant(STATEPARAMS, PVariant var);
 int __variantToInt(STATEPARAMS, PVariant var);
 long __variantToLong(STATEPARAMS, PVariant var);
 float __variantToFloat(STATEPARAMS, PVariant var);
