@@ -77,10 +77,10 @@ void __initThreadBasicError(__integer tidx)
     onErrorThreadStates = realloc(onErrorThreadStates,
                                   maxThreads * sizeof (__POnErrorHandler *));
 
-    basicErrno = realloc(basicErrno, maxThreads * sizeof (int));
+    basicErrno = realloc(basicErrno, maxThreads * sizeof (__long));
 
     if ((onErrorThreadStates == NULL) || (basicErrno == NULL))
-        __fatalRuntimeError(ERR_INTERNAL_ERROR);
+        __fatalRuntimeError(ERR_OUT_OF_MEMORY);
 
     basicErrno[tidx] = ERR_NO_ERROR;
     onErrorThreadStates[tidx] = NULL;
