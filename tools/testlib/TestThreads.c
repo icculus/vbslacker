@@ -51,7 +51,7 @@ void test__spinThread(void)
     else
     {
         for (i = 0; i < 10000; i++)
-            __threadTimeslice;
+            __threadTimeslice();
         __waitForThreadToDie(tidx);
         if (changed != true)
         {
