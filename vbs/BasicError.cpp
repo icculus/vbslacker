@@ -28,7 +28,7 @@ BasicError::BasicError(ContextObject *pContextObject, BASIC_ERROR_CODE sErrorCod
 {
                                 // If errorcode was invalid, we'll set the
                                 //  error message as being unknown.
-    if(sErrorCode < NUMBER_OF_ERRORS || sErrorCode < 0)
+    if(sErrorCode > NUMBER_OF_ERRORS || sErrorCode < 0)
         this->m_strMessage = ErrorMessages[BASIC_ERROR_UNKNOWN];
     else                        // Set message based on error code.
         this->m_strMessage = ErrorMessages[sErrorCode];
