@@ -168,7 +168,7 @@ void testOnEventGotoHandling(int runCount)
     char testVar3[] = TESTVAR_VALUE3;
     int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
-    printf("Testing ON event GOTO handling (run #%d)...\n", runCount);
+    printf("Testing ON EVENT GOTO handling (run #%d)...\n", runCount);
 
     __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
@@ -260,7 +260,7 @@ void testOnEventGotoRecurseHandling(int runCount)
     char testVar3[] = TESTVAR_VALUE3;
     int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
-    printf("Testing recursive ON event GOTO handling (run #%d)...\n", runCount);
+    printf("Testing recursive ON EVENT GOTO handling (run #%d)...\n", runCount);
 
     recursive = 0;
 
