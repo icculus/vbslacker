@@ -21,7 +21,7 @@
 
 
 #ifdef WIN32     /* make symbols friendly for cygwin32... */
-#define basePtrIndexes  _basePtrIndexes
+#define basePtrIndexes          _basePtrIndexes
 #define onEventsLock            _onEventsLock
 #define __getCurrentThreadIndex ___getCurrentThreadIndex
 #define __obtainThreadLock      ___obtainThreadLock
@@ -29,12 +29,8 @@
 #define __calcBasePtrStorage    ___calcBasePtrStorage
 #define __callOnEventHandler    ___callOnEventHandler
 #define __resumeNextHandler     ___resumeNextHandler
-#define printf                  _printf
 #endif
 
-msg1:
-.ascii "X\12\0"
-.align 4
 
 #
 # Here's the Bitch Queen Procedure herself. Let's do the nasty...
@@ -120,11 +116,6 @@ stackcopy:                              # loop to move stack...
 
 returnloc:                              #  ...and (maybe) land right here.
 
-        pushl   $msg1
-        call    printf
-        addl    $4,%esp
-
-
         pushl   %ebp                    # Save all important registers.
         pushl   %edi
         pushl   %esi
@@ -161,22 +152,22 @@ returnloc:                              #  ...and (maybe) land right here.
 __decrementBPIndexes:                   # proc
         pushal                          # save everything.
 
-        call    __getCurrentThreadIndex # Get current thread index in eax.
-
-        movl    $ onEventsLock,%eax     # Get a lock on Thread-sensitive data.
+        movl    $onEventsLock,%eax      # Get a lock on Thread-sensitive data.
         pushl   %eax
         call    __obtainThreadLock
         addl    $4,%esp
 
+        call    __getCurrentThreadIndex # Get current thread index in eax.
+
         movl    $4,%ebx                 # 32-bits; sizeof (void *) == 4.
         mull    %ebx                    # ebx*eax make it into offset in array.
-        movl    basePtrIndexes,%esi     # Get array of bp indexes in stacks.
+        movl    $basePtrIndexes,%esi    # Get array of bp indexes in stacks.
         addl    %eax,%esi               # esi now points to our element.
         movl    (%esi),%eax             # get value pointed to by esi.
         decl    %eax                    # decrement it.
         movl    %eax,(%esi)             # store it back in addr esi points to.
 
-        movl    $ onEventsLock,%eax     # Drop lock on Thread-sensitive data.
+        movl    $onEventsLock,%eax      # Drop lock on Thread-sensitive data.
         pushl   %eax
         call    __releaseThreadLock
         addl    $4,%esp
