@@ -1,0 +1,22 @@
+(mikey's) TODO list:
+
+- vbs output specs.
+- revise name mangling; variable arguments?
+- finish tracing randomizing stuff...
+- write garbage collector.
+- Write signal handlers...
+- Complete console drivers.
+- Catch up testlib, in general.
+- RESUME NEXT recursive testing.
+- Streamline makefiles. Most of it is just duplication.
+- Examine/eliminate the "!!!" comments in the source.
+- Eliminate #warnings in the source, as well.
+- DON'T FORGET TO WRITE TESTLIB CODE FOR ALL IMPORTANT FUNCTIONS!
+- Check lists at end of each module for completely unimplemented APIs.
+  Do something about these.
+- Consider how to implement READ/DATA/RESTORE
+- Design full, detailed timetable.
+- Consider marketing strategy.
+- Write the !@#$ing thing.
+- ...and much, much more.
+
