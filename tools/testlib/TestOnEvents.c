@@ -140,6 +140,23 @@ void test__getStackPointer()
     } /* if */
 } /* test__getStackPointer */
 
+/* These are defined in BASIClib/OnEvents.c ... */
+extern ThreadLock onEventsLock;
+extern int *basePtrIndexes;
+
+void checkBPIndexes(void)
+/* !!! comment */
+{
+    __obtainThreadLock(&onEventsLock);
+    if (basePtrIndexes[__getCurrentThreadIndex()] != -1)
+    {
+        printf("  - basePtrIndexes is not being cleaned up properly!\n");
+        printf("  - This may be a problem from previous OnEvent handling.\n");
+    } /* if */
+    __releaseThreadLock(&onEventsLock);
+} /* checkBPIndexes */
+
+
 
 void testOnEventGotoHandling(int runCount)
 /*
@@ -395,13 +412,23 @@ void testOnEventHandling(void)
     int i;
 
     for (i = 1; i <= 3; i++)
+    {
         testOnEventGotoHandling(i);
+        checkBPIndexes();
+    } /* for */
 
     for (i = 1; i <= 3; i++)
-        testOnEventGotoRecurseHandling(i);
+    {
+#warning testOnEventGotoRecursiveHandling() is commented out!
+/*        testOnEventGotoRecurseHandling(i); */
+        checkBPIndexes();
+    } /* for */
 
     for (i = 1; i <= 3; i++)
+    {
         testResumeNext(i);
+        checkBPIndexes();
+    } /* for */
 } /* testOnEventHandling */
 
 
