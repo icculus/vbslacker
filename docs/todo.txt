@@ -1,8 +1,11 @@
 TODO list:
 
+- Testlib code for boxcar system.
+- Documentation: mem_management.txt and on_events.txt
 - Streamline makefiles. Most of it is just duplication.
 - Make __registerOnEventHandler() figure stack locations from registers more,
    so OnEvents can be registered in functions that have void parameters.
+- Hell, rewrite OnEvents.
 - Find good way to generate dependencies.
 - Examine the "!!!" comments in the source.
 - RESUME (RESUME 0) returns to statement that threw error. Ugh!
@@ -12,7 +15,6 @@ TODO list:
 - For greg: finish math functions.
 - For greg: file i/o functions. NOT FILE SYSTEM FUNCTIONS LIKE MKDIR, ETC...
 - For ryan: finish conversion, and time/date functions.
-- For ryan: write string functions.
 - For ryan: READ/DATA/RESTORE
 - For someone: Environment functions (chdir, environ set...)
 - For someone: File system stuff. (mkdir, kill, etc...)
