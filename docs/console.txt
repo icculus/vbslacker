@@ -7,14 +7,14 @@ Visual BASIC removed the ability to make console applications. While a
 "Hello, World" program under Visual BASIC was still simpler than its Visual
 C++ equivalent, you just can't beat the one-line program under Qbasic.
 
-If nothing else, writing quick, text-based apps to perform simple tasks was
-sorely missed in Visual BASIC. However, it was not an unheard of concept,
-since the short-lived Visual Basic for DOS had support for both event-driven
-"windowed" apps, and text-based console apps. To be fair, VBDOS's window
-system was all text-based, too, but the API is what's important. It merely
-let you program for either API, and threw runtime errors when you tried to
-mix API calls. There's no reason this concept couldn't be applied to more
-modern, graphical operating environments.
+If nothing else, the ability to write quick, text-based apps to perform
+simple tasks was sorely missed in Visual BASIC. However, it was not an
+unheard of concept, since the short-lived Visual Basic for DOS had support
+for both event-driven "windowed" apps, and text-based console apps. To be
+fair, VBDOS's window system was all text-based, too, but the API is what's
+important. It merely let you program for either API, and threw runtime
+errors when you tried to mix API calls. There's no reason this concept
+couldn't be applied to more modern, graphical operating environments.
 
 vbSlacker fills the gap, by allowing programmers to write not only
 GUI-windowing apps, like Visual BASIC, but also "console" apps, like
@@ -49,6 +49,11 @@ isn't a local virtual console; this may be anything from an xterm to a serial
 connection to a telnet session) the ncurses library (or whatever equivalent
 is available on a given platform) is used.
 
+If the console has not been disabled, but we are not at a virtual
+terminal, and ncurses can't handle the job, the console is forced into the
+stdin/stdout mode used for redirected output. This will work on any
+terminal type, but isn't particularly flashy or fast.
+
 All graphical APIs throw errors unless in a graphics mode. Other APIs may
 throw, depending on the capabilities of a given console. Disabling the console
 makes just about every console API function throw an error.
@@ -61,7 +66,7 @@ used. If graphics are not a possibility, ERR_CANNOT_CONTINUE is thrown.
 Therefore the APIs would need to check all sorts of conditions for each call:
 a) see if they are being redirected,
 b) see if they are at a virtual console,
-c) see if they are a terminal,
+c) see if they are an ncurses-supported terminal,
 d) see if they are in graphics mode,
 and e) see if console APIs have been disabled.
 
@@ -83,7 +88,10 @@ and call the console API, but rest assured, that the ncurses, direct video,
 and graphical console drivers don't mix well with stdio. Remember that you can
 always encourage BASIClib to select the redirected console driver by...er,
 redirecting stdout on the command line. In that case, you can more safely use
-printf(), so long as printf() is thread safe on your system.
+printf(), so long as printf() is thread safe on your system. (The
+RedirectedConsole driver, which uses printf(), wraps the call with
+ThreadLocks on systems where it is not safe, so even here, you're better
+off to use the console API instead of printf()...)
 
 Want to know what console driver is in use? Do this:
 
@@ -139,18 +147,18 @@ your needs. First, there is __printAsciz(), to print null-terminated C
 strings.
 
 #include "BasicLib.h"
-void hello(STATEPARAMS)
+void hello(void)
 {
-    __printAsciz(STATEARGS, "Hello");
+    __printAsciz("Hello");
 } /* hello */
 
 Next, for printing BASIC strings, you may use the BASIC API itself:
 
 #include "BasicLib.h"
-void helloName(STATEPARAMS, PBasicString name)
+void helloName(PBasicString name)
 {
-    __printAsciz(STATEARGS, "Hello there, ");
-    vbpS_print(STATEARGS, name);
+    __printAsciz("Hello there, ");
+    vbpS_print(name);
 } /* helloThere */
 
 If you just want a piece of a string, or want to print data that isn't
@@ -158,11 +166,12 @@ null-terminated (and isn't stored in a BASIC string structure), you may
 call what __printAsciz() and vbpS_print() call at their lowest level:
 __printNChars() ...
 
-char name[10];
+char name[30];
 strcpy(name, "Ryan C. Gordon");
-__printNChars(STATEARGS, name, 4);
+__printNChars(name, 4);
 
-...would print "Ryan" to the console.
+...would print "Ryan" to the console, without advancing the cursor to
+the next line.
 
 On a higher level, any known BASIC type may be printed by calling
 vbpV_print(), which takes a Variant argument, converts it to a string,
