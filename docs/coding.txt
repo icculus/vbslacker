@@ -103,6 +103,13 @@
    Other problem characters are "_PC_"  ('%'...percent char), "_EC_"
    ('!'...exclamation char), "_AC_" ('&'...ampersand char), etc...
 
+- Naming conventions: Functions in BASIClib that are either for internal
+  library use only OR are calls generated only by the parser/compiler
+  should start with "__"  (like __createString(), etc...). This helps
+  clarify the position of each file. Functions exported by BASIClib that
+  comprise the BASIC API should start with "VB", and contain their
+  arguments encoded in the name. For example, "VBchr_DC_i()" Ugly. I know.
+
 - General, personalized coding practices should be duplicated when modifying
    others' code. Keep your own style for your own file. I don't care if the
    tab size in someone else's file pisses you off.
