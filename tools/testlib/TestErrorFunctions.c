@@ -8,42 +8,6 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
-int __basicErrno;
-
-
-void test___runtimeError(void)
-/*
- * Test __runtimeError() functionality.
- *
- *    params : void.
- *   returns : void.
- */
-{
-    __ONERRORVARS;
-    printf("Testing __runtimeError()...\n");
-
-    __ONERRORINIT;
-    __setOnErrorHandler(rtErrError);
-
-    __basicErrno = ERR_NO_ERROR;
-    __runtimeError(ERR_TOO_MANY_FILES);
-    printf("  - Didn't call error handler.\n");
-
-    __exitCleanupOnError;
-    return;
-
-__insertLineLabel(rtErrError);              /* error handler... */
-    if (__basicErrno != ERR_TOO_MANY_FILES)
-    {
-        printf("  - Threw error (%d), should have thrown (%d)!\n",
-                             __basicErrno, ERR_TOO_MANY_FILES);
-
-    } /* if */
-
-    __exitCleanupOnError;
-    return;
-} /* test___runtimeError */
-
 
 void test_err(void)
 /*
@@ -61,7 +25,6 @@ void test_err(void)
     __ONERRORINIT;
     __setOnErrorHandler(errError);
 
-    __basicErrno = ERR_NO_ERROR;
     __runtimeError(ERR_TOO_MANY_FILES);
     printf("  - Didn't call error handler.\n");
 
@@ -107,7 +70,7 @@ void test_error(void)
 
 __insertLineLabel(errorErrorHandler);
 
-    if (__basicErrno != ERR_LABEL_NOT_DEFINED)
+    if (vbi_err() != ERR_LABEL_NOT_DEFINED)
     {
         printf("  - returned (%d), should have returned (%d)!\n",
                         rc, ERR_LABEL_NOT_DEFINED);
@@ -129,7 +92,6 @@ void testErrorFunctions(void)
 {
     printf("\n[TESTING ERROR FUNCTIONS...]\n");
 
-    test___runtimeError();
     test_err();
     test_error();
 } /* testErrorFunctions */
