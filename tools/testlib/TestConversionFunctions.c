@@ -76,29 +76,27 @@ void test_str_DC_(void)
     PBasicString rc;
     char buffer[40];
 
-    printf("Testing str_DC_()...\n");
+    printf("Testing str_DC_() (simple test)...\n");
 
-    for (i = -2000.58; i < 32523.9921; i += 33.912)
+    i = -32523.9921;
+    sprintf(buffer, "%s%f", (i < 0.0) ? "" : " ", i);
+    rc = str_DC_(i);
+
+    if (rc->length > sizeof (buffer))
+        printf("  - str$(%f) returned %d byte string.\n", i, rc->length);
+
+    else if (memcmp(rc->data, buffer, rc->length) != 0)
     {
-        sprintf(buffer, "%s%f", (i < 0.0) ? "" : " ", i);
-        rc = str_DC_(i);
+        memcpy(buffer, rc->data, rc->length);
+        buffer[rc->length] = '\0';
+        printf("  - str$(%f) returned \"%s\"!\n", i, buffer);
+    } /* if */
 
-        if (rc->length > sizeof (buffer))
-            printf("  - str$(%f) returned %d byte string.\n", i, rc->length);
-
-        else if (memcmp(rc->data, buffer, rc->length) != 0)
-        {
-            memcpy(buffer, rc->data, rc->length);
-            buffer[rc->length] = '\0';
-            printf("  - str$(%f) returned \"%s\"!\n", i, buffer);
-        } /* if */
-
-        __freeString(rc);
-    } /* for */
+    __freeString(rc);
 } /* test_str_DC_ */
 
 
-void test_asc(void)
+void test_asc(int x)  /* !!! */
 /*
  * Test asc() functionality.
  *
@@ -106,11 +104,9 @@ void test_asc(void)
  *   returns : void.
  */
 {
-    unsigned int i;
-    PBasicString argStr = __createString("The Quick brown fox...\r\n", false);
+    int i;
+    PBasicString argStr = __createString("The Quick brown fox... ", false);
     unsigned int rc;
-
-    /* ON ERROR RESUME NEXT */
 
     printf("Testing asc()...\n");
 
@@ -118,9 +114,11 @@ void test_asc(void)
     {
         argStr->data[0] = i;
         rc = asc(argStr);
-
         if (rc != i)
-            printf("  - asc(chr$(%u)) returned [%u]!\n", i, rc);
+        {
+            argStr->data[argStr->length - 1] = '\0';
+            printf("  - asc(\"%s\") returned [%d]!\n", argStr->data, rc);
+        } /* if */
     } /* for */
 
     __freeString(argStr);
@@ -198,7 +196,7 @@ void test_val(void)
     int j;
     int x = 0;
 
-    printf("Testing val()...\n");
+    printf("Testing val() (simple test)...\n");
 
     for (i = -999999.999; i < 999999.999; i += 1.111)
     {
@@ -225,6 +223,32 @@ void test_val(void)
 } /* test_val */
 
 
+void test_str_DC_and_val(void)
+/*
+ * Does str$ and val() testing by passing a value between both and
+ *  seeing if it comes back to the original value.
+ *
+ *     params : void.
+ *    returns : void.
+ */
+{
+    double i;
+    double rcD;
+    PBasicString rcS;
+    
+    printf("Testing str$() and val() (complex test)...\n");
+
+    for (i = -2000.9274; i < 32523.9921; i += 321.3214);
+    {
+        rcS = str_DC_(i);
+        rcD = val(rcS);
+        __freeString(rcS);
+        if (rcD != i)
+            printf("  - Value (%f) came back as (%f).\n", i, rcD);
+    } /* for */
+} /* test_str_DC_and_val */
+
+
 void testConversionFunctions(void)
 /*
  * This code tests all the conversion functions in BASIClib.
@@ -236,8 +260,9 @@ void testConversionFunctions(void)
     printf("\n[TESTING CONVERSION FUNCTIONS...]\n");
 
     test_chr_DC_(1);
+    test_asc(1);
     test_str_DC_();
-    test_asc();
+    test_str_DC_and_val();
 /*    test_val();  !!! */
     test_hex_DC_();
     test_oct_DC_();
