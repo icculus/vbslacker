@@ -15,7 +15,7 @@
 #include "Boolean.h"
 
 
-double asc(PBasicString pBasicStr)
+unsigned int asc(PBasicString pBasicStr)
 /*
  * Get the ASCII value of the first character of (str)...
  *
@@ -23,12 +23,12 @@ double asc(PBasicString pBasicStr)
  *   returns : ASCII value of first char in string.
  */
 {
-    double retVal = 0;
+    unsigned int retVal = 0;
 
     if (pBasicStr->length == 0)    /* blank string? */
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
-        retVal = (double) pBasicStr->data[0];
+        retVal = (unsigned int) pBasicStr->data[0];
 
     return(retVal);
 } /* asc */
@@ -73,6 +73,7 @@ PBasicString str_DC_(double numeric)
 {
     PBasicString retVal;
     int allocated = 10;
+    int decimalPlaces = 0;
     char *buffer = __memAlloc(allocated);
     double i;
     int index = 1;
@@ -81,14 +82,14 @@ PBasicString str_DC_(double numeric)
     if (numeric < 0.0)   /* negative? */
     {
         buffer[0] = '-';
-        numeric = -numeric;
+        numeric = -numeric;   /* make number positive. */
     } /* if */
     else
         buffer[0] = ' ';
 
-    for (i = 1.0; i < numeric; i *= 10.0);         /* get dec. places */
+    for (i = 1.0; i < numeric; i *= 10.0, decimalPlaces--);
 
-    for (i /= 10.0; numeric != 0.0; i /= 10.0)
+    for (i /= 10.0; (numeric != 0.0) && (decimalPlaces < 5); i /= 10.0)
     {
         if (i == 0.1)  /* decimal places? */
         {
@@ -97,8 +98,9 @@ PBasicString str_DC_(double numeric)
         } /* if */
 
         number = (int) (numeric / i);
-        buffer[index] = '0' + number;
+        buffer[index] = ('0' + number);
         index++;
+        decimalPlaces++;
         numeric -= (number * i);
 
         if (index + 1 >= allocated)
