@@ -10,6 +10,7 @@
 #include "OnEvents.h"
 #include "ErrorFunctions.h"
 #include "Boolean.h"
+#include "RegState.h"
 
 #define TESTVAR_VALUE1 0xABCD
 #define TESTVAR_VALUE2 0x1234
@@ -20,7 +21,12 @@
 #define FAILED "  - Failed.\n"
 #define FAILED_WITH_WARNING "  - Failed. Later tests will fail, too.\n"
 
-int recursive = 0;
+static int recursive = 0;
+static void *_stack_ptr_;
+static void *_base_ptr_;
+static void *_stack_ptr2_;
+static void *_base_ptr2_;
+
 
 boolean binaryDump(char *fileName, void *data, int size)
 /*
@@ -94,7 +100,8 @@ void test__getStackPointer_recurse(void)
 } /* test__getStackPointer_recurse */
 
 
-void __triggerOnEvent_recurse(OnEventTypeEnum evType, boolean printErr)
+void __triggerOnEvent_recurse(STATEPARAMS, OnEventTypeEnum evType,
+                              boolean printErr)
 /*
  * This function calls itself RECURSION_COUNT times, to pile
  *  some data on the stack, then calls __triggerOnEvent(evType)...
@@ -102,9 +109,9 @@ void __triggerOnEvent_recurse(OnEventTypeEnum evType, boolean printErr)
 {
     recursive++;
     if (recursive == RECURSION_COUNT)
-        __triggerOnEventByType(evType);
+        __triggerOnEventByType(STATEARGS, evType);
     else
-        __triggerOnEvent_recurse(evType, printErr);
+        __triggerOnEvent_recurse(STATEARGS, evType, printErr);
 
     if (printErr)   /* if we fell here without a RESUME NEXT... */
         printf("  - Event handler returns incorrectly.\n");
@@ -140,25 +147,9 @@ void test__getStackPointer()
     } /* if */
 } /* test__getStackPointer */
 
-/* These are defined in BASIClib/OnEvents.c ... */
-extern ThreadLock onEventsLock;
-extern int *basePtrIndexes;
-
-void checkBPIndexes(void)
-/* !!! comment */
-{
-    __obtainThreadLock(&onEventsLock);
-    if (basePtrIndexes[__getCurrentThreadIndex()] != -1)
-    {
-        printf("  - basePtrIndexes is not being cleaned up properly!\n");
-        printf("  - This may be a problem from previous OnEvent handling.\n");
-    } /* if */
-    __releaseThreadLock(&onEventsLock);
-} /* checkBPIndexes */
 
 
-
-void testOnEventGotoHandling(int runCount)
+void testOnEventGotoHandling(STATEPARAMS, int runCount)
 /*
  * This tests ON [event] GOTO functionality. We set up an event handler,
  *  build up a couple of function calls on the stack, and trigger an event.
@@ -186,28 +177,36 @@ void testOnEventGotoHandling(int runCount)
 
     printf("Testing ON EVENT GOTO handling (run #%d)...\n", runCount);
 
-    __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(&&errHandler, &runCount + sizeof (runCount),
-                             _stack_ptr_, _base_ptr_, ONERROR);
-    __releaseThreadLock(&registerLock);
+    __registerOnEventHandler(STATEARGS, &&errHandler, _base_ptr_,
+                            _stack_ptr_,ONERROR);
 
     recursive = 0;
-    __triggerOnEvent_recurse(ONERROR, true);
+    __triggerOnEvent_recurse(STATEARGS, ONERROR, true);
 
     goto missedHandler;
 
 errHandler:
-    __markOnEventHandlerAddr;
-    if ((testVar1 != TESTVAR_VALUE1) || (testVar2 != TESTVAR_VALUE2) ||
-        (strcmp(testVar3, TESTVAR_VALUE3) != 0))
+    __getBasePointer(&_base_ptr2_); 
+    __getStackPointer(&_stack_ptr2_);
+
+    if (_base_ptr2_ != _base_ptr_)
     {
-        __getBasePointer(&_base_ptr_); 
-        __getStackPointer(&_stack_ptr_);
         printf("  - Base pointer is damaged.\n");
-        printf("  - EPB inside error handler is (%p)\n", _base_ptr_);
-        printf("  - ESP inside error handler is (%p)\n", _stack_ptr_);
+        printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
+        printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
+    } /* if */
+
+    if (_stack_ptr2_ != _stack_ptr_)
+    {
+        printf("  - Stack pointer is damaged.\n");
+        printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
+        printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
+    } /* if */
+
+    if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
+    {
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -248,12 +247,12 @@ endTest:
 
     testVar3[0] = '\0';  /* stops compiler whining. */
 
-    __deregisterOnEventHandler(&runCount + sizeof (runCount), ONERROR);
+    __deregisterOnEventHandlers(STATEARGS);
 } /* testOnEventGotoHandling */
 
 
 
-void testOnEventGotoRecurseHandling(int runCount)
+void testOnEventGotoRecurseHandling(STATEPARAMS, int runCount)
 /*
  * This tests recursive ON [event] GOTO functionality. We set up an event
  *  handler, trigger an onEvent, and inside the handler, trigger another
@@ -278,27 +277,36 @@ void testOnEventGotoRecurseHandling(int runCount)
 
     recursive = 0;
 
-    __obtainThreadLock(&registerLock);
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(&&errHandler, &runCount + sizeof (runCount),
-                             _stack_ptr_, _base_ptr_, ONERROR);
-    __releaseThreadLock(&registerLock);
+    __registerOnEventHandler(STATEARGS, &&errHandler, _base_ptr_,
+                            _stack_ptr_,ONERROR);
 
-
-    __triggerOnEventByType(ONERROR);  /* no recurse since we use global var */
+    recursive = 0;
+    __triggerOnEventByType(STATEARGS, ONERROR);
+                                      /* no recurse since we use global var */
     goto missedHandler;
 
 errHandler:
-    __markOnEventHandlerAddr;
-    if ((testVar1 != TESTVAR_VALUE1) || (testVar2 != TESTVAR_VALUE2) ||
-        (strcmp(testVar3, TESTVAR_VALUE3) != 0))
+    __getBasePointer(&_base_ptr2_); 
+    __getStackPointer(&_stack_ptr2_);
+
+    if (_base_ptr2_ != _base_ptr_)
     {
-        __getBasePointer(&_base_ptr_); 
-        __getStackPointer(&_stack_ptr_);
-        printf("  - (Iteration #%d) Base pointer is damaged.\n", recursive);
-        printf("  - EPB inside error handler is (%p)\n", _base_ptr_);
-        printf("  - ESP inside error handler is (%p)\n", _stack_ptr_);
+        printf("  - Base pointer is damaged.\n");
+        printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
+        printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
+    } /* if */
+
+    if (_stack_ptr2_ != _stack_ptr_)
+    {
+        printf("  - Stack pointer is damaged.\n");
+        printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
+        printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
+    } /* if */
+
+    if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
+    {
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -324,7 +332,7 @@ endTest:
         case 1:   /* good. trigger again. */
             recursive++;
             if (recursive <= RECURSION_COUNT)
-                __triggerOnEventByType(ONERROR);
+                __triggerOnEventByType(STATEARGS, ONERROR);
             break;
         case 2:
             printf("  - (Iteration #%d) Handler missed. Failed.\n", recursive);
@@ -342,11 +350,11 @@ endTest:
 
     testVar3[0] = '\0';  /* stops compiler whining. */
 
-    __deregisterOnEventHandler(&runCount + sizeof (runCount), ONTIMER);
+    __deregisterOnEventHandlers(STATEARGS);
 } /* testOnEventGotoRecurseHandling */
 
 
-void testResumeNext(int runCount)
+void testResumeNext(STATEPARAMS, int runCount)
 /*
  * Test RESUME NEXT command. We trigger an event, and see where control goes.
  *
@@ -357,26 +365,55 @@ void testResumeNext(int runCount)
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
+    __setResumeStack;
+    __setResumeInstructs(&&resumeZeroWrong, &&resumeNextRight);
+
     printf("Testing RESUME NEXT (run #%d)...\n", runCount);
 
-    __obtainThreadLock(&registerLock);
+    printf(" (base pointer is (%p)...)\n", _base_ptr_);
+    printf(" (stack pointer is (%p)...)\n", _stack_ptr_);
+    printf(" (resume addr is (%p)...)\n", &&resumeNextRight);
+
+
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(&&resumeHere, &runCount + sizeof (runCount),
-                             _stack_ptr_, _base_ptr_, ONTIMER);
-    __releaseThreadLock(&registerLock);
+    __registerOnEventHandler(STATEARGS, &&resumeNextErrHandler,
+                             _base_ptr_, _stack_ptr_, ONTIMER);
 
     recursive = 0;
-    __triggerOnEvent_recurse(ONTIMER, false);
+    __triggerOnEvent_recurse(STATEARGS, ONTIMER, false);
 
-    if ((testVar1 != TESTVAR_VALUE1) || (testVar2 != TESTVAR_VALUE2) ||
-        (strcmp(testVar3, TESTVAR_VALUE3) != 0))
+    printf(FAILED);
+    goto resumeNextEnd;
+
+resumeNextErrHandler:
+    __resumeNext(STATEARGS);
+    printf(FAILED);
+    goto resumeNextEnd;
+
+resumeZeroWrong:    printf("  - Resumed ZERO instead of NEXT.\n");
+    goto resumeNextEnd;
+
+resumeNextRight:
+    __getBasePointer(&_base_ptr2_); 
+    __getStackPointer(&_stack_ptr2_);
+
+    if (_base_ptr2_ != _base_ptr_)
     {
-        __getBasePointer(&_base_ptr_); 
-        __getStackPointer(&_stack_ptr_);
-        printf("  - (Iteration #%d) Base pointer is damaged.\n", recursive);
-        printf("  - EPB inside error handler is (%p)\n", _base_ptr_);
-        printf("  - ESP inside error handler is (%p)\n", _stack_ptr_);
+        printf("  - Base pointer is damaged.\n");
+        printf("  - EBP inside error handler SHOULD BE (%p)\n", _base_ptr_);
+        printf("  - EBP inside error handler IS (%p)\n", _base_ptr2_);
+    } /* if */
+
+    if (_stack_ptr2_ != _stack_ptr_)
+    {
+        printf("  - Stack pointer is damaged.\n");
+        printf("  - ESP inside error handler SHOULD BE (%p)\n", _stack_ptr_);
+        printf("  - ESP inside error handler IS (%p)\n", _stack_ptr2_);
+    } /* if */
+
+    if ((_base_ptr2_ != _base_ptr_) || (_stack_ptr2_ != _stack_ptr_))
+    {
         printf("  - testVar1 is (0x%X), should be (0x%X)...\n",
                                  testVar1, TESTVAR_VALUE1);
         printf("  - testVar2 is (0x%X), should be (0x%X)...\n",
@@ -388,20 +425,12 @@ void testResumeNext(int runCount)
         exit(1);
     } /* if */
 
-    goto resumeSuccessful;
-
-resumeHere:
-    __markOnEventHandlerAddr;
-    __resumeNext();
-    printf(FAILED);
-
-resumeSuccessful:
-
-    __deregisterOnEventHandler(&runCount + sizeof (runCount), ONERROR);
+resumeNextEnd:
+    __deregisterOnEventHandlers(STATEARGS);
 } /* testResumeNext */
 
 
-void testOnEventHandling(void)
+void testOnEventHandling(STATEPARAMS)
 /*
  * Test "on event" handling of various types.
  *
@@ -412,26 +441,17 @@ void testOnEventHandling(void)
     int i;
 
     for (i = 1; i <= 3; i++)
-    {
-        testOnEventGotoHandling(i);
-        checkBPIndexes();
-    } /* for */
+        testOnEventGotoHandling(STATEARGS, i);
 
     for (i = 1; i <= 3; i++)
-    {
-        testOnEventGotoRecurseHandling(i); 
-        checkBPIndexes();
-    } /* for */
+        testOnEventGotoRecurseHandling(STATEARGS, i); 
 
     for (i = 1; i <= 3; i++)
-    {
-        testResumeNext(i);
-        checkBPIndexes();
-    } /* for */
+        testResumeNext(STATEARGS, i);
 } /* testOnEventHandling */
 
 
-void testOnEvents(void)
+void testOnEvents(STATEPARAMS)
 /*
  * Test ON EVENT functionality in BASIClib.
  *
@@ -442,7 +462,7 @@ void testOnEvents(void)
     printf("\n[TESTING ON EVENT HANDLING...]\n");
     test__getBasePointer();
     test__getStackPointer();
-    testOnEventHandling();
+    testOnEventHandling(STATEARGS);
 } /* testOnEvents */
 
 
@@ -452,9 +472,9 @@ void testOnEvents(void)
 
 int main(void)
 {
-    __initBasicLib();
-    testOnEvents();
-    __deinitBasicLib();
+    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
+    testOnEvents(NULLSTATEARGS);
+    __deinitBasicLib(NULLSTATEARGS);
     return(0);
 } /* main */
 
