@@ -10,8 +10,10 @@
 #include "TimeDateFunctions.h"
 #include "BasicFileStream.h"
 #include "ErrorFunctions.h"
+#include "InternalMemManager.h"
 #include "Boolean.h"
 
+static boolean initialized = false;
 
 void __initBasicLib(void)
 /*
@@ -23,13 +25,20 @@ void __initBasicLib(void)
  *    returns : void.
  */
 {
-    __initErrorFunctions();
-    __initOnEvents();
-    __initTimeDateFunctions();
-    __initBasicFileStream();
-    __initThreads();
+    if (initialized == false)
+    {
+        __initInternalMemManager();
+        __initErrorFunctions();
+        __initOnEvents();
+        __initTimeDateFunctions();
+        __initBasicFileStream();
 
-    /* !!! register __deinitBasicLib() with atexit()... */
+        __initThreads();    /* Make sure this is last init call. */
+
+        /* !!! register __deinitBasicLib() with atexit()... */
+
+        initialized = true;
+    } /* if */
 } /* __initBasicLib */
 
 
@@ -38,8 +47,13 @@ void __deinitBasicLib(void)
  * Call this before exiting a program using BASIClib.
  */
 {
-    __deinitThreads();
-    __deinitOnEvents();
+    if (initialized == true)
+    {
+        __deinitThreads();
+        __deinitOnEvents();
+        __deinitInternalMemManager();
+        initialized = false;
+    } /* if */
 } /* __deinitBasicLib */
 
 
