@@ -1,0 +1,20 @@
+APIs that need special handling in the parser/compiler:
+
+PRINT (and print #), with more than one parameter (separated by semicolons)
+ must be broken into multiple calls. Strings concatenations should be done
+ prior to breaking down the API call. That is, PRINT "crack" + "pipe" would
+ be one call, but PRINT "crack"; "pipe" would be two. ALSO -- Semicolons at
+ the end of the PRINT statement specify that no newline should be sent to the
+ console. This will need to be handled specifically.
+
+OPEN calls should all call one function, with default values for optional
+ missing values. The OPEN function should determine what action to take
+ based on the default values. This avoids the need for 18 jazillion overloaded
+ functions.
+
+CLOSE needs to be broken down into multiple calls. CLOSE 1, 2, 3 should be be
+ converted into vbpi_close(1); vbpi_close(2); vbpi_close(3); Furthermore,
+ CLOSE with no arguments must still call the correctly named vbp_close().
+ ALSO -- Optional '#' chars before the numbers need to be dealt with.
+
+Ugh.
