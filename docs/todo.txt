@@ -2,15 +2,12 @@ TODO list:
 
 - Make current BASIClib code use the boxcar system, where applicable.
 - HOWTO on adding new modules to BASIClib.
+- RESUME NEXT recursive testing.
 - Testlib code for boxcar system.
 - Documentation: mem_management.txt and on_events.txt
 - Streamline makefiles. Most of it is just duplication.
-- Make __registerOnEventHandler() figure stack locations from registers more,
-   so OnEvents can be registered in functions that have void parameters.
-- Hell, rewrite OnEvents.
 - Find good way to generate dependencies.
 - Examine the "!!!" comments in the source.
-- RESUME (RESUME 0) returns to statement that threw error. Ugh!
 - GOSUB/RETURN support.
 - Implement BASIC arrays.
 - DON'T FORGET TO WRITE TESTLIB CODE FOR ALL IMPORTANT FUNCTIONS!
