@@ -7,11 +7,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "TestLib.h"
+#include "Threads.h"
 #include "OnEvents.h"
 #include "ErrorFunctions.h"
 #include "Boolean.h"
-
-/* !!! Comment functions. */
 
 #define TESTVAR_VALUE1 0xABCD
 #define TESTVAR_VALUE2 0x1234
@@ -169,11 +168,12 @@ void testOnErrorGotoHandling(int runCount)
 
     printf("Testing ON ERROR GOTO handling (run #%d)...\n", runCount);
 
+    __enterCriticalThreadSection();
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
     __registerOnEventHandler(&&errHandler, &runCount + sizeof (runCount),
-                             _stack_ptr_, &runCount - sizeof (void *),
-                             _base_ptr_, ONERROR);
+                             _stack_ptr_, _base_ptr_, ONERROR);
+    __exitCriticalThreadSection();
 
     recursive = 0;
     __runtimeError_recurse(ERR_INTERNAL_ERROR);
@@ -215,10 +215,10 @@ endTest:
         case 1:   /* good. */
             break;
         case 2:
-            printf("  - Handler missed. %s", FAILED);
+            printf("  - Handler missed. Failed.\n");
             break;
         default:
-            printf("  - Confused! %s", FAILED);
+            printf("  - Confused! Failed.\n");
             break;
     } /* switch */
 
@@ -251,7 +251,7 @@ void testOnEvents(void)
  *   returns : void.
  */
 {
-    printf("Testing ON EVENT handling...\n");
+    printf("\n[TESTING ON EVENT HANDLING...]\n");
     test__getBasePointer();
     test__getStackPointer();
     testOnErrorHandling();
@@ -260,11 +260,12 @@ void testOnEvents(void)
 
 #ifdef STANDALONE
 
-void main(void)
+int main(void)
 {
     __initBasicLib();
     testOnEvents();
     __deinitBasicLib();
+    return(0);
 } /* main */
 
 #endif
