@@ -77,7 +77,8 @@ void __registerOnEventHandler(void *handlerAddr, void *stackSize,
                               void *stackEnd, void *basePtr,
                               OnEventTypeEnum evType);
 void __deregisterOnEventHandler(void *handlerAddr, OnEventTypeEnum evType);
-void __triggerOnEvent(OnEventTypeEnum evType);
+void __triggerOnEventByType(OnEventTypeEnum evType);
+void __triggerOnEvent(POnEventHandler pHandler, OnEventTypeEnum evType);
 void __resumeNext(void);
 
 #endif

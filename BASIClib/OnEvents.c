@@ -367,18 +367,32 @@ void **__calcBasePtrStorage(void)
 } /* __calcBasePtrStorage */
 
 
-void __triggerOnEvent(OnEventTypeEnum evType)
+void __triggerOnEventByType(OnEventTypeEnum evType)
+/*
+ * This function calls an OnEvent handler, by figuring out the last
+ *  handler registered for (evType) type events.
+ *
+ *    params : evType == Event type to handle.
+ *   returns : either won't return directly, due to stack voodoo, or in the
+ *              case of a RESUME NEXT, void.
+ */
+{
+    __triggerOnEvent(__getOnEventHandler(evType), evType);
+} /* __triggerOnEventByType */
+
+
+void __triggerOnEvent(POnEventHandler pHandler, OnEventTypeEnum evType)
 /*
  * This functions sets up a globally accessable buffer for the ASM routine
  *  (which it can access when the stack state is FUBAR), and calls the
  *  routine.
  *
- *    params : evType == Event type to handler.
- *   returns : should never return directly, due to stack voodoo.
+ *    params : pHandler == OnEvent handler to call.
+ *   returns : either won't return directly, due to stack voodoo, or in the
+ *              case of a RESUME NEXT, void.
  */
 {
      /* !!! Needs protection against out of memory errors in allocations... */
-    POnEventHandler pHandler = __getOnEventHandler(evType);
     int tidx = __getCurrentThreadIndex();
 
     __obtainThreadLock(&onEventsLock);
@@ -394,6 +408,7 @@ void __triggerOnEvent(OnEventTypeEnum evType)
 
 
 void __resumeNext(void)
+/* !!! comment. */
 {
     POnEventHandler pHandler;
     int tidx = __getCurrentThreadIndex();
