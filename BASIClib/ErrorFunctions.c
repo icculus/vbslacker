@@ -10,16 +10,34 @@
 
 extern int basicErrno;
 
-double vbd_err(STATEPARAMS)
+int vbi_err(STATEPARAMS)
+/*
+ * Find out last thrown error number.
+ *
+ *    params : void.
+ *   returns : last thrown BASIC error.
+ */
 {
-    return((double) basicErrno);
-} /* func_err */
+    return(basicErrno);
+} /* vbi_err */
 
 
 void vbpi_error(STATEPARAMS, int errorNum)
+/*
+ * Throw a runtime error. (errorNum) must be between 1 and 255, per
+ *  Qbasic specifications, so the error thrown will change to
+ *  ERR_ILLEGAL_FUNCTION_CALL if not in that range.
+ *
+ * !!! has this changed with later BASICs?
+ *
+ *     params : errorNum == int between 1 and 255 of error number to throw.
+ *    returns : never returns; code jumps to error handler or something.
+ */
 {
+    if ((errorNum < 1) || (errorNum > 255))
+        errorNum = ERR_ILLEGAL_FUNCTION_CALL;
     __runtimeError(STATEARGS, errorNum);
-} /* vbpd_error */
+} /* vbpi_error */
 
 
 int vbi_erl(STATEPARAMS)

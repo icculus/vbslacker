@@ -9,7 +9,7 @@
 
 #include "StdBasic.h"
 
-double vbd_err(STATEPARAMS);
+int vbi_err(STATEPARAMS);
 void vbpi_error(STATEPARAMS, int newErr);
 int vbi_erl(STATEPARAMS);
 int vbi_erdev(STATEPARAMS);
