@@ -9,28 +9,15 @@
 
 #include "RegState.h"
 #include "BasicString.h"
-
-typedef enum {ON, OFF, STOP} TimerArgEnum;
+#include "OnOffStopType.h"
 
 void __initTimeDateFunctions(STATEPARAMS);
-
-double func_timer(STATEPARAMS);
-void proc_timer(STATEPARAMS, TimerArgEnum setting);
-
-PBasicString func_time_DC_(STATEPARAMS);
-void proc_time_DC_(STATEPARAMS, PBasicString newTimeStr);
-
-PBasicString func_date_DC_(STATEPARAMS);
-void proc_date_DC_(STATEPARAMS, PBasicString newTimeStr);
-
-long dateserial(STATEPARAMS, int year, int month, int day);
-long datevalue(STATEPARAMS, PBasicString date);
-int day(STATEPARAMS, long serialNum);
-int weekday(STATEPARAMS, long serialNum);
-int month(STATEPARAMS, long serialNum);
-int year(STATEPARAMS, long serialNum);
-
-int now(STATEPARAMS);
+float vbf_timer(STATEPARAMS);
+void vbpO_timer(STATEPARAMS, OnOffStopType setting);
+PBasicString vbS_time_DC_(STATEPARAMS);
+void vbpS_time_DC_(STATEPARAMS, PBasicString newTimeStr);
+PBasicString vbS_date_DC_(STATEPARAMS);
+void vbpS_date_DC_(STATEPARAMS, PBasicString newDateStr);
 
 #endif
 

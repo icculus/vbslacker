@@ -8,19 +8,7 @@
 #include "MathFunctions.h"
 
 
-int __round(STATEPARAMS, double x)
-/*
- * Round (x) to the nearest whole number.
- *
- *    params : x == floating point number to round.
- *   returns : x rounded to nearest int.
- */
-{
-    return((int) (x + 0.5));
-} /* __round */
-
-
-double func_abs(STATEPARAMS, double x)
+double vbdd_abs(STATEPARAMS, double x)
 /*
  * Returns the absolute value of a numeric.
  *
@@ -29,10 +17,10 @@ double func_abs(STATEPARAMS, double x)
  */
 {
     return((x < 0) ? -x : x);
-} /* func_abs */
+} /* vbdd_abs */
 
 
-double func_sqr(STATEPARAMS, double x)
+double vbdd_sqr(STATEPARAMS, double x)
 /*
  * Returns the square root of a numeric.
  *
@@ -41,8 +29,81 @@ double func_sqr(STATEPARAMS, double x)
  */
 {
     return(sqrt(x));
-} /* func_sqr */
+} /* vbdd_sqr */
 
+
+double vbdd_atn(STATEPARAMS, double x)
+{
+    return(atan(x));
+} /* vbdd_atn */
+
+
+double vbdd_sin(STATEPARAMS, double x)
+{
+    return(sin(x));
+} /* vbdd_sin */
+
+
+double vbdd_cos(STATEPARAMS, double x)
+{
+    return(cos(x));
+} /* vbdd_cos */
+
+
+double vbdd_tan(STATEPARAMS, double x)
+{
+    return(tan(x));
+} /* vbdd_tan */
+
+
+double vbddd_exp(STATEPARAMS, double x, double y)
+{
+    return(pow(x, y));
+} /* vbddd_exp */
+
+
+double vbdd_log(STATEPARAMS, double x)
+{
+    return(log(x));
+} /* vbdd_log */
+
+
+long vbld_fix(STATEPARAMS, double x)
+{
+    return((long) x);
+} /* vbld_fix */
+
+
+long vbld_int(STATEPARAMS, double x)
+/*
+ * Round (x) to the nearest whole number.
+ *
+ *    params : x == floating point number to round.
+ *   returns : x rounded to nearest long.
+ */
+{
+#warning check __round() vs int()...
+    return((long) (x + 0.5));
+} /* vbld_int */
+
+
+int vbid_sgn(STATEPARAMS, double x)
+{
+    int retVal;
+
+    if (x == 0.0)
+        retVal = 0;
+    else if (x < 0.0)
+        retVal = -1;
+    else
+        retVal = 1;
+
+    return(retVal);
+} /* vbid_sgn */
+
+/* !!! still need: */
+/* rnd */
+/* randomize */
 
 /* end of MathFunctions.c ... */
 

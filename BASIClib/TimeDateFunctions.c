@@ -19,7 +19,7 @@
  * !!!  remove this when they do.
  */
     int gettimeofday(struct timeval *tp, struct timezone *tzp);
-    int settimeofday (const struct timeval *tp, const struct timezone *tzp);
+    int settimeofday(const struct timeval *tp, const struct timezone *tzp);
 #endif
 
 
@@ -82,7 +82,7 @@ void __initTimeDateFunctions(STATEPARAMS)
 } /* __initTimeDateFunctions */
 
 
-double func_timer(STATEPARAMS)
+float vbf_timer(STATEPARAMS)
 /*
  * Returns the number of seconds elasped since midnight, with two
  *  decimal places worth of precision.
@@ -105,14 +105,14 @@ double func_timer(STATEPARAMS)
 
     retVal += ((currentTime.tv_usec % 100) / 100); /* Add 2 decimal places. */
     return(retVal);
-} /* func_timer */
+} /* vbf_timer */
 
 
-void proc_timer(STATEPARAMS, TimerArgEnum setting)
+void vbpO_timer(STATEPARAMS, OnOffStopType setting)
 {
     timerSetting = setting;
     /* !!! write this! Enable a timer interrupt? */
-} /* proc_timer */
+} /* vbpO_timer */
 
 
 PBasicString __makeTimeDateString(STATEPARAMS, int size, char *fmt)
@@ -144,7 +144,7 @@ PBasicString __makeTimeDateString(STATEPARAMS, int size, char *fmt)
 
 
 
-PBasicString func_time_DC_(STATEPARAMS)
+PBasicString vbS_time_DC_(STATEPARAMS)
 /*
  * Returns a BASIC string containing the current system time in the format
  *  "HH:MM:SS" (8 bytes) ... The time is returned in 24-hour format.
@@ -154,17 +154,16 @@ PBasicString func_time_DC_(STATEPARAMS)
  */
 {
     return(__makeTimeDateString(STATEARGS, 8, "%H:%M:%S"));
-} /* func_time_DC_ */
+} /* vbS_time_DC_ */
 
 
-void proc_time_DC_(STATEPARAMS, PBasicString newTimeStr)
+void vbpS_time_DC_(STATEPARAMS, PBasicString newTimeStr)
 {
     /* !!! compare to proc_date_DC_()... */
-} /* proc_time_DC_ */
+} /* vbpS_time_DC_ */
 
 
-
-PBasicString func_date_DC_(STATEPARAMS)
+PBasicString vbS_date_DC_(STATEPARAMS)
 /*
  * Return a BASIC string containing current date in the
  *  format "MM-DD-YYYY" (10 bytes).
@@ -174,8 +173,7 @@ PBasicString func_date_DC_(STATEPARAMS)
  */
 {
     return(__makeTimeDateString(STATEARGS, 10, "%m-%d-%C%y"));
-} /* func_date_DC_ */
-
+} /* vbS_date_DC_ */
 
 
 boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
@@ -297,8 +295,7 @@ boolean __setSystemDate(STATEPARAMS, int month, int day, int year, int *pErrVal)
 } /* __setSystemDate */
 
 
-
-void proc_date_DC_(STATEPARAMS, PBasicString newDateStr)
+void vbpS_date_DC_(STATEPARAMS, PBasicString newDateStr)
 /*
  * Set the system date. This throws a BASIC runtime error if the process
  *  doesn't have rights to change the system clock. DOS and Windows versions
@@ -342,7 +339,7 @@ void proc_date_DC_(STATEPARAMS, PBasicString newDateStr)
         else if (__setSystemDate(STATEARGS, month, day, year, &errVal) == false)
             __runtimeError(STATEARGS, errVal);
     } /* else */
-} /* proc_date_DC_ */
+} /* vbpS_date_DC_ */
 
 
 

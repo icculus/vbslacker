@@ -54,6 +54,7 @@ void __defaultRuntimeErrorHandler(STATEPARAMS)
 } /* __defaultRuntimeErrorHandler */
 
 
+void __initErrorFunctions(STATEPARAMS)
 void __fatalRuntimeError(STATEPARAMS, int errorNum)
 /*
  * Call this instead of __runtimeError() if you want to throw an
@@ -68,8 +69,13 @@ void __fatalRuntimeError(STATEPARAMS, int errorNum)
 } /* __fatalRuntimeError */
 
 
-void __runtimeError(STATEPARAMS, int errorNum)
-/* !!! comment. */
+double vbd_err(STATEPARAMS)
+{
+    return((double) basicErrno);
+} /* func_err */
+
+
+void vbpd_error(STATEPARAMS, double newErr)
 {
     POnEventHandler pHandler;
 
@@ -83,21 +89,23 @@ void __runtimeError(STATEPARAMS, int errorNum)
         else
             __triggerOnEvent(STATEARGS, pHandler, ONERROR);
     } /* if */
-} /* __runtimeError */
+} /* vbpd_error */
 
 
-double func_err(STATEPARAMS)
+int vbi_erl(STATEPARAMS)
+/*
+ * In QBasic, returns line number of latest error. According to
+ *  Microsoft's documentation, line labels are not returned, and
+ *  if no line number is available, (0) is returned. This function
+ *  was basically retarded to begin with, but for the sake of
+ *  having it, we provide a stub that always returns zero.
+ */
 {
-    return((double) basicErrno);
-} /* func_err */
+    return(0);
+} /* vbi_erl */
 
-
-void proc_err(STATEPARAMS, double newErr)
-{
-    /* !!! check this later. Fuck. Double vs. int vs. enum. */
-
-    basicErrno = (int) newErr;
-} /* proc_err */
+/* erdev */
+/* erdev$ */
 
 
 /* end of ErrorFunctions.c ... */

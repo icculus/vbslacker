@@ -11,13 +11,8 @@
 #include "BasicString.h"
 #include "ErrorFunctions.h"
 
-/* !!!
-mid$
-mid$ =
-*/
 
-
-PBasicString right_DC_(STATEPARAMS, PBasicString pStr, int count)
+PBasicString vbSSi_right_DC_(STATEPARAMS, PBasicString pStr, int count)
 /*
  * BASIC RIGHT$() function. Returns rightmost (count) chars in
  *  (pStr) in a new string.
@@ -40,10 +35,10 @@ PBasicString right_DC_(STATEPARAMS, PBasicString pStr, int count)
     } /* else */
 
     return(retVal);
-} /* right_DC_ */
+} /* vbSSi_right_DC_ */
 
 
-PBasicString left_DC_(STATEPARAMS, PBasicString pStr, int count)
+PBasicString vbSSi_left_DC_(STATEPARAMS, PBasicString pStr, int count)
 /*
  * BASIC LEFT$() function. Returns leftmost (count) chars in
  *  (pStr) in a new string.
@@ -66,10 +61,10 @@ PBasicString left_DC_(STATEPARAMS, PBasicString pStr, int count)
     } /* else */
 
     return(retVal);
-} /* left_DC_ */
+} /* vbSSi_left_DC_ */
 
 
-PBasicString rtrim_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_rtrim_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * BASIC RTRIM$() function. Returns a new string with a copy of (pStr),
  *  minus any (' ') chars from the righthand side.
@@ -93,10 +88,10 @@ PBasicString rtrim_DC_(STATEPARAMS, PBasicString pStr)
         __assignString(STATEARGS, &retVal, pStr);
 
     return(retVal);
-} /* rtrim_DC_ */
+} /* vbSS_rtrim_DC_ */
 
 
-PBasicString ltrim_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_ltrim_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * BASIC LTRIM$() function. Returns a new string with a copy of (pStr),
  *  minus any (' ') chars from the lefthand side.
@@ -123,10 +118,10 @@ PBasicString ltrim_DC_(STATEPARAMS, PBasicString pStr)
         __assignString(STATEARGS, &retVal, pStr);
 
     return(retVal);
-} /* ltrim_DC_ */
+} /* vbSS_ltrim_DC_ */
 
 
-PBasicString lcase_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_lcase_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * Returns a lowercased copy of (pStr).
  *
@@ -146,11 +141,11 @@ PBasicString lcase_DC_(STATEPARAMS, PBasicString pStr)
         *i = tolower(*i);
 
     return(retVal);
-} /* lcase_DC_ */
+} /* vbSS_lcase_DC_ */
 
 
 
-PBasicString ucase_DC_(STATEPARAMS, PBasicString pStr)
+PBasicString vbSS_ucase_DC_(STATEPARAMS, PBasicString pStr)
 /*
  * Returns a uppercased copy of (pStr).
  *
@@ -170,10 +165,10 @@ PBasicString ucase_DC_(STATEPARAMS, PBasicString pStr)
         *i = toupper(*i);
 
     return(retVal);
-} /* ucase_DC_ */
+} /* vbSS_ucase_DC_ */
 
 
-int len(STATEPARAMS, PBasicString pStr)
+int vbiS_len(STATEPARAMS, PBasicString pStr)
 /*
  * Return the number of characters contained by (pStr). Remember that
  *  the data in the BasicString structure is NOT null-terminated, and
@@ -185,10 +180,10 @@ int len(STATEPARAMS, PBasicString pStr)
  */
 {
     return(pStr->length);
-} /* len */
+} /* vbiS_len */
 
 
-PBasicString space_DC_(STATEPARAMS, int length)
+PBasicString vbSi_space_DC_(STATEPARAMS, int length)
 /*
  * Create a BasicString consisting of (length) (' ') chars.
  *
@@ -207,7 +202,15 @@ PBasicString space_DC_(STATEPARAMS, int length)
     } /* else */
 
     return(retVal);
-} /* space_DC_ */
+} /* vbSi_space_DC_ */
+
+/* !!! still need: */
+/* mid$ */
+/* mid$ = */
+/* instr */
+/* LSET */
+/* rset */
+/* string$ */
 
 /* end of StringFunctions.c ... */
 

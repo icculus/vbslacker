@@ -91,5 +91,8 @@ long __getInitFlags(STATEPARAMS)
     return(initFlags);
 } /* __getInitFlags */
 
+/* !!! still need: */
+/* clear (maybe?) */
+
 /* end of Initialize.c ... */
 

@@ -588,4 +588,19 @@ boolean __FileExist(STATEPARAMS, const char *fileName)
     return bReturnValue;
 }
 
+/* !!! still need: */
+/* eof */
+/* lof */
+/* fileattr */
+/* freefile */
+/* get # */
+/* put # */
+/* loc */
+/* lock */
+/* unlock */
+/* reset */
+/* seek */
+
+
 /* end of FileIOFunctions.c ... */
+
