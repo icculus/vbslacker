@@ -31,7 +31,7 @@ PBasicString right_DC_(PBasicString pStr, int count)
 
     if (count < 0)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-    else if (count > pStr->length)
+    else if ((unsigned int) count > pStr->length)
         __assignString(&retVal, pStr);
     else
     {
@@ -57,7 +57,7 @@ PBasicString left_DC_(PBasicString pStr, int count)
 
     if (count < 0)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-    else if (count > pStr->length)
+    else if ((unsigned int) count > pStr->length)
         __assignString(&retVal, pStr);
     else
     {
