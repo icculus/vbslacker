@@ -13,7 +13,15 @@
 #ifndef _INCLUDE_SIGNALHANDLERS_H_
 #define _INCLUDE_SIGNALHANDLERS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void __initSignalHandlers(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_SIGNALHANDLERS_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

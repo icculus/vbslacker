@@ -13,6 +13,10 @@
 #ifndef _INCLUDE_BASICARRAY_H_
 #define _INCLUDE_BASICARRAY_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     void *data;                 /* Points to C array of variant structs. */
@@ -23,6 +27,10 @@ typedef struct
 } __BasicArray;
 
 typedef __BasicArray *__PBasicArray;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* !defined _INCLUDE_BASICARRAY_H_ */
 #endif  /* !defined _INCLUDE_STDBASIC_H_ */

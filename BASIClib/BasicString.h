@@ -13,6 +13,10 @@
 #ifndef _INCLUDE_BASICSTRING_H_
 #define _INCLUDE_BASICSTRING_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     unsigned int length;
@@ -29,6 +33,10 @@ PBasicString __assignString(PBasicString to, PBasicString from);
 PBasicString __catString(PBasicString str1, PBasicString str2);
 char *__basicStringToAsciz(PBasicString pStr);
 void __freeString(PBasicString pStr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_BASICSTRING_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

@@ -15,6 +15,10 @@
 
 #include <stdlib.h>  /* need size_t definition... */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void __initMemoryManager(void *programFrame, void *globalData);
 void __deinitMemoryManager(void);
 void __initThreadMemoryManager(int tidx);
@@ -26,6 +30,10 @@ void *__memReallocNoPtrs(void *oldPtr, size_t amount);
 void __memFree(void *ptr);
 void __memDoPartialCollect(void);
 void __memDoFullCollect(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_MEMORYMANAGER_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

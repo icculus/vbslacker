@@ -9,8 +9,16 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int vbii_pen(int arg);
 void vbpO_pen(OnOffStopType onOffStop);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_PENFUNCTIONS_H_ */
 

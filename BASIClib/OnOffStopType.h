@@ -15,7 +15,15 @@
 #ifndef _INCLUDE_ONOFFSTOPTYPE_H_
 #define _INCLUDE_ONOFFSTOPTYPE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum { ON, OFF, STOP } OnOffStopType;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_ONOFFSTOPTYPE_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

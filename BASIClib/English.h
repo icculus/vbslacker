@@ -18,7 +18,8 @@
  *     work, but by submitting your work, the maintainers of BASIClib gain
  *     sole ownership of it.
  *  3. Change any occurence of the word "ENGLISH" to the language you
- *     have translated this file to.
+ *     have translated this file to. Please use the english form of the
+ *     language's name: that is, use "Spanish" and not "espanol."
  *  4. Don't change the identifiers. For example, you should not
  *     change STR_NO_ERROR, but you SHOULD translate "No error" ...
  *     Exceptions are noted below.
@@ -34,7 +35,6 @@
  *                                      --ryan.
  */
 
-
 /*
  * Change both occurances of the below constant to _INCLUDE_MYLANGUAGE_H_ ...
  *  that is, _INCLUDE_SPANISH_H_ or _INCLUDE_GREEK_H_ or whatever...
@@ -43,10 +43,18 @@
 #define _INCLUDE_ENGLISH_H_
 
 
-/*
- * This first batch are error messages that might be encountered
- *  during the course of a BASIC program's execution.
- */
+    /*
+     * Don't touch this block of code.
+     */
+#ifndef _INCLUDING_LOCAL_LANGUAGE_CODE_
+#error Not included from Language.h!
+#endif
+
+
+    /*
+     * This first batch are error messages that might be encountered
+     *  during the course of a BASIC program's execution.
+     */
 #define STR_NO_ERROR                        "No error"
 #define STR_NEXT_WITHOUT_FOR                "NEXT without FOR"
 #define STR_SYNTAX_ERROR                    "Syntax error"
@@ -104,7 +112,7 @@
 #define STR_PATH_NOT_FOUND                  "Path not found"
 #define STR_UNKNOWN_ERR                     "Unknown Error"
 
-#endif   /* don't touch this line. */
+#endif  /* don't touch this line. */
 
 /* end of English.h ... */
 

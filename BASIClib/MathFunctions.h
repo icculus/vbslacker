@@ -9,6 +9,10 @@
 
 #include "StdBasic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 double vbdd_abs(double x);
 double vbdd_sqr(double x);
 double vbdd_atn(double x);
@@ -20,6 +24,10 @@ double vbdd_log(double x);
 long vbld_fix(double x);
 long vbld_int(double x);
 int vbid_sgn(double x);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_MATHFUNCTIONS_H_ */
 

@@ -13,6 +13,10 @@
 #ifndef _INCLUDE_VARIANT_H_
 #define _INCLUDE_VARIANT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Variant data types, for Variant.type field ...
  */
@@ -54,6 +58,10 @@ long __variantToLong(PVariant var);
 float __variantToFloat(PVariant var);
 double __variantToDouble(PVariant var);
 PBasicString __variantToString(PVariant pVar, __boolean byRef);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _INCLUDE_VARIANT_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

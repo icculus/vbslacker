@@ -13,6 +13,10 @@
 
 #include "Assembler.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum
 {
     Append,
@@ -89,6 +93,10 @@ short VBFreeFile_NoRange(void);
 void VBloc(short fileNumber);
 void VBfunc_seek(short fileNumber);
 void VBproc_seek(short fileNumber, long position);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
