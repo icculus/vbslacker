@@ -270,7 +270,7 @@ static DIR *openDirRelativeOrAbsolute(__byte **dirToParse)
 
     if ((*dirToParse)[pathIndex] == __PATHCHAR)         /* absolute path? */
     {
-        rootDir[2] = __CURRENTDIRCHAR;
+        dirToOpen[2] = __CURRENTDIRCHAR;
         pathIndex++;
     } /* if */
 
