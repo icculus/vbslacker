@@ -4,6 +4,10 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 #include <stdlib.h>
 #include "OnEvents.h"
 #include "Initialize.h"
@@ -15,8 +19,10 @@
 
 #ifdef WIN32
     #define CLEANUPPROC "___cleanupOnEventHandler"
+    #define FREEPROC   "_free"
 #else
     #define CLEANUPPROC "__cleanupOnEventHandler"
+    #define FREEPROC    "free"
 #endif
 
 #warning is ERR_INTERNAL_ERROR good for malloc() fails in OnEvents?
@@ -70,6 +76,33 @@ static unsigned int allocatedThreads = 0;
 static POnEventsState *ppState = NULL;
 
 
+#ifdef DEBUG
+
+static inline boolean binaryDump(char *fileName, void *data, int size)
+{
+    FILE *binStream = fopen(fileName, "wb");
+    boolean retVal = false;
+
+    if (binStream == NULL)
+        printf("  - COULDN'T OPEN [%s] FOR BINARY OUTPUT!\n", fileName);
+    else
+    {
+        if (fwrite(data, size, 1, binStream) != 1)
+            printf("  - COULDN'T WRITE DATA DUMP TO DISK!\n");
+        else
+        {
+            printf("  - Data dump is in [%s]...\n", fileName);
+            retVal = true;
+        }
+        fclose(binStream);
+    }
+
+    return(retVal);
+}
+
+#endif
+
+
 void __initOnEvents(STATEPARAMS)
 /*
  * This is called once at program startup.
@@ -113,6 +146,12 @@ POnEventsState __getOnEventsState(STATEPARAMS)
 
     return(retVal);
 } /* __getOnEventsState */
+
+
+unsigned long __getOnEventsRecursionCount(STATEPARAMS)
+{
+    return(__getOnEventsState(STATEARGS)->ptrCount);
+} /* __getOnEventsRecursionCount */
 
 
 void __initThreadOnEvents(STATEPARAMS, int tidx)
@@ -389,10 +428,9 @@ void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
         __getBasePointer(&ptrs->basePtr);
         __getStackPointer(&ptrs->stackPtr);
 
-#warning check stack size in __triggerOnEvent()!
         ptrs->protStackSize = size = 
-                    ((unsigned long) pHandler->stackPtr) - 
-                    ((unsigned long) ptrs->stackPtr);
+                    (((unsigned long) pHandler->basePtr) - 
+                    ((unsigned long) ptrs->stackPtr)) + 1;
         ptrs->protectedStack = rc = malloc(size);
         if (rc == NULL)
             __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
@@ -401,45 +439,45 @@ void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
                 /* Copy part of stack that is vulnerable. */
             memcpy(rc, ptrs->stackPtr, size);
 
-                /* Save original return address from stack... */
-            ptrs->retAddr = ((void **) ptrs->basePtr)[2];
+                /* 
+                 * Patch stack to return into here...save original
+                 *  return address to ptrs->retAddr for later use.
+                 */
+            __asm__ __volatile__ ("movl $__onEventRetAddr, %0\n\t" : "=q" (rc));
+            ptrs->retAddr = ((void **) pHandler->basePtr)[1];
+            ((void **) pHandler->basePtr)[1] = rc;
 
-                /* Patch stack with new return address... */
-            ((void **) ptrs->basePtr)[2] = &&__onEventRetAddr;
-            
                 /* Jump into OnEvent handler...yikes. */
-            __asm__ __volatile__ ("movl %%ecx, %%esp\n\t"
-                                  "movl %%edx, %%ebp\n\t"
-                                  "jmpl *%%eax\n\t"
-                                    : /* no output. */
-                                    : "a" (pHandler->handlerAddr),
-                                      "c" (pHandler->stackPtr),
-                                      "d" (pHandler->basePtr)
-                                 );
+            __asm__ __volatile__ ("movl 4(%%eax), %%ebp\n\t"     /* spoof ebp */
+                                  "movl 8(%%eax), %%esp\n\t"     /* spoof esp */
+                                  "jmpl *(%%eax)\n\t"            /* spoof eip */
 
-__onEventRetAddr:
-            __asm__ __volatile__ (
-                                  "pushl %eax\n\t"  /* save registers. */
-                                  "pushl %ebx\n\t"
-                                  "pushl %ecx\n\t"
-                                  "pushl %edx\n\t"
-                                  "pushl %esi\n\t"
-                                  "pushl %edi\n\t"
-                                  "pushl %ebp\n\t"
+                   /* --- CODE LANDS HERE IF ONEVENT HANDLER RETURNS. --- */
+                                  "__onEventRetAddr:\n\t"
+
+                                  "pushl %%eax\n\t"        /* save registers. */
+                                  "pushl %%ebx\n\t"
+                                  "pushl %%edx\n\t"
+                                  "pushl %%esi\n\t"
+                                  "pushl %%edi\n\t"
+                                  "pushl %%ebp\n\t"
                                   
                                   PUSHNULLSTATEARGS
                                   "call " CLEANUPPROC "\n\t"
-                                  "addl $" STATEARGSSIZESTR ", %esp\n\t"
-                                  "movl  %eax, %ecx\n\t"
+                                  "addl $" STATEARGSSIZESTR ", %%esp\n\t"
+                                  "movl  %%eax, %%ecx\n\t"
 
-                                  "popl %ebp\n\t"   /* restore registers. */
-                                  "popl %edi\n\t"
-                                  "popl %esi\n\t"
-                                  "popl %edx\n\t"
-                                  "popl %ecx\n\t"
-                                  "popl %ebx\n\t"
-                                  "popl %eax\n\t"
-                                  "jmpl *(%ecx)\n\t"
+                                  "popl %%ebp\n\t"      /* restore registers. */
+                                  "popl %%edi\n\t"
+                                  "popl %%esi\n\t"
+                                  "popl %%edx\n\t"
+                                  "popl %%ebx\n\t"
+                                  "popl %%eax\n\t"
+                                                  
+                                  "jmpl *%%ecx\n\t" /* return to normal code. */
+
+                                    : /* no output */
+                                    : "a" (pHandler)
                                  );
         } /* else */
     } /* else */
@@ -458,9 +496,6 @@ void *__cleanupOnEventHandler(STATEPARAMS)
  *                values are stored in register %eax.
  */
 {
-
-#warning check stack location in __cleanupOnEventHandler()!
-    
     POnEventsState pState = __getOnEventsState(STATEARGS);
     void *ebp;
 
@@ -472,23 +507,31 @@ void *__cleanupOnEventHandler(STATEPARAMS)
 } /* __cleanupOnEventHandler */
 
 
-void __doResume(STATEPARAMS, void *resumeAddr, void *bp, void *sp)
+void __doResume(STATEPARAMS, unsigned int retAddrIndex)
+#warning RESUME functions BADLY need commenting!
 /*
  *  !!! comment.
  *
  *
  */
 {
-/*warning RESUME functions BADLY need commenting!*/
-
     POnEventsState pState = __getOnEventsState(STATEARGS);
     POnEventHandlerPtrs ptrs = &pState->ptrs[pState->ptrCount - 1];
-    void *origStack = pState->handlers[pState->handlerCount - 1]->stackPtr;
-/*    void *asmKludge[4]; */
+    POnEventHandler pHandler = pState->handlers[pState->handlerCount - 1];
+    void **offset;
+    void *resumeAddr;
+    void *bp;
+    void *sp;
 
-    printf("resume addr  == (%p)\n", resumeAddr);
-    printf("resume base  == (%p)\n", bp);
-    printf("resume stack == (%p)\n", sp);
+    offset = (void **) ( (unsigned long) ptrs->protectedStack +
+                            ( (unsigned long) ptrs->basePtr -
+                              (unsigned long) ptrs->stackPtr ) );
+
+    offset += 2;    /* 1 for save base pointer, 1 for return address. */
+
+    resumeAddr = offset[retAddrIndex];
+    bp = offset[2];
+    sp = offset[3];
 
     if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_RESUME)
         __fatalRuntimeError(STATEARGS, ERR_FEATURE_UNAVAILABLE);
@@ -497,48 +540,41 @@ void __doResume(STATEPARAMS, void *resumeAddr, void *bp, void *sp)
     {
         pState->ptrCount--;
 
-            /*
-             * For some reason, GCC is choking if I fill in these ASMs' "input"
-             *  sections, so we manually fill registers with the following
-             *  kludge. Oh well.
-             */
+            /* repatch original return address on stack... */ 
+        ((void **) pHandler->basePtr)[1] = ptrs->retAddr;
 
-/*        __asm__ __volatile__ ("movl resumeAddr, %edx\n\t"
-                              "movl bp, %eax\n\t"
-                              "movl sp, %ebx\n\t"
-                              "movl origStack, %edi\n\t"
-                              "movl ptrs, %esi\n\t"
-                              "movl 16(%esi),%ecx\n\t"
-                              "movl 12(%esi),%esi\n\t"
-                              "std\n\t"
-                              "resumestackrecopy:\n\t"
-                              "  lodsb\n\t"
-                              "  stosb\n\t"
-                              "loop resumestackrecopy\n\t"
-                              "movl %%eax, %%ebp\n\t"
-                              "movl %%ebx, %%esp\n\t"
-                              "jmpl *(%%edx)\n\t"
-                             );
-*/
+        __asm__ __volatile__ (                 /* Setup all the registers... */
+                              "movl 8(%%ecx), %%edi\n\t"   /* ptrs->stackPtr */
+                              "movl %%eax, %%ebp\n\t"      /* bp             */
+                              "movl %%esi, %%esp\n\t"      /* sp             */
+                              "movl 12(%%ecx), %%esi\n\t"  /* protectedStack */
+                              "movl %%esi, %%ebx\n\t"      /* save a copy.   */
+                              "movl 16(%%ecx), %%ecx\n\t"  /* protStackSize  */
 
-        __asm__ __volatile__ ("movl 16(%%esi), %%ecx\n\t"  /* protStackSize  */
-                              "movl 12(%%esi), %%esi\n\t"  /* protectedStack */
-                              "movl %%edx, %%edi\n\t"      /* origStack      */
-                              "movl 16(%%ebp), %%edx\n\t"  /* resumeAddr     */
-                              "movl 20(%%ebp), %%ebp\n\t"  /* bp             */
-                              "movl 24(%%ebp), %%esp\n\t"  /* sp             */
-                              "std\n\t"     /* !!! */      /* copy direction */
+                                   /* recopy the protected stack into place. */
+                              "cld\n\t"                    /* copy direction */
                               "stackrecopy:\n\t"
                               "  lodsb\n\t"
                               "  stosb\n\t"
                               "decl %%ecx\n\t"
-                              "orl %%ecx, %%ecx\n\t"
-                              "jnz stackrecopy\n\t"
-                              /*"loop stackrecopy\n\t"*/
+                              "orl %%ecx, %%ecx\n\t"       /* does ecx == 0? */
+                              "jnz stackrecopy\n\t"      /* "loop" is buggy. */
+
+                                            /* free() the protected stack... */
+                              "pushl %%edx\n\t"
+                              "pushl %%ebx\n\t"
+                              "call " FREEPROC "\n\t"
+                              "addl $4, %%esp\n\t"
+                              "popl  %%edx\n\t"
+
+                                            /* jump to resume code position. */
                               "jmpl *%%edx\n\t"
+
                                 : /* no output */
-                                : "S" (ptrs),
-                                  "d" (origStack)
+                                : "c" (ptrs),
+                                  "a" (bp),
+                                  "S" (sp),
+                                  "d" (resumeAddr)
                              );
     } /* else */
 } /* __doResume */
@@ -546,37 +582,13 @@ void __doResume(STATEPARAMS, void *resumeAddr, void *bp, void *sp)
 
 void __resumeNext(STATEPARAMS)
 {
-    POnEventsState pState = __getOnEventsState(STATEARGS);
-    POnEventHandlerPtrs ptrs = &pState->ptrs[pState->ptrCount - 1];
-    POnEventHandler pHandler = pState->handlers[pState->handlerCount - 1];
-    void *resumeAddr;
-    void *newBP;
-    void *newSP;
-    unsigned long offset;
-    
-    offset = (unsigned long) pHandler->basePtr - (unsigned long) ptrs->basePtr;
-    resumeAddr = (void *) (((unsigned long) ptrs->protectedStack) + offset + 4);
-    newBP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 8));
-    newSP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 12));
-    __doResume(STATEARGS, resumeAddr, newBP, newSP);
+    __doResume(STATEARGS, 1);
 } /* __resumeNext */
 
 
 void __resumeZero(STATEPARAMS)
 {
-    POnEventsState pState = __getOnEventsState(STATEARGS);
-    POnEventHandlerPtrs ptrs = &pState->ptrs[pState->ptrCount - 1];
-    POnEventHandler pHandler = pState->handlers[pState->handlerCount - 1];
-    void *resumeAddr;
-    void *newBP;
-    void *newSP;
-    unsigned long offset;
-    
-    offset = (unsigned long) pHandler->basePtr - (unsigned long) ptrs->basePtr;
-    resumeAddr = (void *) (((unsigned long) ptrs->protectedStack) + offset);
-    newBP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 8));
-    newSP = (void *) (((unsigned long) ptrs->protectedStack) + (offset + 12));
-    __doResume(STATEARGS, resumeAddr, newBP, newSP);
+    __doResume(STATEARGS, 0);
 } /* __resumeNext */
 
 /* end of OnEvents.c ... */

@@ -66,6 +66,7 @@ typedef OnEventHandler *POnEventHandler;
 /* function prototypes... */
 
 POnEventHandler __getOnEventHandler(STATEPARAMS, OnEventTypeEnum evType);
+unsigned long __getOnEventsRecursionCount(STATEPARAMS);
 void __initOnEvents(STATEPARAMS);
 void __deinitOnEvents(STATEPARAMS);
 void __initThreadOnEvents(STATEPARAMS, int tidx);
