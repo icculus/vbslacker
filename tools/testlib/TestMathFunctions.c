@@ -320,7 +320,7 @@ void test_vbid_sgn(void)
 
 void testMathFunctions(void)
 /*
- * This code tests all the conversion functions in BASIClib.
+ * This code tests all the math functions in BASIClib.
  *
  *    params : void.
  *   returns : void.
@@ -344,14 +344,10 @@ void testMathFunctions(void)
 
 #ifdef STANDALONE
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
-    void *base;
-
-    __getBasePointer(base);
-    __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE, argc, argv, envp);
     testMathFunctions();
-    __deinitBasicLib();
     return(0);
 } /* main */
 

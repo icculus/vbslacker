@@ -63,17 +63,17 @@ void test_error(void)
 
     __setOnErrorHandler(errorErrorHandler);
 
-    _vbpl_error(ERR_LABEL_NOT_DEFINED);
+    _vbpl_error(ERR_DISK_FULL);
     printf("  - Didn't call error handler.\n");
     __exitCleanupOnError;
     return;
 
 __insertLineLabel(errorErrorHandler);
 
-    if (_vbl_err() != ERR_LABEL_NOT_DEFINED)
+    if (_vbl_err() != ERR_DISK_FULL)
     {
         printf("  - returned (%d), should have returned (%d)!\n",
-                        rc, ERR_LABEL_NOT_DEFINED);
+                        rc, ERR_DISK_FULL);
     } /* if */
 
     __exitCleanupOnError;

@@ -46,8 +46,8 @@ void testEverything(void)
     testThreads();
     testStringFunctions();
     testConversionFunctions();
-/*    testFileIOFunctions();*/
     testMathFunctions();
+    testFileSystemFunctions();
 } /* testEverything */
 
 
