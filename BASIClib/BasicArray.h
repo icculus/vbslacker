@@ -17,9 +17,11 @@
 
 typedef struct
 {
-    void *data;     /* Points to C array.    */
-    long start;     /* Start of index range. */
-    long end;       /* End of index range.   */
+    PVariant data;              /* Points to C array of variant structs. */
+    long start;                 /* Start of index range.            */
+    long end;                   /* End of index range.              */
+    boolean multiDimensional;   /* An array of arrays?              */
+    boolean isStatic;           /* true == static, false == dynamic */
 } BasicArray;
 
 typedef BasicArray *PBasicArray;
