@@ -26,6 +26,9 @@ BasicParser.o : BasicParser.cpp BasicParser.hpp
 BasicParser.cpp : parser.g
 	$(ANTLR) parser.g
 
+PostParser.o : PostParser.cpp PostParser.h
+	$(CPP) $(CPPFLAGS) PostParser.o PostParser.cpp
+
 main.o : main.cpp
 	$(CPP) $(CPPFLAGS) main.o main.cpp
 	

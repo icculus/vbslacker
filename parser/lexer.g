@@ -39,6 +39,7 @@ tokens {
    SPC_FUNC = "spc";
    TAB_FUNC = "tab";
    PRINT = "print";
+   NEW = "new";
 }
 
 STRING
