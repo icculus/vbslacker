@@ -7,6 +7,8 @@
 #ifndef _INCLUDE_BASICERROR_H_
 #define _INCLUDE_BASICERROR_H_
 
+#include "RegState.h"
+
 /*
  * Runtime error codes. Some of these aren't applicable, but have been
  *  left here for history's sake. Most of the ones that aren't applicable
@@ -78,11 +80,12 @@
 
 extern int __basicErrno;
 
-void __initErrorFunctions(void);
-void __runtimeError(int errorNum);    /* set and handle errors. */
+void __fatalRuntimeError(STATEPARAMS, int errorNum);
+void __initErrorFunctions(STATEPARAMS);
+void __runtimeError(STATEPARAMS, int errorNum);    /* set and handle errors. */
 
-double func_err(void);
-void proc_err(double newErr);
+double func_err(STATEPARAMS);
+void proc_err(STATEPARAMS, double newErr);
 
 /* !!! update from ErrorFunctions.h !!! */
 

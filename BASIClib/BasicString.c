@@ -12,7 +12,7 @@
 #include "Boolean.h"
 
 
-PBasicString __allocString(int length, boolean fixedLength)
+PBasicString __allocString(STATEPARAMS, int length, boolean fixedLength)
 /*
  * Build a string, but don't initialize the data.
  *
@@ -23,8 +23,8 @@ PBasicString __allocString(int length, boolean fixedLength)
 {
     PBasicString retVal;
 
-    retVal = __memAlloc(sizeof (BasicString));
-    retVal->data = ((length > 0) ? __memAlloc(length) : NULL);
+    retVal = __memAlloc(STATEARGS, sizeof (BasicString));
+    retVal->data = ((length > 0) ? __memAlloc(STATEARGS, length) : NULL);
     retVal->length = length;
     retVal->fixedLength = fixedLength;
 
@@ -32,7 +32,7 @@ PBasicString __allocString(int length, boolean fixedLength)
 } /* __allocString */
 
 
-PBasicString __createString(char *asciz, boolean fixedLength)
+PBasicString __createString(STATEPARAMS, char *asciz, boolean fixedLength)
 /*
  * Create a BASIC string from a ASCII zero-terminated "C" string.
  *
@@ -42,14 +42,14 @@ PBasicString __createString(char *asciz, boolean fixedLength)
  */
 {
     int length = strlen(asciz);
-    PBasicString retVal = __allocString(length, fixedLength);
+    PBasicString retVal = __allocString(STATEARGS, length, fixedLength);
 
     memcpy(retVal->data, asciz, length);
     return(retVal);
 } /* __createString */
 
 
-PBasicString __constString(char *asciz)
+PBasicString __constString(STATEPARAMS, char *asciz)
 /*
  * This builds a new BASIC string, but rather than copy the string data
  *  over, it just copies the pointer. You have to be careful never to
@@ -63,7 +63,7 @@ PBasicString __constString(char *asciz)
  *     returns : newly created BASIC string.
  */
 {
-    PBasicString retVal = __allocString(0, true);
+    PBasicString retVal = __allocString(STATEARGS, 0, true);
 
     retVal->data = asciz;
     retVal->length = strlen(asciz);
@@ -71,7 +71,7 @@ PBasicString __constString(char *asciz)
 } /* __constString */
 
 
-void __freeString(PBasicString pBasicStr)
+void __freeString(STATEPARAMS, PBasicString pBasicStr)
 /*
  * Free a previously allocated BASIC String.
  *
@@ -82,14 +82,16 @@ void __freeString(PBasicString pBasicStr)
     if (pBasicStr != NULL)
     {
         if (pBasicStr->data != NULL)
-            __memFree(pBasicStr->data);
+            __memFree(STATEARGS, pBasicStr->data);
 
-        __memFree(pBasicStr);
+        __memFree(STATEARGS, pBasicStr);
     } /* if */
 } /* __freeString */
 
 
-void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign)
+void __assignString(STATEPARAMS,
+                    PBasicString *ppBasicStr,
+                    PBasicString pStrToAssign)
 /*
  * Assign a BASIC string value to a BASIC string variable.
  *
@@ -100,8 +102,6 @@ void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign)
  *  is equivalent to:
  *
  *   __assignString(&str1, str2);
- *
- *
  *
  *    params : ppBasicStr == String to do assigning to. Previous values are
  *                            __memRealloc()d, if they exist. Passing a NULL
@@ -115,14 +115,15 @@ void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign)
     PBasicString pStr = *ppBasicStr;
 
     if (pStr == NULL)
-        pStr = *ppBasicStr = __allocString(pStrToAssign->length, false);
+        pStr = *ppBasicStr = __allocString(STATEARGS, pStrToAssign->length,
+                                           false);
 
     if (pStr->fixedLength == true)
         copyCount = __min(pStr->length, pStrToAssign->length);
     else
     {
         copyCount = pStrToAssign->length;
-        pStr->data = __memRealloc(pStr->data, copyCount);
+        pStr->data = __memRealloc(STATEARGS, pStr->data, copyCount);
         pStr->length = copyCount;
     } /* else */
 
@@ -130,7 +131,7 @@ void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign)
 } /* __assignString */
 
 
-void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat)
+void __catString(STATEPARAMS, PBasicString *ppBasicStr, PBasicString pStrToCat)
 /*
  * Concatenate two BASIC strings.
  *
@@ -144,7 +145,7 @@ void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat)
     PBasicString pStr = *ppBasicStr;
 
     if (pStr == NULL)
-        *ppBasicStr = __createString(pStrToCat->data, false);
+        *ppBasicStr = __createString(STATEARGS, pStrToCat->data, false);
     else
     {
             /*
@@ -152,11 +153,11 @@ void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat)
              *  a fixed length BASIC string. Throw error if it is.
              */
         if (pStr->fixedLength == true)
-            __runtimeError(ERR_INTERNAL_ERROR);
+            __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
         else
         {
             newLength = pStr->length + pStrToCat->length;            
-            pStr->data = __memRealloc(pStr->data, newLength);
+            pStr->data = __memRealloc(STATEARGS, pStr->data, newLength);
             memcpy(pStr->data + pStr->length, pStrToCat->data,
                    pStrToCat->length);
             pStr->length = newLength;
@@ -165,7 +166,7 @@ void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat)
 } /* __catString */
 
 
-char *__basicStringToAsciz(PBasicString pStr)
+char *__basicStringToAsciz(STATEPARAMS, PBasicString pStr)
 /*
  * Copy the data of a BasicString to a C-style ASCIZ (ASCIi-Zero
  *  terminated) string. Please call __memFree() on the returned 
@@ -175,7 +176,7 @@ char *__basicStringToAsciz(PBasicString pStr)
  *    returns : newly allocated C string.
  */
 {
-    char *retVal = __memAlloc(pStr->length + 1);
+    char *retVal = __memAlloc(STATEARGS, pStr->length + 1);
     memcpy(retVal, pStr->data, pStr->length);
     retVal[pStr->length] = '\0';
     return(retVal);

@@ -7,29 +7,30 @@
 #ifndef _INCLUDE_TIMEDATEFUNCTIONS_H_
 #define _INCLUDE_TIMEDATEFUNCTIONS_H_
 
+#include "RegState.h"
 #include "BasicString.h"
 
 typedef enum {ON, OFF, STOP} TimerArgEnum;
 
-void __initTimeDateFunctions(void);
+void __initTimeDateFunctions(STATEPARAMS);
 
-double func_timer(void);
-void proc_timer(TimerArgEnum setting);
+double func_timer(STATEPARAMS);
+void proc_timer(STATEPARAMS, TimerArgEnum setting);
 
-PBasicString func_time_DC_(void);
-void proc_time_DC_(PBasicString newTimeStr);
+PBasicString func_time_DC_(STATEPARAMS);
+void proc_time_DC_(STATEPARAMS, PBasicString newTimeStr);
 
-PBasicString func_date_DC_(void);
-void proc_date_DC_(PBasicString newTimeStr);
+PBasicString func_date_DC_(STATEPARAMS);
+void proc_date_DC_(STATEPARAMS, PBasicString newTimeStr);
 
-long dateserial(int year, int month, int day);
-long datevalue(PBasicString date);
-int day(long serialNum);
-int weekday(long serialNum);
-int month(long serialNum);
-int year(long serialNum);
+long dateserial(STATEPARAMS, int year, int month, int day);
+long datevalue(STATEPARAMS, PBasicString date);
+int day(STATEPARAMS, long serialNum);
+int weekday(STATEPARAMS, long serialNum);
+int month(STATEPARAMS, long serialNum);
+int year(STATEPARAMS, long serialNum);
 
-int now(void);
+int now(STATEPARAMS);
 
 #endif
 

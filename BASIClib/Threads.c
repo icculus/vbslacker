@@ -4,7 +4,7 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
-/* !!! comment this thing. */
+#warning Comment Threads.c, please.
 
 #include <stdlib.h>
 
@@ -44,11 +44,11 @@ void __deinitThread(int tidx);
 
 
 
-void __initThreads(void)
+void __initThreads(STATEPARAMS)
 {
-    __createThreadLock(&lock);
+    __createThreadLock(STATEARGS, &lock);
     threadCount++;
-    indexes = __memAlloc(sizeof (pthread_t));
+    indexes = __memAlloc(STATEARGS, sizeof (pthread_t));
 
 #ifndef WIN32
     indexes[0] = pthread_self();
@@ -56,24 +56,24 @@ void __initThreads(void)
     indexes[0] = 15;
 #endif
 
-    __initThread(0);
+    __initThread(STATEARGS, 0);
 } /* __initThreads */
 
 
-void __deinitThreads(void)
+void __deinitThreads(STATEPARAMS)
 {
-    __destroyThreadLock(&lock);
+    __destroyThreadLock(STATEARGS, &lock);
 } /* __deinitThreads */
 
 
-void __prepareThreadToTerminate(int tidx)
+void __prepareThreadToTerminate(STATEPARAMS, int tidx)
 {
     int i;
     int firstNULL = -1;
 
-    __deinitThread(tidx);   /* notify other modules that thread is dying. */
+    __deinitThread(STATEARGS, tidx);   /* broadcast that thread is dying. */
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(STATEARGS, &lock);
 
     threadCount--;
 
@@ -89,66 +89,70 @@ void __prepareThreadToTerminate(int tidx)
     if (firstNULL != -1)
     {
         maxIndex = firstNULL - 1;
-        __memRealloc(indexes, firstNULL * sizeof (pthread_t));
+        __memRealloc(STATEARGS, indexes, firstNULL * sizeof (pthread_t));
     } /* if */
 
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(STATEARGS, &lock);
 } /* __prepareThreadToTerminate */
 
 
-void __terminateCurrentThread(void)
+void __terminateCurrentThread(STATEPARAMS)
 {
 #ifndef WIN32
-    __prepareThreadToTerminate(__getCurrentThreadIndex());
+    __prepareThreadToTerminate(STATEARGS, __getCurrentThreadIndex(STATEARGS));
     pthread_exit(0);
 #endif
 } /* __terminateCurrentThread */
 
 
-void __terminateThread(int tidx)
+void __terminateThread(STATEPARAMS, int tidx)
 {
 #ifndef WIN32
     pthread_t thread;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(STATEARGS, &lock);
     thread = indexes[tidx];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(STATEARGS, &lock);
 
-    __prepareThreadToTerminate(tidx);
+    __prepareThreadToTerminate(STATEARGS, tidx);
     pthread_kill(thread, SIGKILL);
 #endif
 } /* __terminateThread */
 
 
-void __waitForThreadToDie(int tidx)
+void __waitForThreadToDie(STATEPARAMS, int tidx)
 {
 #ifndef WIN32
     pthread_t thread;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(STATEARGS, &lock);
     thread = indexes[tidx];
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(STATEARGS, &lock);
 
     pthread_join(thread, NULL);
 #endif
 } /* __waitForThreadToDie */
 
 
+void __kickOffThread(STATEPARAMS, PThreadEntryArgs args)
+{
+    __initThread(STATEARGS, args->tidx);
+    args->fn(STATEARGS, args->args);
+    __memFree(STATEARGS, args);
+    __terminateCurrentThread(STATEARGS);
+} /* __kickOffThread */
+
+
 void __threadEntry(void *_args)
 {
-    PThreadEntryArgs args = (PThreadEntryArgs) _args;
-
-    __initThread(args->tidx);
-    args->fn(args->args);
-    __memFree(args);
-    __terminateCurrentThread();
+    __kickOffThread(NULLSTATEARGS, (PThreadEntryArgs) _args);
 } /* __threadStart */
 
 
-int __spinThread(void *(*_fn)(void *), void *_args)
+int __spinThread(STATEPARAMS, void *(*_fn)(void *), void *_args)
 {
 #ifndef WIN32
-    PThreadEntryArgs args = __memAlloc(sizeof (ThreadEntryArgs));
+    PThreadEntryArgs args = __memAlloc(STATEARGS, sizeof (ThreadEntryArgs));
     pthread_t *saveLoc = NULL;
     int retVal;
     int rc;
@@ -156,7 +160,7 @@ int __spinThread(void *(*_fn)(void *), void *_args)
     args->fn = _fn;
     args->args = _args;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(STATEARGS, &lock);
 
     for (args->tidx = 0; args->tidx <= maxIndex; args->tidx++)
     {
@@ -167,7 +171,8 @@ int __spinThread(void *(*_fn)(void *), void *_args)
     if (saveLoc == NULL)    /* no space in table? */
     {
         maxIndex++;
-        indexes = __memRealloc(indexes, (maxIndex + 1) * sizeof (pthread_t));
+        indexes = __memRealloc(STATEARGS, indexes,
+                                (maxIndex + 1) * sizeof (pthread_t));
         saveLoc = &indexes[maxIndex];
         args->tidx = maxIndex;
     } /* if */
@@ -175,13 +180,13 @@ int __spinThread(void *(*_fn)(void *), void *_args)
     retVal = args->tidx;
     rc = pthread_create(saveLoc, NULL, (void *) __threadEntry, args);
 
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(STATEARGS, &lock);
 
     if (rc != 0)
     {
-        __memFree(args);
+        __memFree(STATEARGS, args);
         retVal = -1;
-        __runtimeError(ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
     } /* if */
 
     return(retVal);
@@ -191,26 +196,26 @@ int __spinThread(void *(*_fn)(void *), void *_args)
 } /* __spinThread */
 
 
-int __getThreadCount(void)
+int __getThreadCount(STATEPARAMS)
 {
     return(threadCount);
 } /* __getThreadCount */
 
 
-int __getHighestThreadIndex(void)
+int __getHighestThreadIndex(STATEPARAMS)
 {
     return(maxIndex);
 } /* __getHighestThreadIndex */
 
 
-int __getCurrentThreadIndex(void)
+int __getCurrentThreadIndex(STATEPARAMS)
 {
 #ifndef WIN32
     pthread_t tid = pthread_self();
     int i;
     int retVal = -1;
 
-    __obtainThreadLock(&lock);
+    __obtainThreadLock(STATEARGS, &lock);
 
     for (i = 0; retVal == -1; i++)
     {
@@ -218,7 +223,7 @@ int __getCurrentThreadIndex(void)
             retVal = i;
     } /* for */
 
-    __releaseThreadLock(&lock);
+    __releaseThreadLock(STATEARGS, &lock);
 
     return(retVal);
 #else
@@ -227,7 +232,7 @@ int __getCurrentThreadIndex(void)
 } /* __getCurrentThreadIndex */
 
 
-void __threadTimeslice(void)
+void __threadTimeslice(STATEPARAMS)
 {
 #ifndef WIN32
     (void) sched_yield();
@@ -235,7 +240,7 @@ void __threadTimeslice(void)
 } /* __threadTimeslice */
 
 
-void __createThreadLock(PThreadLock pThreadLock)
+void __createThreadLock(STATEPARAMS, PThreadLock pThreadLock)
 {
 #ifndef WIN32
     int errType;
@@ -243,35 +248,35 @@ void __createThreadLock(PThreadLock pThreadLock)
     if (pthread_mutex_init(pThreadLock, NULL) != 0)
     { 
         errType = ((errno == ENOMEM) ? ERR_OUT_OF_MEMORY : ERR_INTERNAL_ERROR);
-        __runtimeError(errType);
+        __runtimeError(STATEARGS, errType);
     } /* if */
 #endif
 } /* __createThreadLock */
 
 
-void __destroyThreadLock(PThreadLock pThreadLock)
+void __destroyThreadLock(STATEPARAMS, PThreadLock pThreadLock)
 {
 #ifndef WIN32
     if (pthread_mutex_destroy(pThreadLock) != 0)
-        __runtimeError(ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
 #endif
 } /* __destroyThreadLock */
 
 
-void __obtainThreadLock(PThreadLock pThreadLock)
+void __obtainThreadLock(STATEPARAMS, PThreadLock pThreadLock)
 {
 #ifndef WIN32
     if (pthread_mutex_lock(pThreadLock) != 0)
-        __runtimeError(ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
 #endif
 } /* __obtainThreadLock */
 
 
-void __releaseThreadLock(PThreadLock pThreadLock)
+void __releaseThreadLock(STATEPARAMS, PThreadLock pThreadLock)
 {
 #ifndef WIN32
     if (pthread_mutex_unlock(pThreadLock) != 0)
-        __runtimeError(ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
 #endif
 } /* __releaseThreadLock */
 

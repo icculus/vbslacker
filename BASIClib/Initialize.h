@@ -7,8 +7,19 @@
 #ifndef _INCLUDE_INITIALIZE_H_
 #define _INCLUDE_INITIALIZE_H_
 
-void __initBasicLib(void);
-void __deinitBasicLib(void);
+#include "RegState.h"
+
+#define INITFLAG_NOT_INITIALIZED       0
+#define INITFLAG_DISABLE_RESUME        1
+#define INITFLAG_DISABLE_RANGE_CHECKS  2
+#define INITFLAG_DISABLE_NUM_OVERFLOW  4
+#define INITFLAG_DISABLE_VARIANTS      8
+
+
+    /* function prototypes ... */
+void __initBasicLib(STATEPARAMS, long flags);
+void __deinitBasicLib(STATEPARAMS);
+long __getInitFlags(STATEPARAMS);
 
 #endif
 
