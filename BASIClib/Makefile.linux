@@ -1,10 +1,5 @@
 # Makefile for building a dynamic (shared) BASIClib
 
-MAJORVER = 0
-MINORVER = 0
-REVISIONVER = 1
-WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
-
 DYNLIBBASE = libBASIC.so
 DYNLIBWHOLE = $(DYNLIBBASE).$(WHOLEVERSION)
 DYNLIBMAJOR = $(DYNLIBBASE).$(MAJORVER)
@@ -25,7 +20,7 @@ ASM = gcc
 # Debug command lines...
 COPTIONS = -D_REENTRANT -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
 LOPTIONS = -Wall -shared -Wl,-soname,$(DYNLIBMAJOR) -o
-ASMOPTIONS = -Wall -c -o
+ASMOPTIONS = -D_REENTRANT -Wall -c -o
 
 all : $(DYNLIBBASE)
 
@@ -37,17 +32,6 @@ $(DYNLIBMAJOR) : $(DYNLIBWHOLE)
 
 $(DYNLIBWHOLE) : $(OBJS)
 	$(LINKER) $(LOPTIONS) $(DYNLIBWHOLE) $(OBJS)
-
-about:
-	cat ../docs/about.txt
-
-clean : 
-	rm -f core
-	rm -f pp*.s
-	rm -f $(DYNLIBBASE)
-	rm -f $(DYNLIBMAJOR)
-	rm -f $(DYNLIBWHOLE)
-	rm -f $(OBJS)
 
 BasicString.o : BasicString.c BasicString.h ErrorFunctions.h Boolean.h \
                 MathFunctions.h InternalMemManager.h
@@ -90,7 +74,7 @@ FileIOFunctions.o : FileIOFunctions.c FileIOFunctions.h BasicString.h Variant.h
 	$(CC) $(COPTIONS) FileIOFunctions.o FileIOFunctions.c
 
 OnEventsAsm.o : OnEvents.S
-	gasp -DWIN32="TRUE" --commentchar "#" OnEvents.S |as -o OnEventsAsm.o
+	$(ASM) $(ASMOPTIONS) OnEventsAsm.o OnEvents.S
 
 # end of Makefile ...
 

@@ -2,24 +2,32 @@
 #
 #  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
 
-all:
+
+
+# Makefile for building a static, win32 BASIClib  !!! For now.
+
+export MAJORVER = 0
+export MINORVER = 0
+export REVISIONVER = 1
+export WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
+
 
 about:
-	cat ../docs/about.txt
+	@cat ../docs/about.txt
 
 clean : 
-	rm -f *core
-	rm -f *.o
-	rm -f *.exe
-	rm -f *.dll
-	rm -f *.so*
-	rm -f *.a
+	rm -f $(wildcard *core)
+	rm -f $(wildcard *.o)
+	rm -f $(wildcard *.exe)
+	rm -f $(wildcard *.dll)
+	rm -f $(wildcard *.so*)
+	rm -f $(wildcard *.a)
 
 linux : Makefile.linux
-	make -f Makefile.linux all
+	@$(MAKE) -f Makefile.linux all
 
 win32 : Makefile.win32
-	make -f Makefile.win32 all
+	@$(MAKE) -f Makefile.win32 all
 
 # end of Makefile ...
 
