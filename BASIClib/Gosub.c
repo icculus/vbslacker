@@ -2,6 +2,7 @@
  * Functions needed for GOSUB and RETURN support in BASIClib.
  *
  *  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+ *   This file written by Ryan C. Gordon.
  */
 
 #include <stdlib.h>      /* need NULL definition... */
