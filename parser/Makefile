@@ -6,7 +6,7 @@
 # Useful directories
 export ANTLR_BASE = $(HOME)/antlr-2.6.1
 export ANTLR_CPP = $(ANTLR_BASE)/cpp
-export OBJS = BasicLexer.o BasicParser.o main.o
+export OBJS = BasicLexer.o BasicParser.o main.o PostParser.o
 export BUILD_FOLDER = `pwd`
 
 export ANTLR_OBJS = $(ANTLR_CPP)/*.o

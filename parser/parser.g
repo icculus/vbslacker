@@ -1,14 +1,15 @@
 /* This is temporary until I have a better place to put it */
 header
 {
-   /* This enumeration is used for passing the scope of a variable or
-    * function declaration.
-    */
-   enum BasicScope {SCOPE_PUBLIC, SCOPE_PRIVATE, SCOPE_DIM, SCOPE_FRIEND};
+   #include "PostParser.h"
 }
 
 options {
    language = "Cpp";
+}
+
+// Heading of BasicParser.cpp
+{
 }
 
 class BasicParser extends Parser;
@@ -16,11 +17,20 @@ options {
    importVocab = Basic;
 }
 
+{
+   PostParser *pPostParser;
+}
+
 start:
-/* Start here
- */
+// Start here
+   {
+      pPostParser = new PostParser;
+   }
    (statement NEWLINE)*
    EOF
+   {
+      delete pPostParser;
+   }
    ;
 
 statement:
@@ -130,11 +140,43 @@ decl_arg:
    (LPAREN RPAREN)? AS IDENTIFIER (EQUAL expression)?
    ;
 
-var_declaration[BasicScope scope]:
-   (WITHEVENTS)? varname:IDENTIFIER (LPAREN (subscripts)?
-   RPAREN)? (AS (NEW)? datatype:IDENTIFIER)? (COMMA var_declaration[scope])?
+// One or more variable declarations
+var_declaration[BasicScope Scope]
+   {
+      // Initialize
+      RefToken rtVarName;
+      RefToken rtDataType;
+      Boolean blnWithEvents;
+      Boolean blnAsNew;
+   }:
+   var_decl[rtVarName, rtDataType, blnWithEvents, blnAsNew]
+   {
+      // If we get here, we'll have a valid variable declaration
+      pPostParser->VarDecl(Scope, rtVarName, rtDataType, blnWithEvents, blnAsNew);
+   }   
+   (COMMA var_declaration[Scope])?
    ;
 
+// Represents a single variable declaration only
+var_decl[RefToken &VarName, RefToken &DataType, Boolean &WithEvents,
+Boolean &AsNew]
+   {
+      WithEvents = FALSE;
+      AsNew = FALSE;
+   }:
+
+   (withevents_token:WITHEVENTS)?
+      { if(withevents_token != NULL) WithEvents = TRUE; }
+   varname_token:IDENTIFIER
+      { VarName = varname_token; }
+   (LPAREN (subscripts)? RPAREN)? (AS
+   (new_token:NEW)?
+      { if(new_token != NULL) AsNew = TRUE; }
+   datatype_token:IDENTIFIER
+      { DataType = datatype_token; }
+   )?
+   ;
+   
 subscripts:
    (expression TO) => (lower:expression TO upper:expression)
    | upper2:expression (subscripts)?
