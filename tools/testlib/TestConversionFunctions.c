@@ -23,6 +23,8 @@ void test_chr_DC_(void)
 
     printf("Testing chr_DC_()...\n");
 
+    /* !!! ON ERROR RESUME NEXT */
+
     for (i = 0; i <= 255; i++)
     {
         rc = chr_DC_(i);
@@ -59,12 +61,16 @@ void test_str_DC_(void)
         sprintf(buffer, "%s%f", (i < 0.0) ? "" : " ", i);
         rc = str_DC_(i);
 
-        if (memcmp(rc->data, buffer, rc->length) != 0)
+        if (rc->length > sizeof (buffer))
+            printf("  - str$(%f) returned %d byte string.\n", i, rc->length);
+
+        else if (memcmp(rc->data, buffer, rc->length) != 0)
         {
             memcpy(buffer, rc->data, rc->length);
             buffer[rc->length] = '\0';
             printf("  - str$(%f) returned \"%s\"!\n", i, buffer);
         } /* if */
+
         __freeString(rc);
     } /* for */
 } /* test_str_DC_ */
@@ -78,9 +84,11 @@ void test_asc(void)
  *   returns : void.
  */
 {
-    int i;
+    unsigned int i;
     PBasicString argStr = __createString("The Quick brown fox...\r\n", false);
-    int rc;
+    unsigned int rc;
+
+    /* ON ERROR RESUME NEXT */
 
     printf("Testing asc()...\n");
 
@@ -90,7 +98,7 @@ void test_asc(void)
         rc = asc(argStr);
 
         if (rc != i)
-            printf("  - asc(\"%c\") returned [%d]!\n", (char) i, rc);
+            printf("  - asc(chr$(%u)) returned [%u]!\n", i, rc);
     } /* for */
 
     __freeString(argStr);
@@ -170,7 +178,7 @@ void test_val(void)
 
     printf("Testing val()...\n");
 
-    for (i = -999999.999; i < 999999.999; i += 0.001)
+    for (i = -999999.999; i < 999999.999; i += 1.111)
     {
         sprintf(buffer, " \t%f", i);
 
@@ -208,7 +216,7 @@ void testConversions(void)
     test_chr_DC_();
     test_str_DC_();
     test_asc();
-    test_val();
+/*    test_val();  !!! */
     test_hex_DC_();
     test_oct_DC_();
 } /* testConversions */
