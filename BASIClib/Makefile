@@ -11,11 +11,17 @@
 
 include default.mak
 
-DYNLIBBASE = libBASIC.so
-DYNLIBWHOLE = $(DYNLIBBASE).$(WHOLEVERSION)
-DYNLIBMAJOR = $(DYNLIBBASE).$(MAJORVER)
+DYNLIBBASE = $(strip libBASIC.so)
+DYNLIBWHOLE = $(strip $(DYNLIBBASE).$(WHOLEVERSION))
+DYNLIBMAJOR = $(strip $(DYNLIBBASE).$(MAJORVER))
 
 all : $(DYNLIBBASE) console
+
+# compatibility with old make system.
+linux : all
+
+# compatibility with old make system.
+win32 : all
 
 $(DYNLIBBASE) : $(DYNLIBMAJOR)
 	ln -sf $(DYNLIBMAJOR) $(DYNLIBBASE)
