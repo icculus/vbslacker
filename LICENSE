@@ -1,3 +1,27 @@
+
+(Commentary from Ryan, not the Free Software Foundation.)
+
+Please note that the LGPL license says:
+
+1) You can use this with closed source programs.
+2) You can statically link this with your closed source program,
+    so long as you also supply a version that lets you use this as a
+    DLL.
+3) Any changes you make to THIS codebase must be publically available in
+    source form. You can do what you like within your own codebase, and
+    although we encourage you to give back by opening your code, too, we
+    aren't going to throw a fit if you don't, so long as changes you make
+    within our codebase get released to the public.
+4) If this is too much trouble, we can negotiate a different, closed-source
+    license for money, but I think these terms are very reasonable for
+    everyone.
+
+--ryan.
+
+
+
+----------------------------------------------------------------------
+
 		  GNU LESSER GENERAL PUBLIC LICENSE
 		       Version 2.1, February 1999
 
