@@ -31,6 +31,7 @@
 #include "Gosub.h"
 #include "ConsoleFunctions.h"
 #include "BasicFileSystem.h"
+#include "DynamicLoader.h"
 
 #endif /* _INCLUDE_STDBASIC_H_ */
 
