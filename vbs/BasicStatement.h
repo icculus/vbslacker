@@ -7,7 +7,7 @@
 #ifndef _INCLUDE_BASICSTATEMENT_H_
 #define _INCLUDE_BASICSTATEMENT_H_
 
-#include "boolean.h"
+#include "Boolean.h"
 
 class BasicStatement
 {

@@ -8,7 +8,7 @@
 #define _INCLUDE_BASICERRORS_H_
 
 #include "BasicError.h"
-#include "boolean.h"
+#include "Boolean.h"
 
 class BasicErrors
 {

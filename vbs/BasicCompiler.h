@@ -8,7 +8,7 @@
 #define _INCLUDE_BASICCOMPILER_H_
 
 #include "BasicContext.h"
-#include "boolean.h"
+#include "Boolean.h"
 #include <stdio.h>
 
 // File type of a Basic module
