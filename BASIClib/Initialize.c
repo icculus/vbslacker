@@ -24,6 +24,7 @@ void __initBasicLib(STATEPARAMS, long flags)
     {
         initFlags = flags;
 
+        __initMemoryManager(STATEARGS);
         __initSignalHandlers(STATEARGS);
         __initErrorFunctions(STATEARGS);
         __initOnEvents(STATEARGS);
@@ -53,6 +54,7 @@ void __deinitBasicLib(void)
         __deinitThreads(NULLSTATEARGS);
         __deinitConsoleFunctions(NULLSTATEARGS);
         __deinitOnEvents(NULLSTATEARGS);
+        __deinitMemoryManager(NULLSTATEARGS);
         initialized = false;
     } /* if */
 } /* __deinitBasicLib */
@@ -68,6 +70,7 @@ void __initThread(STATEPARAMS, int tidx)
  *   returns : void.
  */
 {
+    __initThreadMemoryManager(STATEARGS, tidx);
     __initThreadOnEvents(STATEARGS, tidx);
 } /* __initThread */
 
@@ -83,6 +86,7 @@ void __deinitThread(STATEPARAMS, int tidx)
  */
 {
     __deinitThreadOnEvents(STATEARGS, tidx);
+    __deinitThreadMemoryManager(STATEARGS, tidx);
 } /* __deinitThread */
 
 
