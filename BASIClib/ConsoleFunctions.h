@@ -18,14 +18,17 @@ void vbp_cls(STATEPARAMS);
 int vbi_csrline(STATEPARAMS);
 int vbiA_pos(STATEPARAMS, void *pVar);
 
-extern void (*__deinitConsole)(STATEPARAMS);
-extern void (*__vbpS_print)(STATEPARAMS, PBasicString x);
-extern void (*__vbpii_viewPrint)(STATEPARAMS, int top, int bottom);
-extern void (*__vbp_viewPrint)(STATEPARAMS);
-extern void (*__vbp_cls)(STATEPARAMS);
-extern int  (*__vbi_csrline)(STATEPARAMS);
-extern int  (*__vbiA_pos)(STATEPARAMS, void *pVar);
-extern void (*__vbpiii_color)(STATEPARAMS, int fore, int back, int bord);
+extern void (*__getConsoleHandlerName)(STATEPARAMS, char *buf, int size);
+extern void (*__deinitConsoleHandler)(STATEPARAMS);
+extern void (*vbpS_print)(STATEPARAMS, PBasicString x);
+extern void (*vbpii_viewPrint)(STATEPARAMS, int top, int bottom);
+extern void (*vbp_viewPrint)(STATEPARAMS);
+extern void (*vbp_cls)(STATEPARAMS);
+extern int  (*vbi_csrline)(STATEPARAMS);
+extern int  (*vbiA_pos)(STATEPARAMS, void *pVar);
+extern void (*vbpiii_color)(STATEPARAMS, int fore, int back, int bord);
+extern void (*vbpil_color)(STATEPARAMS, int fore, long pallette);
+extern void (*vbpi_color)(STATEPARAMS, int fore);
 
 #endif
 

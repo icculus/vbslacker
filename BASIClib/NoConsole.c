@@ -8,7 +8,7 @@
 #include "ConsoleFunctions.h"
 #include "NoConsole.h"
 
-static void __nocons_deinitConsole(STATEPARAMS) {}
+static void __nocons_deinitConsoleHandler(STATEPARAMS) {}
 
 static void __nocons_vbpS_print(STATEPARAMS, PBasicString x)
 {
@@ -45,6 +45,22 @@ static void __nocons_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
     __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpiii_color */
 
+static void __nocons_vbpil_color(STATEPARAMS, int fore, long feh)
+{
+    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+} /* __nocons_vbpil_color */
+
+static void __nocons_vbpi_color(STATEPARAMS, int fore)
+{
+    __runtimeError(STATEARGS, ERR_CANNOT_CONTINUE);
+} /* __nocons_vbpi_color */
+
+
+static void __nocons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
+{
+    strncpy(buffer, "NoConsole", size);
+} /* __nocons_getConsoleHandlerName */
+
 
 boolean __initNoConsole(STATEPARAMS)
 /*
@@ -59,14 +75,17 @@ boolean __initNoConsole(STATEPARAMS)
 
     if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_CONSOLE)
     {
-        __deinitConsole = __nocons_deinitConsole;
-        __vbpS_print = __nocons_vbpS_print;
-        __vbpii_ViewPrint = __nocons_vbpii_ViewPrint;
-        __vbp_ViewPrint = __nocons_vbpii_ViewPrint;
-        __vbp_cls = __nocons_vbp_cls;
-        __vbi_csrline = __nocons_vbi_csrline;
-        __vbiA_pos = __nocons_vbiA_pos;
-        __vbpiii_color = __nocons_vbpiii_color;
+        __getConsoleHandlerName = __nocons_getConsoleHandlerName;
+        __deinitConsoleHandler = __nocons_deinitConsoleHandler;
+        vbpS_print = __nocons_vbpS_print;
+        vbpii_ViewPrint = __nocons_vbpii_ViewPrint;
+        vbp_ViewPrint = __nocons_vbpii_ViewPrint;
+        vbp_cls = __nocons_vbp_cls;
+        vbi_csrline = __nocons_vbi_csrline;
+        vbiA_pos = __nocons_vbiA_pos;
+        vbpiii_color = __nocons_vbpiii_color;
+        vbpil_color = __nocons_vbpil_color;
+        vbpi_color = __nocons_vbpi_color;
         retVal = true;
     } /* if */
 
