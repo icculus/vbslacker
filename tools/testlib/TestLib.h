@@ -10,6 +10,7 @@
 void testOnEvents(void);
 void testErrorFunctions(void);
 void testThreads(void);
+void testStringFunctions(void);
 void testConversionFunctions(void);
 
 #endif
