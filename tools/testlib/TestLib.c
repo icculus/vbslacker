@@ -16,11 +16,13 @@ int main(void)
     __initBasicLib();
 
     testOnEvents();
+    testThreads();
     testConversions();
 
-        /* !!! This will be done automatically, eventually... */
     printf("\n[TESTLIB FOR VBSLACKER SHUTTING DOWN...]\n");
     printf("Making call to __deinitBasicLib()...\n"); 
+
+        /* !!! This will be done automatically, eventually... */
     __deinitBasicLib();
     return(0);
 } /* main */
