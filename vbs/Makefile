@@ -94,21 +94,21 @@ jdepend:
 
 # DO NOT DELETE THIS LINE -- makemake depends on it.
 
-AssignStatement.o: ./AssignStatement.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./ContextObject.h ./boolean.h /usr/include/stdlib.h
+AssignStatement.o: ./AssignStatement.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./Boolean.h ./ContextObject.h /usr/include/stdlib.h
 
-BasicCompiler.o: ./BasicCompiler.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./ContextObject.h ./boolean.h /usr/include/stdio.h /usr/include/stdlib.h /usr/include/string.h
+BasicCompiler.o: ./BasicCompiler.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./Boolean.h ./ContextObject.h /usr/include/stdio.h /usr/include/stdlib.h /usr/include/string.h
 
-BasicContext.o: ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./ContextObject.h ./boolean.h /usr/include/stdlib.h
+BasicContext.o: ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./Boolean.h ./ContextObject.h /usr/include/stdlib.h
 
 BasicError.o: ./BasicError.h ./ContextObject.h
 
-BasicErrors.o: ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./ContextObject.h ./boolean.h /usr/include/stdlib.h
+BasicErrors.o: ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./Boolean.h ./ContextObject.h /usr/include/stdlib.h
 
-BasicStatement.o: ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./ContextObject.h ./boolean.h /usr/include/stdlib.h
+BasicStatement.o: ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./Boolean.h ./ContextObject.h /usr/include/stdlib.h
 
-BasicStatements.o: ./AssignStatement.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./ContextObject.h ./boolean.h /usr/include/stdlib.h
+BasicStatements.o: ./AssignStatement.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./Boolean.h ./ContextObject.h /usr/include/stdlib.h
 
 ContextObject.o: ./ContextObject.h /usr/include/string.h
 
-Main.o: ./BasicCompiler.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./ContextObject.h ./boolean.h /usr/include/stdio.h /usr/include/stdlib.h
+Main.o: ./BasicCompiler.h ./BasicContext.h ./BasicError.h ./BasicErrors.h ./BasicStatement.h ./BasicStatements.h ./Boolean.h ./ContextObject.h /usr/include/stdio.h /usr/include/stdlib.h
 

@@ -10,7 +10,7 @@
 #include "BasicErrors.h"
 #include "BasicStatements.h"
 #include "ContextObject.h"
-#include "boolean.h"
+#include "Boolean.h"
 #include <stdlib.h>
 
 enum BASIC_EVENT {
