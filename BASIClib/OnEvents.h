@@ -29,7 +29,6 @@ typedef struct
     void *handlerAddr;
     void *stackStart;
     void *stackEnd;
-    void *origReturnAddr;
     void *basePtr;
 } OnEventHandler;
 
@@ -70,8 +69,8 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType);
 void __initThreadOnEvents(int tidx);
 void __deinitThreadOnEvents(int tidx);
 void __registerOnEventHandler(void *handlerAddr, void *stackSize,
-                              void *stackEnd, void *origReturnAddr,
-                              void *basePtr, OnEventTypeEnum evType);
+                              void *stackEnd, void *basePtr,
+                              OnEventTypeEnum evType);
 void __deregisterOnEventHandler(void *handlerAddr, OnEventTypeEnum evType);
 void __triggerOnEvent(OnEventTypeEnum evType);
 
