@@ -10,12 +10,12 @@
 #include "TestLib.h"
 
 
-void initTestLib(STATEPARAMS)
+void initTestLib(STATEPARAMS, int argc, char **argv)
 {
     setbuf(stdout, NULL);
     printf("\n[TESTLIB FOR VBSLACKER STARTING UP...]\n");
     printf("Making call to __initBasicLib()...\n"); 
-    __initBasicLib(STATEARGS, INITFLAG_DISABLE_CONSOLE);
+    __initBasicLib(STATEARGS, INITFLAG_DISABLE_CONSOLE, argc, argv);
 } /* initTestLib */
 
 void deinitTestLib(STATEPARAMS)
@@ -37,12 +37,13 @@ void testEverything(STATEPARAMS)
     testStringFunctions(STATEARGS);
     testConversionFunctions(STATEARGS);
     testFileIOFunctions(STATEARGS);
+    testMathFunctions(STATEARGS);
 } /* testEverything */
 
 
-int main(void)
+int main(int argc, char **argv)
 {
-    initTestLib(NULLSTATEARGS);
+    initTestLib(NULLSTATEARGS, argc, argv);
     testEverything(NULLSTATEARGS);
     deinitTestLib(NULLSTATEARGS);
     return(0);

@@ -15,6 +15,7 @@ void testThreads(STATEPARAMS);
 void testStringFunctions(STATEPARAMS);
 void testConversionFunctions(STATEPARAMS);
 void testFileIOFunctions(STATEPARAMS);
+void testMathFunctions(STATEPARAMS);
 
 #endif
 
