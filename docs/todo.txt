@@ -1,17 +1,15 @@
 TODO list:
 
-- Write __triggerOnEvent() that takes POnEventHandler, instead of
-   OnEventTypeEnum, argument. Check to see where this would increase
-   efficiency.
+- Find good way to generate dependencies.
 - Examine the "!!!" and "***" comments in the source.
 - RESUME 0 returns to statement that threw error. Ugh!
 - GOSUB/RETURN support.
 - Implement BASIC arrays.
-- Don't forget to write testlib code for all important functions!
-- For greg: file i/o functions. NOT FILE SYSTEM FUNCTIONS LIKE MKDIR, ETC...
+- DON'T FORGET TO WRITE TESTLIB CODE FOR ALL IMPORTANT FUNCTIONS!
 - For greg: finish math functions.
+- For greg: file i/o functions. NOT FILE SYSTEM FUNCTIONS LIKE MKDIR, ETC...
 - For ryan: finish conversion, and time/date functions.
-- For ryan: string functions.
+- For ryan: write string functions.
 - For ryan: READ/DATA/RESTORE
 - For someone: Environment functions (chdir, environ set...)
 - For someone: File system stuff. (mkdir, kill, etc...)
