@@ -176,7 +176,7 @@ boolean __initRedirectedConsole(STATEPARAMS)
 {
     boolean retVal = false;
 
-    if (isatty(STDIN_FILENO) == 0)
+    if ((isatty(STDIN_FILENO) == 0) || (isatty(STDOUT_FILENO) == 0))
     {
         __forceRedirectedConsole(STATEARGS);
         retVal = true;
