@@ -1,10 +1,25 @@
 /*
  * Abstract thread support for BASIClib, based on POSIX threads.
  *
+ * A brief note: POSIX defines a "tid" (Thread ID...they call it a
+ *  "pthread_t", which is basically a handle, which is basically an ID
+ *  number) for every thread. BASIClib defines a "tidx" (Thread InDeX),
+ *  which is always from 0 to threadCount-1...give or take. We keep all
+ *  the tids in a vector. Their position in the vector is their tidx. This
+ *  allows a little more abstraction (in case we drop POSIX for something
+ *  else...god knows what...) and simplifies end-user and BASIClib code.
+ *  A good example exists in the resizing of an array of thread-specific
+ *  data in OnEvents.c's __initThreadOnEvents() function. Every function
+ *  provided here expects a tidx, not a tid. Outside code doesn't even
+ *  know we're using POSIX threads, or Win32 threads, or whatnot...
+ *
+ * There's currently no good POSIX threads for Win32, so we just "stub"
+ *  the functions for Windows platforms...This is cool under Linux, though.
+ *  We'll remove all the #ifndef WIN32 stuff when Cygnus finishes their
+ *  pthread support in cygwin32/egcs...hopefully soon.
+ *
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
-
-#warning Comment Threads.c, please.
 
 #include <stdlib.h>
 
@@ -19,21 +34,26 @@
 #include "Threads.h"
 
 
+/*
+ * This structure contains the arguments to be
+ *  passed via a (void *) to the entry function of
+ *  a newly-spun thread...
+ */
 typedef struct
 {
-    int tidx;
-    void (*fn)(STATEPARAMS, void *args);
-    void *args;
+    int tidx;                              /* New thread's BASIClib index. */
+    void (*fn)(STATEPARAMS, void *args);   /* Function to call. */
+    void *args;                            /* Args to function to call. */
 } ThreadEntryArgs;
 
 typedef ThreadEntryArgs *PThreadEntryArgs;
 
 
 
-static ThreadLock lock;        /* module-scope thread lock. */
-static pthread_t *indexes;
-static volatile int threadCount = 0;
-static volatile int maxIndex = -1;
+static ThreadLock lock;               /* module-scope thread lock.        */
+static pthread_t *indexes;            /* Vector of actual TIDs...         */
+static volatile int threadCount = 0;  /* Count of total existing threads. */
+static volatile int maxIndex = -1;    /* Size of (indexes) vector.        */
 
 
 
@@ -44,6 +64,14 @@ void __deinitThread(STATEPARAMS, int tidx);
 
 
 void __initThreads(STATEPARAMS)
+/*
+ * Basic initializations for the Threads module. Sets up internal
+ *  data, and calls __initThread() on the current tidx (0), which
+ *  notifies all the other modules that a thread now exists.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
     __createThreadLock(STATEARGS, &lock);
     threadCount++;
@@ -61,6 +89,14 @@ void __initThreads(STATEPARAMS)
 
 
 void __deinitThreads(STATEPARAMS)
+/*
+ * Shut down the Threads module. Terminate all but the current thread,
+ *  notifying all the other modules, and cleanup details such as our
+ *  ThreadLock.
+ *
+ *     params : void.
+ *    returns : void.
+ */
 {
 #ifndef WIN32
     int i;
@@ -81,7 +117,17 @@ void __deinitThreads(STATEPARAMS)
 } /* __deinitThreads */
 
 
-void __prepareThreadToTerminate(STATEPARAMS, int tidx)
+static void __prepareThreadToTerminate(STATEPARAMS, int tidx)
+/*
+ * Sets up a thread for termination. Notifies other modules that
+ *  thread is dying, and possibly resizes the vector containing TIDs.
+ *
+ * This function is called whether a thread is terminating normally
+ *  or not.
+ *
+ *     params : tidx == index of thread that is to terminate.
+ *    returns : void.
+ */
 {
     int i;
     int firstNULL = -1;
@@ -115,15 +161,31 @@ void __prepareThreadToTerminate(STATEPARAMS, int tidx)
 
 
 void __terminateCurrentThread(STATEPARAMS)
+/*
+ * Make the thread that called this function commit suicide.
+ *
+ *    params : void.
+ *   returns : theoretically, never.
+ */
 {
 #ifndef WIN32
     __prepareThreadToTerminate(STATEARGS, __getCurrentThreadIndex(STATEARGS));
     pthread_exit(0);
+#else
+    exit(0);  /* only one thread, so kill program... */
 #endif
 } /* __terminateCurrentThread */
 
 
 void __terminateThread(STATEPARAMS, int tidx)
+/*
+ * Terminate a thread. If the calling thread is the one that
+ *  is requested to terminate, the function __terminateCurrentThread()
+ *  is called.
+ *
+ *      params : tidx == index of thread to terminate.
+ *     returns : void. if (tidx == current thread), never returns.
+ */
 {
 #ifndef WIN32
     pthread_t thread;
@@ -146,6 +208,14 @@ void __terminateThread(STATEPARAMS, int tidx)
 
 
 void __waitForThreadToDie(STATEPARAMS, int tidx)
+/*
+ * This function blocks until thread with the index (tidx)
+ *  terminates. Calling this when (tidx) is the current thread
+ *  has undefined behavior.
+ *
+ *      params : tidx == index of thread we're waiting to die.
+ *     returns : void.
+ */
 {
 #ifndef WIN32
     pthread_t thread = 0;
@@ -161,7 +231,19 @@ void __waitForThreadToDie(STATEPARAMS, int tidx)
 } /* __waitForThreadToDie */
 
 
-void __kickOffThread(STATEPARAMS, PThreadEntryArgs args)
+static void __kickOffThread(STATEPARAMS, PThreadEntryArgs args)
+/*
+ * Initialization routines for a newly-spun thread. This is
+ *  called by __threadEntry(), so we can have STATEPARAMS, and
+ *  the (void *) args cast to PThreadEntryArgs.
+ *
+ * This is where other modules are notified of the new thread's
+ *  creation. Thus, all __initThreadMyModule() calls run from inside
+ *  the newly created thread, before the thread starts its function.
+ *
+ *      params : args == ptr to structure of thread-creation details.
+ *     returns : void.
+ */
 {
     __initThread(STATEARGS, args->tidx);
     args->fn(STATEARGS, args->args);
@@ -171,12 +253,26 @@ void __kickOffThread(STATEPARAMS, PThreadEntryArgs args)
 
 
 void __threadEntry(void *_args)
+/*
+ * This is a simple entry point from __spinThread(), used to pass
+ *  STATEARGS and cast _args to something useful.
+ *
+ *     params : _args == points to a PThreadEntryArgs.
+ *    returns : void.
+ */
 {
     __kickOffThread(NULLSTATEARGS, (PThreadEntryArgs) _args);
 } /* __threadStart */
 
 
 int __spinThread(STATEPARAMS, void (*_fn)(STATEPARAMS, void *x), void *_args)
+/*
+ * Create ("spin") a new thread, and start it.
+ *
+ *    params : _fn == ptr to function to execute in this thread.
+ *             _args == arguments to (_fn).
+ *   returns : index of new thread. -1 on error.
+ */
 {
 #ifndef WIN32
     PThreadEntryArgs args = __memAlloc(STATEARGS, sizeof (ThreadEntryArgs));
@@ -229,18 +325,39 @@ int __spinThread(STATEPARAMS, void (*_fn)(STATEPARAMS, void *x), void *_args)
 
 
 int __getThreadCount(STATEPARAMS)
+/*
+ * Return count of current amount of threads in system. More handy is
+ *  probably __getHighestThreadIndex(), below.
+ *
+ *     params : void.
+ *    returns : Current count of existing threads. Can be inaccurate
+ *              before you get the return value.
+ */
 {
     return(threadCount);
 } /* __getThreadCount */
 
 
 int __getHighestThreadIndex(STATEPARAMS)
+/*
+ * Get the index of the thread with the highest-numbered index. Good for
+ *  determining how to size arrays that handle thread-specific data...
+ *
+ *    params : void.
+ *   returns : highest thread index in use.
+ */
 {
     return(maxIndex);
 } /* __getHighestThreadIndex */
 
 
 int __getCurrentThreadIndex(STATEPARAMS)
+/*
+ * Get the index of the current calling thread.
+ *
+ *     params : void.
+ *    returns : calling thread's index.
+ */
 {
 #ifndef WIN32
     pthread_t tid = pthread_self();
@@ -265,6 +382,15 @@ int __getCurrentThreadIndex(STATEPARAMS)
 
 
 void __threadTimeslice(STATEPARAMS)
+/*
+ * Yield a timeslice to the system. Use this in idle-loops and other
+ *  processor-intensive things. The amount of time yielded before
+ *  control returns to the calling thread is undefined, but probably
+ *  more than bareable.
+ *
+ *      params : void.
+ *     returns : void.
+ */
 {
 #ifndef WIN32
     (void) sched_yield();
@@ -273,6 +399,14 @@ void __threadTimeslice(STATEPARAMS)
 
 
 void __createThreadLock(STATEPARAMS, PThreadLock pThreadLock)
+/*
+ * Initialize a ThreadLock variable for use. Call this on a given
+ *  ThreadLock before using it, or it won't work, or maybe'll crash
+ *  the application.
+ *
+ *     params : pThreadLock == ptr to ThreadLock to initialize.
+ *    returns : void.
+ */
 {
 #ifndef WIN32
     int errType;
@@ -287,6 +421,16 @@ void __createThreadLock(STATEPARAMS, PThreadLock pThreadLock)
 
 
 void __destroyThreadLock(STATEPARAMS, PThreadLock pThreadLock)
+/*
+ * Call this on a ThreadLock after you are done with it. This
+ *  function will free the resources associated with it.
+ *
+ * A ThreadLock must be run through  __createThreadLock() again
+ *  after this function before it can be used again.
+ *
+ *     params : pThreadLock == ptr to ThreadLock to deinitialize.
+ *    returns : void.
+ */
 {
 #ifndef WIN32
     if (pthread_mutex_destroy(pThreadLock) != 0)
@@ -296,6 +440,15 @@ void __destroyThreadLock(STATEPARAMS, PThreadLock pThreadLock)
 
 
 void __obtainThreadLock(STATEPARAMS, PThreadLock pThreadLock)
+/*
+ * Request control of a ThreadLock. Any other threads that call
+ *  this function before the calling thread calls __releaseThreadLock()
+ *  will block until the ThreadLock is released. Make ample (but wise)
+ *  use of this function to prevent race conditions in your code.
+ *
+ *     params : pThreadLock == ptr to ThreadLock to obtain.
+ *    returns : void.
+ */
 {
 #ifndef WIN32
     if (pthread_mutex_lock(pThreadLock) != 0)
@@ -305,6 +458,14 @@ void __obtainThreadLock(STATEPARAMS, PThreadLock pThreadLock)
 
 
 void __releaseThreadLock(STATEPARAMS, PThreadLock pThreadLock)
+/*
+ * Release control of a ThreadLock you control. This will allow one
+ *  of any blocked threads that are requesting control of this ThreadLock
+ *  to gain control and unblock.
+ *
+ *      params : pThreadLock == ThreadLock to release control of.
+ *     returns : void.
+ */
 {
 #ifndef WIN32
     if (pthread_mutex_unlock(pThreadLock) != 0)
