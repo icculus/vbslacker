@@ -103,7 +103,7 @@ void __triggerOnEvent_recurse(OnEventTypeEnum evType, boolean printErr)
 {
     recursive++;
     if (recursive == RECURSION_COUNT)
-        __triggerOnEvent(evType);
+        __triggerOnEventByType(evType);
     else
         __triggerOnEvent_recurse(evType, printErr);
 
@@ -156,8 +156,8 @@ void testOnEventGotoHandling(int runCount)
  * This function should be called more than once (but should be called several
  *  times, if you err on the side of caution), to verify that
  *  __(de)registerOnEventHandler() is working correctly. If not correctly, then
- *  correctly enough. testOnEventGotoStressing() is a more rigorous test of
- *  event handler (de)registration, since it stacks handlers.
+ *  correctly enough. testOnEventGotoRecurseHandling() is a more rigorous
+ *  test of event handler (de)registration, since it stacks handlers.
  *
  *    params : runCount == count of times this function has been executed.
  *   returns : void.
@@ -246,10 +246,8 @@ void testOnEventGotoRecurseHandling(int runCount)
  * This function checks the same things testOnEventsGotoHandling() does.
  *
  * This function should be called more than once (but should be called several
- *  times, if you err on the side of caution), to verify that
- *  __(de)registerOnEventHandler() is working correctly. If not correctly, then
- *  correctly enough. testOnEventGotoStressing() is a more rigorous test of
- *  event handler (de)registration, since it stacks handlers.
+ *  times, if you err on the side of caution), to help verify that
+ *  __(de)registerOnEventHandler() is working correctly.
  *
  *    params : runCount == count of times this function has been executed.
  *   returns : void.
@@ -272,7 +270,7 @@ void testOnEventGotoRecurseHandling(int runCount)
     __releaseThreadLock(&registerLock);
 
 
-    __triggerOnEvent(ONERROR);  /* no recursion so we can use global var */
+    __triggerOnEventByType(ONERROR);  /* no recurse since we use global var */
     goto missedHandler;
 
 errHandler:
@@ -310,7 +308,7 @@ endTest:
         case 1:   /* good. trigger again. */
             recursive++;
             if (recursive <= RECURSION_COUNT)
-                __triggerOnEvent(ONERROR);
+                __triggerOnEventByType(ONERROR);
             break;
         case 2:
             printf("  - (Iteration #%d) Handler missed. Failed.\n", recursive);
