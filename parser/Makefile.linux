@@ -1,0 +1,32 @@
+# Makefile for building the parser under Linux
+#
+#  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+
+LINKER = g++
+CPP = g++
+
+CPPFLAGS = -DLINUXELF_I386 -g -Wall $(SEARCHDIRS) -c -o
+LINKFLAGS = 
+LOADLIBS = -lstdc++
+
+# Build debug version
+debug : $(OBJS)
+	$(LINKER) $(LINKFLAGS) -o parser $(ANTLR_OBJS) $(LOADLIBS)
+
+# Dependencies
+BasicLexer.o : BasicLexer.cpp BasicLexer.hpp
+	$(CPP) $(CPPFLAGS) BasicLexer.o BasicLexer.cpp
+
+BasicLexer.cpp : lexer.g
+	$(ANTLR) lexer.g
+	
+BasicParser.o : BasicParser.cpp BasicParser.hpp
+	$(CPP) $(CPPFLAGS) BasicParser.o BasicParser.cpp
+	
+BasicParser.cpp : parser.g
+	$(ANTLR) parser.g
+
+main.o : main.cpp
+	$(CPP) $(CPPFLAGS) main.o main.cpp
+	
+# end of Makefile.linux ...

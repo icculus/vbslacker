@@ -1,0 +1,13 @@
+To build the parser, the following is required...
+
+   ANTLR-2.6.1
+   JDK v1.1.x (probably v1.2 will work also, but untested)
+
+By default, the Makefile looks for the existence of ANTLR in ~/antlr-2.6.1.
+For now, just put it there and deal with it.  Be sure to check the ./antlr
+folder for instructions on how to build the ANTLR package.
+
+Also, I originally used the -classpath argument to specify the ANTLR folder
+so that java would run the grammar compiler.  The java that I have crashes
+for some reason when I use this, so for now you'll have to specify the
+ANTLR folder in your CLASSPATH environment manually.

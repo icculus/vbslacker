@@ -1,0 +1,73 @@
+# Makefile for building the ANTLR package under Linux
+#
+#  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+
+LINKER = g++
+CPP = g++
+
+CPPFLAGS = -DLINUXELF_I386 -g -Wall $(ANTLR_SEARCHDIRS) -c -o
+LINKFLAGS = 
+LOADLIBS = 
+
+debug : $(ANTLR_OBJS)
+
+# Dependencies
+ANTLRException.o : ANTLRException.cpp
+	$(CPP) $(CPPFLAGS) ANTLRException.o ANTLRException.cpp
+AST.o : AST.cpp
+	$(CPP) $(CPPFLAGS) AST.o AST.cpp
+ASTFactory.o : ASTFactory.cpp
+	$(CPP) $(CPPFLAGS) ASTFactory.o ASTFactory.cpp
+BitSet.o : BitSet.cpp
+	$(CPP) $(CPPFLAGS) BitSet.o BitSet.cpp
+CharBuffer.o : CharBuffer.cpp
+	$(CPP) $(CPPFLAGS) CharBuffer.o CharBuffer.cpp
+CharScanner.o : CharScanner.cpp
+	$(CPP) $(CPPFLAGS) CharScanner.o CharScanner.cpp
+CommonASTNode.o : CommonASTNode.cpp
+	$(CPP) $(CPPFLAGS) CommonASTNode.o CommonASTNode.cpp
+CommonASTNodeWithHiddenTokens.o : CommonASTNodeWithHiddenTokens.cpp
+	$(CPP) $(CPPFLAGS) CommonASTNodeWithHiddenTokens.o \
+	CommonASTNodeWithHiddenTokens.cpp
+CommonHiddenStreamToken.o : CommonHiddenStreamToken.cpp
+	$(CPP) $(CPPFLAGS) CommonHiddenStreamToken.o \
+	CommonHiddenStreamToken.cpp
+CommonToken.o : CommonToken.cpp
+	$(CPP) $(CPPFLAGS) CommonToken.o CommonToken.cpp
+InputBuffer.o : InputBuffer.cpp
+	$(CPP) $(CPPFLAGS) InputBuffer.o InputBuffer.cpp
+LLkParser.o : LLkParser.cpp
+	$(CPP) $(CPPFLAGS) LLkParser.o LLkParser.cpp
+LexerSharedInputState.o : LexerSharedInputState.cpp
+	$(CPP) $(CPPFLAGS) LexerSharedInputState.o LexerSharedInputState.cpp
+MismatchedTokenException.o : MismatchedTokenException.cpp
+	$(CPP) $(CPPFLAGS) MismatchedTokenException.o \
+	MismatchedTokenException.cpp
+NoViableAltException.o : NoViableAltException.cpp
+	$(CPP) $(CPPFLAGS) NoViableAltException.o NoViableAltException.cpp
+Parser.o : Parser.cpp
+	$(CPP) $(CPPFLAGS) Parser.o Parser.cpp
+ParserException.o : ParserException.cpp
+	$(CPP) $(CPPFLAGS) ParserException.o ParserException.cpp
+ParserSharedInputState.o : ParserSharedInputState.cpp
+	$(CPP) $(CPPFLAGS) ParserSharedInputState.o ParserSharedInputState.cpp
+ScannerException.o : ScannerException.cpp
+	$(CPP) $(CPPFLAGS) ScannerException.o ScannerException.cpp
+String.o : String.cpp
+	$(CPP) $(CPPFLAGS) String.o String.cpp
+Token.o : Token.cpp
+	$(CPP) $(CPPFLAGS) Token.o Token.cpp
+TokenBuffer.o : TokenBuffer.cpp
+	$(CPP) $(CPPFLAGS) TokenBuffer.o TokenBuffer.cpp
+TokenStreamBasicFilter.o : TokenStreamBasicFilter.cpp
+	$(CPP) $(CPPFLAGS) TokenStreamBasicFilter.o TokenStreamBasicFilter.cpp
+TokenStreamHiddenTokenFilter.o : TokenStreamHiddenTokenFilter.cpp
+	$(CPP) $(CPPFLAGS) TokenStreamHiddenTokenFilter.o \
+	TokenStreamHiddenTokenFilter.cpp
+TokenStreamSelector.o : TokenStreamSelector.cpp
+	$(CPP) $(CPPFLAGS) TokenStreamSelector.o TokenStreamSelector.cpp
+TreeParser.o : TreeParser.cpp
+	$(CPP) $(CPPFLAGS) TreeParser.o TreeParser.cpp
+TreeParserSharedInputState.o : TreeParserSharedInputState.cpp
+	$(CPP) $(CPPFLAGS) TreeParserSharedInputState.o \
+	TreeParserSharedInputState.cpp

@@ -1,0 +1,14 @@
+Make files for ANTLR-2.6.1
+
+As of now, ANTLR only comes with source files...no make file.  These make files
+are so ANTLR can be built as a standalone library under various platforms.
+
+Instructions
+   -Copy Makefile* to the 'ANTLR-2.6.1/cpp' folder.
+
+NOTE:
+   Some compilers, namely gcc (atleast under Linux) doesn't have the istream
+   header file.  It has an istream.h file however.  Included in this directory
+   is an istream include file that should be placed in your standard C++
+   include directory if it doesn't exist.  This file simply provides a link
+   to the istream.h file.
