@@ -8,32 +8,11 @@
 
 #include <errno.h>
 
-#ifdef LINUX
+#if ((defined LINUX) && (defined __vbArch_I386))
+
 #include <sys/io.h>
 
-
-#elif defined WIN32
-#warning WIN32 portio is nonexistant, right now!
-#define iopl(x) -1
-#define inb(x) 0
-#define outb(x, y)
-#endif
-
-
 static __boolean portAccess = false;
-
-
-__integer _vbil_peek(__long addr)
-{
-    return(*((__byte *) addr));
-} /* _vbil_peek */
-
-
-void _vbpli_poke(__long addr, __integer newVal)
-{
-    *((__byte *) addr) = (__byte) newVal;
-} /* _vbpli_poke */
-
 
 static void __requestPortAccess(void)
 {
@@ -68,13 +47,38 @@ void _vbpli_out(__long ioport, __integer outByte)
 } /* _vbpli_out */
 
 
+
+#else
+#warning portio is nonexistant on this platform, right now!
+#define iopl(x) -1
+#define inb(x) 0
+#define outb(x, y)
+#endif
+
+
+__integer _vbil_peek(__long addr)
+{
+    return(*((__byte *) addr));
+} /* _vbil_peek */
+
+
+void _vbpli_poke(__long addr, __integer newVal)
+{
+    *((__byte *) addr) = (__byte) newVal;
+} /* _vbpli_poke */
+
+
 PBasicString _vbSi_ioctl_DC_(__integer devFileNum)
 {
     return(__createString("", false));
 } /* _vbSi_ioctl_DC_ */
 
 
-void _vbpiS_ioctl(__integer devFileNum, PBasicString ctlStr) {}
+void _vbpiS_ioctl(__attribute__ ((unused)) __integer devFileNum,
+                  __attribute__ ((unused)) PBasicString ctlStr)
+{
+#warning should this do anything?
+} /* _vbpiS_ioctl */
 
 
 __long _vblA_varptr(void *myVar)
@@ -92,7 +96,7 @@ PBasicString _vbSA_varptr_DC_(void *myVar)
 } /* _vbSA_varptr_DC_ */
 
 
-__long _vblA_varseg(void *myVar)
+__long _vblA_varseg(__attribute__ ((unused)) void *myVar)
 {
     return(0);   /* no segments in 32-bit architecture. */
 } /* _vblA_varseg */
