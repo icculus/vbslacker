@@ -1,3 +1,10 @@
+*******************************************************************************
+** VBS output specification                                                  **
+**  Portable C output                                                        **
+**                                                                           **
+**   Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.                  **
+*******************************************************************************
+
 To start:
     Basic modules should be converted to ".CC" files. This will allow
     C++ to be used in the future, and C++ startup code to be inserted
@@ -137,15 +144,30 @@ GOTOs and Line labels:
     __insertLineLabel(_line1);
     vbPrint("My Name is " + "Mudd.");
 
-    (Note that the vbPrint syntax is wrong, but the label thing is right.
-     The reason for this labelling will become clear later.)
+    (Note that the vbPrint syntax and the string concatenation are wrong,
+     but the label thing is right. The reason for this labelling will
+     become clear later.)
 
 
-BASIC math:
-    Simple math like addition, subtraction, multiplication, and division
-    is done with the equivalent C operator. Most other math is performed
-    through the BASIC API, which is abstracted in the normal ways in BASIClib.
-    I think. Is that all?
+Operators; math:
+    Addition, subtraction, multiplication, and division are done with the
+    equivalent C operator. Most other math (like SIN) is performed through the
+    BASIC API, which is abstracted in the normal ways in BASIClib. The C
+    operators "++" and "--" should never be used in vbs output.
+    !!! Is that all?  + operator is fucked.
+
+Operators; "&":
+    String concatenation. !!! more.
+
+
+
+
+
+Operators; IMP:
+    a = x IMP y
+      --== becomes ==--
+    a = __IMP(x, y)
+
 
 
 Order of operations:
@@ -159,8 +181,7 @@ Overflow:
     !!! more.
 
 
-BASIC-specific operators:
-    !!! more.
+
 
 
 Conditionals; IF/ELSE/ELSEIF/ENDIF:
@@ -236,7 +257,23 @@ Memory (de)allocation:
 
 
 Pointers:
-    !!! more.
+    Pointers are always cast to BASIC LONGs.
+    Currently, the only pointers BASIC has access to directly are function
+    pointers, and even their usefulness in the BASIC environment is very
+    limited. Nonetheless, this is how we shall support them:
+
+    x = AddressOf myFunction
+
+      --== becomes ==--
+
+    /*
+     * (if necessary, a function prototype will be inserted, if the given
+     *  function is in the project, but not the current module.)
+     */
+
+    x = (__long) ((void *) myFunction);   /* note the lack of "()" ... */
+
+    /* The cast to (void *) is for safety's sake. */
 
 
 SWAP:
@@ -245,7 +282,9 @@ SWAP:
     DIM b AS INTEGER
 
     SWAP a, b
+
      --== becomes ==--
+
     __integer a = 0;
     __integer b = 0;
     __integer __tmp;
@@ -298,19 +337,19 @@ ON ... GOSUB:
     __integer __tmp;
 
     x = 3;
-    tmp = x;   /* needed in case of function...should run only once. */
-!!!    if ((tmp < 0) || (tmp > 255))  /* negatives or > 255 are errors. */
+    __tmp = x;   /* needed in case of function...should run only once. */
+    if ((__tmp < 0) || (__tmp > 255))  /* negatives or > 255 are errors. */
         __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* !!! or whatever error... */
-    else if (tmp == 1)
-        __doGosub(&&line1, &&endOfOnNumGosub1);
-    else if (tmp == 2)
-        __doGosub(&&line2, &&endOfOnNumGosub1);
+    else if (__tmp == 1)
+        __doGosub(_line1, &&_line4);
+    else if (__tmp == 2)
+        __doGosub(_line2, &&_line4);
     else if (tmp == 3)
-        __doGosub(&&line3, &&endOfOnNumGosub1);
-    endOfOnNumGosub1:
+        __doGosub(_line3, &&_line4);
+    __insertLineLabel(_line4);
 
-    The above example does not include type and overflow checking.
     This must be generated INLINE, EVERYTIME, by the parser/compiler.
+    The above example does not include type and overflow checking.
 
 
 ON ... GOTO:
@@ -321,21 +360,21 @@ ON ... GOTO:
     __GOSUBSUPPORT;
     __integer x = 0;
     __integer __tmp;
-!!!
-    x = 3;
-    tmp = x;   /* needed in case of function...should run only once. */
-    if ((tmp < 0) || (tmp > 255))  /* negatives or > 255 are errors. */
-        __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* or whatever error... */
-    else if (tmp == 1)
-        goto line1;
-    else if (tmp == 2)
-        goto line2;
-    else if (tmp == 3)
-        goto line3;
-    endOfOnNumGoto1:
 
-    The above example does not include type and overflow checking.
+    x = 3;
+    __tmp = x;   /* needed in case of function...should run only once. */
+    if ((__tmp < 0) || (__tmp > 255))  /* negatives or > 255 are errors. */
+        __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* or whatever error... */
+    else if (__tmp == 1)
+        __jumpLabel(_line1);
+    else if (__tmp == 2)
+        __jumpLabel(_line2);
+    else if (__tmp == 3)
+        __jumpLabel(_line3);
+
+
     This must be generated INLINE, EVERYTIME, by the parser/compiler.
+    The above example does not include type and overflow checking.
 
 
 ON ERROR and RESUME statements:
