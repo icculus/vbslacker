@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
-static boolean changed = false;
+static __boolean changed = false;
 
 
 void threadFunc(STATEPARAMS, void *args)
