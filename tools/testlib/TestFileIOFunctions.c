@@ -5,10 +5,8 @@
  */
 
 #include <stdio.h>
-#include "Initialize.h"
-#include "Boolean.h"
-#include "BasicString.h"
-#include "FileIOFunctions.h"
+#include "BasicLib.h"
+
 
 boolean test___FileOpen(STATEPARAMS)
 {
@@ -50,8 +48,6 @@ void testFileIOFunctions(STATEPARAMS)
 
 #ifdef STANDALONE
 
-#include "Initialize.h"
-
 int main(void)
 {
     __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
@@ -62,4 +58,5 @@ int main(void)
 
 #endif
 
-/*** End TestFileIOFunctions.c ***/
+/* end of TestFileIOFunctions.c ... */
+
