@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "Initialize.h"
 #include "Threads.h"
 #include "Boolean.h"
 
