@@ -24,21 +24,19 @@ static void __redir_deinitConsoleHandler(STATEPARAMS)
 } /* __redir_deinitConsole */
 
 
-static void __redir_vbpS_print(STATEPARAMS, PBasicString pStr)
+static void __redir_printNChars(STATEPARAMS, char *str, int n)
 /*
- * Write a string to the printable window, scrolling if needed, and
- *  moving the cursor to the new position.
+ * Write (n) chars from (str) to the printable window, scrolling if 
+ *  needed, and moving the cursor to the new position.
  *
- *   params : pStr == BASIC string to write.
+ *   params : str == chars to write.
  *  returns : void.
  */
 {
-    int max = pStr->length;
-    char *data = pStr->data;
     int i;
 
-    for (i = 0; i < max; i++)
-        putchar(data[i]);
+    for (i = 0; i < n; i++)
+        putchar(str[i]);
 } /* __redir_vbpS_print */
 
 
@@ -75,6 +73,7 @@ static void __redir_vbp_viewPrint(STATEPARAMS)
  *  returns : void.
  */
 {
+    /* do nothing. */
 } /* __redir_vbp_viewPrint */
 
 
@@ -124,6 +123,7 @@ static void __redir_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
  *  returns : void.
  */
 {
+    /* do nothing. */
 } /* __redir_vbpiii_color */
 
 
@@ -198,7 +198,7 @@ void __forceRedirectedConsole(STATEPARAMS)
     __getConsoleHandlerName = __redir_getConsoleHandlerName;
     __deinitConsoleHandler = __redir_deinitConsoleHandler;
     __printNewLine = __redir_printNewLine;
-    vbpS_print = __redir_vbpS_print;
+    __printNChars = __redir_printNChars;
     vbpii_viewPrint = __redir_vbpii_viewPrint;
     vbp_viewPrint = __redir_vbp_viewPrint;
     vbp_cls = __redir_vbp_cls;
