@@ -34,7 +34,7 @@
      *
      * Return values should be newly allocated, and collectable.
      */
-#if ((defined LINUX) || (defined UNIX))
+#if (defined UNIX)
 #   define __convertPathWinToLocal(pathname)  __convertPathWinToUnix(pathname)
 #   define __convertPathLocalToWin(pathname)  __convertPathUnixToWin(pathname)
 #elif ((defined WIN32) || (defined OS2))
@@ -221,7 +221,7 @@ static int fileSysErrors(void)
 } /* fileSysErrors */
 
 
-
+#ifdef UNIX
 static __byte *__convertPathWinToUnix(__byte *pathName)
 /*
  * Convert "C:\path\path\filename.txt" to "/path/path/filename.txt"
@@ -248,7 +248,6 @@ static __byte *__convertPathWinToUnix(__byte *pathName)
 } /* __convertPathWinToUnix */
 
 
-
 static __byte *__convertPathUnixToWin(__byte *pathName)
 /*
  * Convert "/path/path/filename.txt" to "C:\path\path\filename.txt"
@@ -272,6 +271,7 @@ static __byte *__convertPathUnixToWin(__byte *pathName)
     retVal[i] = '\0';
     return(retVal);
 } /* __convertPathUnixToWin */
+#endif /* defined UNIX */
 
 
 static void parseDir(__byte *dirToParse, DIR **dirInfo,
@@ -489,13 +489,25 @@ static __boolean checkDirAttrs(struct dirent *pDir, ThreadDirInfo *tdi)
 } /* checkDirAttrs */
 
 
-static inline PBasicString dirOutput(__byte *fname)
-#warning comment me!
+static inline PBasicString dirOutput(__byte *fileName)
+/*
+ * This function takes a filename, and, if required, converts it
+ *  to a Windows-like format. This is called exclusively from
+ *  _vbS_dir(void);
+ *
+ *    params : fileName == filename to parse.
+ *   returns : newly allocated (collectable) BASIC string of either
+ *              (fname)'s data, or (fname) converted to a Windows-like string.
+ */
 {
-    __byte *path;
+    __byte *retVal;
 
-    path = ((windowsFileSystem) ? __convertPathLocalToWin(fname) : fname);
-    return(__createString(path, false));
+    if (windowsFileSystem)
+        retVal = __convertPathLocalToWin(fileName);
+    else
+        retVal = __createString(fileName, false)
+
+    return(retVal);
 } /* dirOutput */
 
 
@@ -830,28 +842,42 @@ void _vbpS_chdir(PBasicString newDir)
 
 
 static __byte *doGetcwd(void)
-#warning comment me!
+/*
+ * This is called exclusively from _vbSS_curdir_DC_(). Since getcwd()
+ *  is a little retarded (and a little less portable) unless you let it
+ *  return a malloc()ed object (which is unacceptable to our garbage
+ *  collector. Therefore this function handles the retrieval of the
+ *  current working directory (CWD) in a garbage-collection-friendly way.
+ *
+ *     params : void.
+ *    returns : A string of the current working directory (CWD) in
+ *               a garbage collectable object.
+ */
 {
-    char *buf = getcwd(NULL, 0);
-    __long size = strlen(buf) + 1;
-    __byte stackBuf[size];
-    __byte *retVal = NULL;
+    __long bufSize = 256;
+    __byte *buf;
+    __boolean getOut = false;
+    __byte retVal;
 
-        /*
-         * stackBuf must be stack-allocated; since getcwd() uses malloc(),
-         *  and using __memAlloc() can cause a runtime error, we must
-         *  free() the original buffer before allocating space for a copy.
-         */
-    strcpy(stackBuf, buf);
-    free(buf);
+    do
+    {
+        buf = __memAlloc(bufSize);
+        if (getcwd(buf, bufSize) != NULL)
+            getOut = true;
+        else
+        {
+            bufSize *= 2;
+            __memFree(buf);
+        } /* if */
+    } while (getOut == false);
 
     if (windowsFileSystem)
-        retVal = __convertFilenameLocalToWin(stackBuf);
-    else
     {
-        retVal = __memAllocNoPtrs(size);
-        strcpy(retVal, stackBuf);
-    } /* else */
+        retVal = __convertFilenameLocalToWin(buf);
+        __memFree(buf);
+    } /* if */
+    else
+        retVal = buf;
 
     return(retVal);
 } /* doGetcwd */
@@ -876,12 +902,17 @@ PBasicString _vbSS_curdir_DC_(PBasicString drive)
     PBasicString retVal = NULL;
 
     #ifdef __NODRIVELETTERS
+
         if ((drive->length > 0) || (toupper(drive->data[0]) != 'C'))
             __runtimeError(ERR_PATH_FILE_ACCESS_ERROR);  /* !!! check this! */
         else
             retVal = __createString(doGetcwd(), false);
+
     #else
-        #error Uh?
+
+        #warning Drive-letter OSes do not implement _vbSS_curdir_DC_() right!
+        retVal = __createString(doGetcwd(), false);
+
     #endif
 
     return(retVal);
