@@ -12,10 +12,16 @@
 #include <stddef.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+
+    /* fnmatch() seems to need this... */
+#ifndef _GNU_SOURCE
+#   define _GNU_SOURCE 1
+#endif
 #include <fnmatch.h>
 
 #define __VBUNIXDIRDEFINED__
@@ -242,7 +248,7 @@ void _vbpS_kill(PBasicString fileSpec)
  *   returns : void.
  */
 {
-    __byte ascizPath = __convertPathWinToLocal(__basicStringToAsciz(fileSpec));
+    __byte *ascizPath = __convertPathWinToLocal(__basicStringToAsciz(fileSpec));
     __byte *path = NULL;
     __byte *fileName;
     __long errorCode;
@@ -324,14 +330,12 @@ static inline PBasicString dirOutput(__byte *fileName)
  *              (fname)'s data, or (fname) converted to a Windows-like string.
  */
 {
-    __byte *retVal;
+    __byte *convThis = fileName;
 
     if (windowsFileSystem)
-        retVal = __convertPathLocalToWin(fileName);
-    else
-        retVal = __createString(fileName, false)
+        convThis = __convertPathLocalToWin(fileName);
 
-    return(retVal);
+    return(__createString(convThis, false));
 } /* dirOutput */
 
 
@@ -656,7 +660,7 @@ void _vbpSS_filecopy(PBasicString src, PBasicString dest)
     __byte *ascizDest = __convertPathWinToLocal(__basicStringToAsciz(dest));
     int inFile;
     int outFile;
-    char buffer = __memAllocNoPtrs(512);
+    char *buffer = __memAllocNoPtrs(512);
     struct stat statInfo;
     int errorCode = ERR_NO_ERROR;
     int br = 0;           /* total bytes read.    */
@@ -717,12 +721,14 @@ void _vbpS_chdir(PBasicString newDir)
  */
 {
     __byte *str = __convertPathWinToLocal(__basicStringToAsciz(newDir));
+    int rc;
+    int errorCode;
 
     if (ignoreFilenameCase)
         __parsePathForInsensitiveMatches(str);
 
-    int rc = chdir(str);
-    int errorCode = ((rc == -1) ? fileSystemErrors() : ERR_NO_ERROR);
+    rc = chdir(str);
+    errorCode = ((rc == -1) ? __vbFileSystemErrors() : ERR_NO_ERROR);
 
     __memFree(str);
     __runtimeError(errorCode);          /* returns normally if ERR_NO_ERROR */
@@ -734,7 +740,7 @@ static __byte *doGetcwd(void)
  * This is called exclusively from _vbSS_curdir_DC_(). Since getcwd()
  *  is a little retarded (and a little less portable) unless you let it
  *  return a malloc()ed object (which is unacceptable to our garbage
- *  collector. Therefore this function handles the retrieval of the
+ *  collector). Therefore this function handles the retrieval of the
  *  current working directory (CWD) in a garbage-collection-friendly way.
  *
  *     params : void.
@@ -745,7 +751,7 @@ static __byte *doGetcwd(void)
     __long bufSize = 256;
     __byte *buf;
     __boolean getOut = false;
-    __byte retVal;
+    __byte *retVal;
 
     do
     {
@@ -854,7 +860,7 @@ void _vbpS_chdrive(PBasicString newDrive)
 #   if (defined __NODRIVELETTERS)
 
         if (newDrive->length == 0)
-            __runtimeError(ERR_ILLEGAL_ARGUMENT);
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 
         else if (tolower(newDrive->data[0]) != 'c')
             __runtimeError(ERR_PATH_NOT_FOUND);  /* !!! check this! */
