@@ -4,83 +4,7 @@
  *    Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
  */
 
-#include <stdio.h>
-
-#include "ConsoleFunctions.h"
-
-    /* Console drivers... */
-#include "DirectConsole.h"
-#include "NoConsole.h"
-#include "CursesConsole.h"
-#include "RedirectedConsole.h"
-
-#warning Need structure for driver entry points!
-
-/* variable function pointers... */
-
-void (*__getConsoleDriverName)(__byte *buf, __integer size) = NULL;
-void (*__deinitConsoleDriver)(void) = NULL;
-void (*__printNewLine)(void) = NULL;
-void (*__printNChars)(__byte *str, __long n) = NULL;
-void (*_vbpii_viewPrint)( __integer top, __integer bottom) = NULL;
-void (*_vbp_viewPrint)(void) = NULL;
-void (*_vbp_cls)(void) = NULL;
-__integer (*_vbi_csrline)(void) = NULL;
-__integer (*_vbia_pos)(void *pVar) = NULL;
-void (*_vbpiii_color)(__integer fore, __integer back, __integer bord) = NULL;
-void (*_vbpil_color)(__integer fore, __long palette) = NULL;
-void (*_vbpi_color)(__integer fore) = NULL;
-void (*_vbpii_locate)(__integer newY, __integer newX) = NULL;
-void (*_vbpNi_locate)(__integer newX) = NULL;
-void (*_vbpiN_locate)(__integer newY) = NULL;
-void (*_vbp_locate)(void) = NULL;
-void (*__playSound)(__integer freq, __single duration) = NULL;
-void (*_vbp_beep)(void) = NULL;
-
-
-void __initConsoleFunctions(void)
-/*
- * Run down the possible console drivers, in order of precedence,
- *  until we either find one that works, or we run out of options.
- *  If we run out of options, we force the redirected console to init,
- *  which performs simple output to stdout.
- *
- *      params : void.
- *     returns : void.
- */
-{
-    if (__initNoConsole() == true);
-    else if (__initRedirectedConsole() == true);
-    else if (__initDirectConsole() == true);
-    else if (__initCursesConsole() == true);
-    else __forceRedirectedConsole();
-} /* __initConsoleFunctions */
-
-
-void __deinitConsoleFunctions(void)
-{
-    __deinitConsoleDriver();   /* call driver-specific de-init. */
-
-    __getConsoleDriverName = NULL;  /* blank all the func pointers out... */
-    __deinitConsoleDriver = NULL;
-    __printNewLine = NULL;
-    __printNChars = NULL;
-    __playSound = NULL;
-    _vbpii_viewPrint = NULL;
-    _vbp_viewPrint = NULL;
-    _vbp_cls = NULL;
-    _vbi_csrline = NULL;
-    _vbia_pos = NULL;
-    _vbpiii_color = NULL;
-    _vbpil_color = NULL;
-    _vbpi_color = NULL;
-    _vbpii_locate = NULL;
-    _vbpNi_locate = NULL;
-    _vbpiN_locate = NULL;
-    _vbp_locate = NULL;
-    _vbp_beep = NULL;
-} /* __deinitConsoleFunctions */
-
+#include "BasicConsole.h"
 
 void _vbpV_print(PVariant pVar)
 /*
@@ -107,11 +31,11 @@ void _vbpS_print(PBasicString str)
  *    returns : void.
  */
 {
-    __printNChars(str->data, str->length);
+    consoleEntries.__printNChars(str->data, str->length);
 } /* _vbpS_print */
 
 
-void __printAsciz(__byte *str)
+void __printAsciz(const __byte *str)
 /*
  * Print a null-terminated C string (ASCIZ string) to the console.
  *  If there is a null character in the string, it is considered the
@@ -122,24 +46,124 @@ void __printAsciz(__byte *str)
  *     returns : void.
  */
 {
-    __printNChars(str, (__long) strlen(str));
+    consoleEntries.__printNChars(str, (__long) strlen(str));
 } /* __printAsciz */
 
 
 void _vbpif_sound(__integer frequency, __single duration)
 {
-    if (__playSound != NULL)
-    {
-            /* These are the valid ranges according to VBDOS 1.0 ... */
-        if (frequency < 37)
-            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    /* These are the valid ranges according to VBDOS 1.0 ... */
+    if (frequency < 37)
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 
-        if ((duration < 0.0) || (duration > 65535.0))
-            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+    if ((duration < 0.0) || (duration > 65535.0))
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 
-        __playSound(frequency, duration);
-    } /* if */
+    consoleEntries._vbpif_sound(frequency, duration);
 } /* _vbpil_sound */
+
+
+void __getConsoleDriverName(__byte *buf, __integer size)
+{
+    consoleEntries.__getConsoleDriverName(buf, size);
+} /* __getConsoleDriverName */
+
+void __printNewLine(void)
+{
+    consoleEntries.__printNewLine();
+} /* __printNewLine */
+
+void __printNChars(const __byte *str, __long n)
+{
+    consoleEntries.__printNChars(str, n);
+} /* __printNChars */
+
+void _vbpii_viewPrint(__integer top, __integer bottom)
+{
+    consoleEntries._vbpii_viewPrint(top, bottom);
+} /* _vbpii_viewPrint */
+
+void _vbp_viewPrint(void)
+{
+    consoleEntries._vbp_viewPrint();
+} /* _vbp_viewPrint */
+
+void _vbp_cls(void)
+{
+    consoleEntries._vbp_cls();
+} /* _vbp_cls */
+
+__integer _vbi_csrline(void)
+{
+    return(consoleEntries._vbi_csrline());
+} /* _vbi_csrline */
+
+__integer _vbia_pos(void *pVar)
+{
+    return(consoleEntries._vbia_pos(pVar));
+} /* _vbia_pos */
+
+void _vbpiii_color(__integer fore, __integer back, __integer bord)
+{
+    consoleEntries._vbpiii_color(fore, back, bord);
+} /* _vbpiii_color */
+
+void _vbpil_color(__integer fore, __long palette)
+{
+    consoleEntries._vbpil_color(fore, palette);
+} /* _vbpil_color */
+
+void _vbpi_color(__integer fore)
+{
+    consoleEntries._vbpi_color(fore);
+} /* _vbpi_color */
+
+void _vbpii_locate(__integer newY, __integer newX)
+{
+    consoleEntries._vbpii_locate(newY, newX);
+} /* _vbpii_locate */
+
+void _vbpNi_locate(__integer newX)
+{
+    consoleEntries._vbpNi_locate(newX);
+} /* vbpNi_locate */
+
+void _vbpiN_locate(__integer newY)
+{
+    consoleEntries._vbpiN_locate(newY);
+} /* vbpiN_locate */
+
+void _vbp_locate(void)
+{
+    consoleEntries._vbp_locate();
+} /* _vbp_locate */
+
+void _vbp_beep(void)
+{
+    consoleEntries._vbp_beep();
+} /* _vbp_beep */
+
+#if 0
+void _vbp1ss1ssi2i_line(__boolean step1, __single x1, __single y1,
+                        __boolean step2, __single x2, __single y2,
+                        __integer color, __vbLineType typ, __integer style)
+{
+} /* _vbp1ss1ssi2i_line */
+
+void _vbp1ssi2i_line(__boolean step2, __single x2, __single y2,
+                     __integer color, __vbLineType typ, __integer style)
+{
+    _vbp1ss1ssi2i_line(false, lastX, lastY, step2, x2, y2, color, typ, style);
+} /* _vbp1ssi2i_line */
+
+void _vbp1ssi2i_line(__boolean step2, __single x2, __single y2,
+                     __integer color, __vbLineType typ, __integer style)
+{
+    _vbp1ss1ssi2i_line(false, lastX, lastY, step2, x2, y2, color, typ, style);
+} /* _vbp1ssi2i_line */
+#endif
+
+
 
 
 /* qbcolor */
