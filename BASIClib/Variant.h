@@ -36,12 +36,12 @@ typedef struct
     VariantType type;
     union
     {
-        int _integer;
-        long _long;
-        float _single;
-        double _double;
+        __integer _integer;
+        __long _long;
+        __single _single;
+        __double _double;
         PBasicString _string;
-        boolean _boolean;
+        __boolean _boolean;
     } data;
 } Variant;
 
@@ -53,10 +53,10 @@ int __variantToInt(STATEPARAMS, PVariant var);
 long __variantToLong(STATEPARAMS, PVariant var);
 float __variantToFloat(STATEPARAMS, PVariant var);
 double __variantToDouble(STATEPARAMS, PVariant var);
-PBasicString __variantToString(STATEPARAMS, PVariant pVar, boolean byRef);
+PBasicString __variantToString(STATEPARAMS, PVariant pVar, __boolean byRef);
 
-#endif
-#endif
+#endif /* _INCLUDE_VARIANT_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of Variant.h ... */
 

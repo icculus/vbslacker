@@ -9,7 +9,7 @@
 
 #include "StdBasic.h"
 
-boolean __fileExists(STATEPARAMS, char *fileName);
+__boolean __fileExists(STATEPARAMS, char *fileName);
 void vbpS_kill(STATEPARAMS, PBasicString fileName);
 void vbpS_mkdir(STATEPARAMS, PBasicString dirStr);
 void vbpS_rmdir(STATEPARAMS, PBasicString dirStr);

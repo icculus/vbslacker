@@ -174,7 +174,7 @@ PBasicString vbS_date_DC_(STATEPARAMS)
 } /* vbS_date_DC_ */
 
 
-boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
+__boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
 /*
  * Verify that specified numbers are valid for setting through BASIC's
  *  DATE$ function. The bounds appear to be:
@@ -189,7 +189,7 @@ boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
  * returns : boolean true if all the numbers are acceptable, false otherwise.
  */
 {
-    boolean retVal = true;
+    __boolean retVal = true;
     int maxDays;
 
     if ((year < 1980) || (year > 2099))
@@ -212,7 +212,7 @@ boolean __checkDateBounds(STATEPARAMS, int month, int day, int year)
 
 
 
-boolean __prepareDateString(STATEPARAMS, char *str)
+__boolean __prepareDateString(STATEPARAMS, char *str)
 /*
  * Check a date string for initial validity. This will check that characters
  *  are acceptable, but won't determine if numbers are in range.
@@ -224,7 +224,7 @@ boolean __prepareDateString(STATEPARAMS, char *str)
     int i;
     int sepCount = 0;
     char separator = '\0';
-    boolean retVal = true;
+    __boolean retVal = true;
     int max = strlen(str);
 
     for (i = 0; (i < max) && (retVal == true); i++)
@@ -251,7 +251,7 @@ boolean __prepareDateString(STATEPARAMS, char *str)
 
 
 
-boolean __setSystemDate(STATEPARAMS, int month, int day, int year, int *pErrVal)
+__boolean __setSystemDate(STATEPARAMS, int month, int day, int year, int *pErrVal)
 /*
  * Set system clock to new date.
  *
@@ -262,7 +262,7 @@ boolean __setSystemDate(STATEPARAMS, int month, int day, int year, int *pErrVal)
  *             appropriate BASIC runtime error. boolean true on success.
  */
 {
-    boolean retVal = true;
+    __boolean retVal = true;
     struct tm *brokenTime = __getBrokenTime(STATEARGS);
     struct timeval tv;
 

@@ -22,13 +22,13 @@ static void __VBopen(STATEPARAMS, PBasicString pathName, FileModeEnum mode,
                      short fileNumber, short *recLength);
 static void __VBclose(STATEPARAMS, short handleCount, short *fileHandles);
 static void __VBget(STATEPARAMS, short fileNumber, PVariant recNumber,
-                    void *varName, boolean isVariant);
+                    void *varName, __boolean isVariant);
 static void __VBput(STATEPARAMS, short fileNumber, PVariant recNumber,
-                    void *varName, boolean isVariant);
+                    void *varName, __boolean isVariant);
 static short __VBFreeFile(STATEPARAMS, short rangeNumber);
 static void __GetFileOpenMode(STATEPARAMS, char *Dest, const char *pathName,
                               FileModeEnum mode, FileAccessEnum access);
-static boolean __FileExist(STATEPARAMS, const char *fileName);
+static __boolean __FileExist(STATEPARAMS, const char *fileName);
 
 /*** Private constants ***/
 #define MAX_FILE_MODE_LENGTH    5   /* Length of 'mode' parameter for fopen */
@@ -284,7 +284,7 @@ void VBopen_Access_Lock_RecLen(STATEPARAMS, PBasicString pathName,
 /*** Get Statement ***/
 
 void __VBget(STATEPARAMS, short fileNumber, PVariant recNumber, void *varName,
-             boolean isVariant)
+             __boolean isVariant)
 /*
  * Reads data from an open disk file into a variable
  *   params : fileNumber    -   Any valid file number
@@ -331,7 +331,7 @@ void VBget_RecNum_Var(STATEPARAMS, short fileNumber,
 /*** Put Statement ***/
 
 void __VBput(STATEPARAMS, short fileNumber, PVariant recNumber, void *varName,
-             boolean isVariant)
+             __boolean isVariant)
 /*
  * Reads data from an open disk file into a variable
  *   params : fileNumber    -   Any valid file number
@@ -567,7 +567,7 @@ void __GetFileOpenMode(STATEPARAMS, char *Dest, const char *pathName,
     }
 }
 
-boolean __FileExist(STATEPARAMS, const char *fileName)
+__boolean __FileExist(STATEPARAMS, const char *fileName)
 /*
  * Checks to see if specified file exists.
  *
@@ -577,7 +577,7 @@ boolean __FileExist(STATEPARAMS, const char *fileName)
  */
 {
     FILE *tempStream;
-    boolean bReturnValue;
+    __boolean bReturnValue;
 
     if((tempStream = fopen(fileName, "rb")) == NULL)
         bReturnValue = false;

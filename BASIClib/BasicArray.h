@@ -20,8 +20,8 @@ typedef struct
     void *data;                 /* Points to C array of variant structs. */
     long lBound;                /* Start of index range.            */
     long uBound;                /* End of index range.              */
-    boolean multiDimensional;   /* An array of arrays?              */
-    boolean isStatic;           /* true == static, false == dynamic */
+    __boolean multiDimensional; /* An array of arrays?              */
+    __boolean isStatic;         /* true == static, false == dynamic */
 } BasicArray;
 
 typedef BasicArray *PBasicArray;

@@ -7,7 +7,7 @@
 #include "BasicLib.h"
 
 static long initFlags = INITFLAG_NOT_INITIALIZED;
-static boolean initialized = false;
+static __boolean initialized = false;
 
 
 void __initBasicLib(STATEPARAMS, long flags)

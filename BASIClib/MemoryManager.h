@@ -19,10 +19,10 @@ void *__memAlloc(STATEPARAMS, size_t byteCount);
 void *__memRealloc(STATEPARAMS, void *oldPtr, size_t byteCount);
 void __memFree(STATEPARAMS, void *ptr);
 void __forceFullBoxcarRelease(STATEPARAMS);
-boolean __forcePartialBoxcarRelease(STATEPARAMS);
+__boolean __forcePartialBoxcarRelease(STATEPARAMS);
 
-#endif
-#endif
+#endif /* _INCLUDE_MEMORYMANAGER_H_ */
+#endif /* _INCLUDE_STDBASIC_H_ */
 
 /* end of MemoryManager.h ... */
 

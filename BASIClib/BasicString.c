@@ -9,7 +9,7 @@
 
 #define __min(x, y) ((x) < (y) ? (x) : (y))
 
-PBasicString __allocString(STATEPARAMS, int length, boolean fixedLength)
+PBasicString __allocString(STATEPARAMS, int length, __boolean fixedLength)
 /*
  * Build a string, but don't initialize the data.
  *
@@ -29,7 +29,7 @@ PBasicString __allocString(STATEPARAMS, int length, boolean fixedLength)
 } /* __allocString */
 
 
-PBasicString __createString(STATEPARAMS, char *asciz, boolean fixedLength)
+PBasicString __createString(STATEPARAMS, char *asciz, __boolean fixedLength)
 /*
  * Create a BASIC string from a ASCII zero-terminated "C" string.
  *

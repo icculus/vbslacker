@@ -17,13 +17,13 @@ typedef struct
 {
     unsigned int length;
     unsigned char *data;      /* THIS IS -=NOT=- NULL-TERMINATED! */
-    boolean fixedLength;
+    __boolean fixedLength;
 } BasicString;
 
 typedef BasicString *PBasicString;
 
-PBasicString __allocString(STATEPARAMS, int length, boolean fixedLength);
-PBasicString __createString(STATEPARAMS, char *asciz, boolean fixedLength);
+PBasicString __allocString(STATEPARAMS, int length, __boolean fixedLength);
+PBasicString __createString(STATEPARAMS, char *asciz, __boolean fixedLength);
 PBasicString __constString(STATEPARAMS, char *asciz);
 void __freeString(STATEPARAMS, PBasicString pBasicStr);
 void __assignString(STATEPARAMS, PBasicString *ppBasicStr,

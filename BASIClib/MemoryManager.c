@@ -120,7 +120,7 @@ void *__memAlloc(STATEPARAMS, size_t byteCount)
  *    returns : pointer to newly allocated memory.
  */
 {
-    boolean boxcarsRemain;
+    __boolean boxcarsRemain;
     void *retVal;
 
     do
@@ -155,7 +155,7 @@ void *__memRealloc(STATEPARAMS, void *oldPtr, size_t byteCount)
  *    returns : pointer to newly allocated memory.
  */
 {
-    boolean boxcarsRemain;
+    __boolean boxcarsRemain;
     void *retVal;
 
     do
@@ -445,7 +445,7 @@ void __memForceFullBoxcarRelease(STATEPARAMS)
 } /* __memForceFullBoxcarRelease */
 
 
-boolean __memForcePartialBoxcarRelease(STATEPARAMS)
+__boolean __memForcePartialBoxcarRelease(STATEPARAMS)
 /*
  * Force the "garbage collector" to release whatever boxcars can be
  *  cleaned up in a relatively timely manner. Good to call this in

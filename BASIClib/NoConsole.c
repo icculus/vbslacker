@@ -76,7 +76,7 @@ static void __nocons_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
     strncpy(buffer, "NoConsole", size);
 } /* __nocons_getConsoleHandlerName */
 
-boolean __initNoConsole(STATEPARAMS)
+__boolean __initNoConsole(STATEPARAMS)
 /*
  * Check if console is disabled, and if so, set all console functions to
  *  error-throwing stubs.
@@ -85,7 +85,7 @@ boolean __initNoConsole(STATEPARAMS)
  *  returns : Returns (true) if set as new console handler, (false) otherwise.
  */
 {
-    boolean retVal;
+    __boolean retVal;
 
     if (__getInitFlags(STATEARGS) & INITFLAG_DISABLE_CONSOLE)
     {

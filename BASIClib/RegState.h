@@ -15,17 +15,6 @@
 #ifndef _INCLUDE_REGSTATE_H_
 #define _INCLUDE_REGSTATE_H_
 
-/*
- * DO NOT REORDER THE FOLLOWING STRUCTURES! Assembly code expects this format.
- *
- *  Adding fields to the bottom should be okay, since the ASM code
- *   references fields by their offsets to the structure's base pointer.
- */
-
-#define STATEPARAMS void *__stIP, void *__stNextIP, void *__stBP, void *__stSP
-#define STATEARGS __stIP, __stNextIP, __stBP, __stSP
-#define NULLSTATEARGS NULL, NULL, NULL, NULL
-
 
 #if (ARCHITECTURE == "i386")
 
@@ -42,6 +31,15 @@
  */
 #define __getBasePointer(retVal) __asm__ __volatile__ ("movl %%ebp, %0\n\t" \
                                                         : "=q" (*retVal) )
+
+/*
+ * Unconditional jump to a specified address, for better or for worse.
+ */
+#define __jmp(addr) __asm__ __volatile__ ("jmpl %0\n\t" \
+                                           : /* no output */ \
+                                           : "=q" (addr) )
+
+
 /*
  * Reset compiler assumptions about optimizations. By telling gcc we fucked
  *  with memory, it believes we've "clobbered" all the registers, and will
@@ -50,9 +48,7 @@
 #define __resetAssumptions __asm__ __volatile__ ("\n\t" \
                                                  : /* no output */ \
                                                  : /* no input */  \
-                                                 : "memory" );
-
-
+                                                 : "memory" )
 
 
 #define PUSHNULLSTATEARGS   "pushl   $0\n\t" \
@@ -68,19 +64,36 @@
 #endif /* ARCHITECTURE == i386 */
 
 
+/* higher-level abstract stuff... */
+
+/* VBSLACKER STATE */
+
+/*
+ * DO NOT REORDER THE FOLLOWING STRUCTURES! Assembly code expects this format.
+ *
+ *  Adding fields to the bottom should be okay, since the ASM code
+ *   references fields by their offsets to the structure's base pointer.
+ */
+
+#define STATEPARAMS void *__stIP, void *__stNextIP, void *__stBP, void *__stSP
+#define STATEARGS __stIP, __stNextIP, __stBP, __stSP
+#define NULLSTATEARGS NULL, NULL, NULL, NULL
+
+
 /*
  *  __setResumeStack fills in the current base pointer and stack
  *   to the current STATEPARAMS...
  */
+
 #define __setStateStack  __getBasePointer(&__stBP); \
-                         __getStackPointer(&__stSP);
+                         __getStackPointer(&__stSP)
 
 /*
  *  __setResumeInstructs fills in the current instruction pointer and the
  *   "next" instruction pointer to the current STATEPARAMS...
  */
 #define __setStateInstructs(ptr1, ptr2)  __stIP = ptr1; \
-                                         __stNextIP = ptr2;
+                                         __stNextIP = ptr2
 
 #endif /* defined _INCLUDE_REGSTATE_H_ */
 #endif /* defined _INCLUDE_STDBASIC_H_ */

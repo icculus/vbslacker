@@ -29,7 +29,7 @@ static void __redir_printNChars(STATEPARAMS, char *str, int n)
  * Write (n) chars from (str) to the printable window, scrolling if 
  *  needed, and moving the cursor to the new position.
  *
- *   params : str == chars to write.
+    params : str == chars to write.
  *  returns : void.
  */
 {
@@ -166,7 +166,7 @@ static void __redir_getConsoleHandlerName(STATEPARAMS, char *buffer, int size)
 } /* __redir_getConsoleHandlerName */
 
 
-boolean __initRedirectedConsole(STATEPARAMS)
+__boolean __initRedirectedConsole(STATEPARAMS)
 /*
  * Attempt to initialize curses library access.
  *
@@ -174,7 +174,7 @@ boolean __initRedirectedConsole(STATEPARAMS)
  *  returns : boolean true if initialized, false on error.
  */
 {
-    boolean retVal = false;
+    __boolean retVal = false;
 
     if ((isatty(STDIN_FILENO) == 0) || (isatty(STDOUT_FILENO) == 0))
     {

@@ -9,9 +9,9 @@
 
 #include "StdBasic.h"
 
-boolean __initNoConsole(STATEPARAMS);
+__boolean __initNoConsole(STATEPARAMS);
 
-#endif
+#endif /* _INCLUDE_NOCONSOLE_H_ */
 
 /* end of NoConsole.h ... */
 
