@@ -14,7 +14,8 @@ export OBJS = TestLib.o TestConversionFunctions.o TestOnError.o TestThreads.o \
 
 export EXES = testconversionfunctions testonerror testthreads \
               testerrorfunctions teststringfunctions testmathfunctions \
-              testgarbagecollector testfilesystemfunctions
+              testgarbagecollector testfilesystemfunctions testconsole \
+              testsegfault teststackoverflow
 
 about:
 	@cat ../../docs/about.txt
