@@ -18,23 +18,44 @@
 #include "FileSystemFunctions.h"
 
 
-boolean __fileExists(STATEPARAMS, char *fileName)
+#if defined LINUX
+#define PATHCHAR '/'
+#define CURRENTDIR "."
+#elif defined WIN32
+#define PATHCHAR '\\'
+#define CURRENTDIR "."
+#endif
+
+
+boolean __fileExists(STATEPARAMS, char *fullPathName)
 /*
  * Check to see if (fileName) is an existing file in the file system.
  *  This doesn't do more than verify the existance; permissions, etc...
  *  are NOT checked.
  *
- *    params : fileName == name of file to look up.
+ *    params : fullPathName == name of file to look up.
  *   returns : boolean true if file exists, boolean false otherwise.
  */
 {
-#ifdef BROKEN
     DIR *dp;
     struct dirent *ep;
+    char path[strlen(fullPathName) + 1];
+    char *fileName;
     boolean getOut = false;
     boolean retVal = false;
 
-    dp = opendir("./");
+    strcpy(path, fullPathName);
+    fileName = strrchr(path, PATHCHAR);
+
+    if (fileName == NULL)   /* no path? */
+        fileName = path;
+    else
+    {
+        fileName = '\0';   /* split string into path and filename... */
+        fileName++;        /* get past path char... */
+    } /* else */
+
+    dp = opendir((fileName == path) ? CURRENTDIR : path);
     if (dp == NULL)
         __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
     else
@@ -50,9 +71,6 @@ boolean __fileExists(STATEPARAMS, char *fileName)
     } /* else */
 
     return(retVal);
-#else
-    return(false);
-#endif
 } /* __fileExists */
 
 
@@ -177,6 +195,7 @@ void vbp_files(STATEPARAMS)
             pStr = __createString(STATEARGS, ep->d_name, true);
 
 /*
+!!! need console abstraction...just use vbpS_print?
             vbpS_print(STATEARGS, pStr);
             vbpS_print(STATEARGS, pSpaces);
 */
