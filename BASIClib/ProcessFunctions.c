@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <time.h>
 #include "ProcessFunctions.h"
 
 
@@ -62,7 +63,7 @@ void vbp_sleep(STATEPARAMS)
 
 void vbpl_sleep(STATEPARAMS, long napTime)
 /*
- * Make program (ALL THREADS) sleep (yield) for (napTime) seconds.
+ * Make current thread sleep (yield) for (napTime) seconds.
  *
  * BASIC docs say that if (napTime) is zero, sleep continues until an
  *  OnEvent occurs, or A KEY IS PRESSED. Yikes.
@@ -71,18 +72,28 @@ void vbpl_sleep(STATEPARAMS, long napTime)
  *  no guarantee as to how much longer than naptime the program will sleep.
  *  Such is the burden of multitasking.
  *
- *  This is basically useless in a multithreaded program.
- *
  *     params : napTime == seconds to sleep.
  *    returns : void.
  */
 {
-#warning vbpl_sleep() is incomplete!
+    time_t startTime;
+    time_t currentTime;
+    double dNapTime = (double) napTime;
 
-    if (napTime == 0)
+    if (napTime == 0)           /* delegate this to no-arg version ... */
         vbp_sleep(STATEARGS);
     else
     {
+        if (time(&startTime) == -1)     /* calendar time unavailable ?! */
+            __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
+        else
+        {
+            do      /* give up time slices until (napTime) seconds elaspe. */
+            {
+                __threadTimeslice(STATEARGS);
+                time(&currentTime);
+            } while (difftime(currentTime, startTime) < dNapTime);
+        } /* else */
     } /* else */
 } /* vbpl_sleep */
 
