@@ -39,6 +39,9 @@ These chars can be:
 'A' == "Any variable BYREF" (**see note)
 'O' == "OnOffStopType" (***see note)
 'N' == "Null argument" (****see note)
+'1' == "File mode" (*****see note)
+'2' == "Access mode" (*****see note)
+'3' == "Lock mode" (*****see note)
 
 *Strings and Variants are actually structures, so passing them by
 reference passes a pointer to the structure. Passing them by value
@@ -51,7 +54,8 @@ default.
 
 **"Any" variable type is used for things like "pos(x)", where x is
 simply any filler. That's stupid, but that's BASIC. Whatever you pass
-for these functions are cast to a (void *), and sent along.
+for these functions are cast to a (void *), regardless of what sort of
+data it really is, and sent along.
 
 ***"OnOffStopType" is defined in OnOffStopType.h, in the BASIClib
 directory. It's for things like TIMER ON, or PEN STOP. It's hardly used,
@@ -61,6 +65,8 @@ we made it a type of its own.
 ****API calls like "locate" can actually SKIP arguments, like
 [locate x, y, , 3] Yikes. The Null argument is made for the
 blank argument.
+
+*****These are for the OPEN calls. It's ugly. Sorry.
 
 '$' chars, like "RTRIM$()", are encoded as "_DC_" (for "dollar
 character"), as you can see above. Other potential ones are "_NC_"
