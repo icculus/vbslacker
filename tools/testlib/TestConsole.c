@@ -1,4 +1,5 @@
-#include <unistd.h>     /* for sleep()... */
+#include <stdio.h>      /* for sprintf()... */
+#include <unistd.h>     /* for sleep()...   */
 #include "BasicLib.h"
 
 
@@ -7,7 +8,7 @@ void testPrinting(void)
     __byte consName[30];
     PBasicString pStr;
 
-    __getConsoleHandlerName(consName, sizeof (consName));
+    __getConsoleDriverName(consName, sizeof (consName));
 
     __printNewLine();
     __printAsciz("[If you can read this, the console has initialized.]");
@@ -198,13 +199,10 @@ void testConsole(void)
 } /* testConsole */
 
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
-    void *base;
-    __getBasePointer(base);
-    __initBasicLib(base, INITFLAG_NO_FLAGS, argc, argv);
+    __initBasicLib(INITFLAG_NO_FLAGS, argc, argv, envp);
     testConsole();
-    __deinitBasicLib();
     return(0);
 } /* main */
 

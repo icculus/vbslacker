@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+void testFileSystemFunctions(void);
+void testGarbageCollector(void);
 void testOnError(void);
 void testErrorFunctions(void);
 void testThreads(void);
