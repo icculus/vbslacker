@@ -58,14 +58,13 @@ extern "C" {
   -DLANG_ENGLISH (or whatever) and -DLINUX_I386 (or whatever) on the command
   line, or better yet, read below for how to add your module to the makefiles...
 
-- Makefiles: Do this for each of the Makefile.platform files. (Like
-   Makefile.linux, or Makefile.win32, etc...)
+- Makefiles: Do this to "Makefile" in the BASIClib dir.
 
   - On the "OBJS =" line, add your compiled module's filename: MyFunctions.o.
     If you have to add a new line to fit into 80 columns, add a backslash
     ('\') and start a new line. NO TABS. Just spaces.
 
-  - Add a new entry at the bottom of the function:
+  - Add a new entry at the bottom of each of the Makefile.* files :
       MyFunctions.o : MyFunctions.c MyFunctions.h
       <TABCHAR>$(CC) $(COPTIONS) MyFunctions.o MyFunctions.c
 
@@ -76,8 +75,6 @@ extern "C" {
     necessary options for abstraction purposes. $(IOACCESS) is an example of
     this, in Makefile.linux ...
 
-- You shouldn't ever need to touch the main "Makefile".
-
 - Write testlib code for all functions. Stress test, check unlikely cases,
   etc...Make it a separate module: TestMyFunctions.c, add a declaration of
   your "mainline" to TestLib.h, and make a call from TestEverything() in
@@ -85,6 +82,9 @@ extern "C" {
   -DSTANDALONE mainline. It'll be the last thing in the file. Do that, too.
   It's handy when parts of BASIClib are horribly broken, but you still want
   to work on others.
+
+- Add your testlib code to the testlib Makefiles in much the same way as
+  you did for the BASIClib makefiles...
 
 - Write documentation for any APIs you've added. We're still working on the
   documentation system.  !!!
