@@ -23,12 +23,12 @@ LANGUAGE=ENGLISH
 IOACCESS = -O3
 
 # Shipping command lines
-#COPTIONS = -DLINUX -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -O2 -fPIC -fasm -finline-functions -s -c -o
+#COPTIONS = -DLINUX_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -O2 -fPIC -fasm -finline-functions -s -c -o
 #LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
 #ASMOPTIONS = -Wall -c -o
 
 # Debug command lines...
-COPTIONS = -DLINUX -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
+COPTIONS = -DLINUX_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
 LOPTIONS = -Wall -shared -Wl,-soname,$(DYNLIBMAJOR) -o
 ASMOPTIONS = -D_REENTRANT -Wall -c -o
 
