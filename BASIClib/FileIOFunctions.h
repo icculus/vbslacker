@@ -11,7 +11,7 @@
 #ifndef _INCLUDE_FILEIOFUNCTIONS_H_
 #define _INCLUDE_FILEIOFUNCTIONS_H_
 
-#include "RegState.h"
+#include "Assembler.h"
 
 typedef enum
 {
