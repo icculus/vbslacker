@@ -15,13 +15,17 @@
 #ifndef _INCLUDE_LANGUAGE_H_
 #define _INCLUDE_LANGUAGE_H_
 
+
 #if defined LANG_ENGLISH
     #include "English.h"
 #else
     #error No language defined. Try "-DLANG_ENGLISH" ...
 #endif
 
-#endif
+
+#endif /* #ifndef INCLUDE_LANGUAGE_H_ */
+
+#endif /* #ifndef INCLUDE_STDBASIC_H_ */
 
 /* end of Language.h ... */
 
