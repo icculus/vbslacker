@@ -26,7 +26,6 @@
     /* to save every byte of storage, these are stored as chars. */
 static char daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
 static char daysInLeapYearMonth[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
-static OnOffStopType timerSetting = OFF;
 static time_t todaySecs;
 
 
@@ -104,13 +103,6 @@ float vbf_timer(void)
     retVal += ((currentTime.tv_usec % 100) / 100); /* Add 2 decimal places. */
     return(retVal);
 } /* vbf_timer */
-
-
-void vbpO_timer(OnOffStopType setting)
-{
-    timerSetting = setting;
-    /* !!! write this! Enable a timer interrupt? */
-} /* vbpO_timer */
 
 
 static PBasicString __makeTimeDateString(int size, char *fmt)
