@@ -1,0 +1,80 @@
+Here's some details on adding new modules to BASIClib:
+
+- Read coding.txt. Twice.  :)
+- If writing APIs, read name_mangling.txt.
+- Actually, read EVERYTHING in the docs directory. At least twice.
+
+- Name the modules as ___Functions.c, like "MathFunctions" or
+  "FileIOFunctions".  Internal-only modules should not use this convention,
+  like "Threads.c" and "BasicError.c"
+
+- The module should #include only its own header and any standard C headers.
+  Internal only declarations, are handled by StdBasic.h, which should be
+  included from your header file. YOU SHOULD NEVER DIRECTLY INCLUDE ANOTHER
+  MODULE'S HEADER. That causes a loss in modularity and abstractness.
+  Your header should look like this:
+
+/*
+ * My comments and copyright.
+ *
+ */
+
+#ifndef _INCLUDE_MYFUNCTIONS_H_
+#define _INCLUDE_MYFUNCTIONS_H_
+
+#include "StdBasic.h"
+
+/* my declarations... */
+
+#endif
+
+/* end of MyFunctions.h ... */
+
+(note that the format is slightly different for headers intended for
+ internal-only use...see Threads.h or BasicString.h for differences.)
+
+- If you have init or deinit functions, add a call to them in the appropriate
+  function in Initialize.c. There are functions for (de)init of program,
+  threads, and special cases, like notification that the program is
+  shelling out, etc...
+
+- Add your header to BasicLib.h ... if you are writing internal-only modules,
+  consider adding your header to StdBasic.h instead. Don't add it to both.
+
+- Compile with -D_REENTRANT on the command line, or better yet, read below
+  for how to add your module to the makefiles...
+
+- Makefiles: Do this for each of the Makefile.platform files. (Like
+   Makefile.linux, or Makefile.win32, etc...)
+
+  - On the "OBJS =" line, add your compiled module's filename: MyFunctions.o.
+    If you have to add a new line to fit into 80 columns, add a backslash
+    ('\') and start a new line. NO TABS. Just spaces.
+
+  - Add a new entry at the bottom of the function:
+      MyFunctions.o : MyFunctions.c MyFunctions.h
+      <TABCHAR>$(CC) $(COPTIONS) MyFunctions.o MyFunctions.c
+
+  - <TABCHAR> should literally be a TAB character, ASCII char 9. Make won't
+    work if you put spaces here. -D_REENTRANT (and everything else you should
+    need) is included in $(COPTIONS); don't ever put specific command line
+    options, in case we ever don't use GCC. Make a new variable with the
+    necessary options for abstraction purposes.
+
+- You shouldn't ever need to touch the main "Makefile".
+
+- Write testlib code for all functions. Stress test, check unlikely cases,
+  etc...Make it a separate module: TestMyFunctions.c, add a declaration of
+  your "mainline" to TestLib.h, and make a call from TestEverything(). Check
+  one of the existing test modules for the format of a -DSTANDALONE mainline.
+  It'll be the last thing in the file. Do that, too. It's handy when parts of
+  BASIClib are horribly broken, but you still want to work on others.
+
+- Write documentation for any APIs you've added. We're still working on the
+  documentation system.  !!!
+
+- Don't forget to add new files (and commit changed ones) to the CVS
+  repository.
+
+/* end of adding_modules.txt ... */
+
