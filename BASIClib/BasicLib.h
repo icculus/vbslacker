@@ -8,6 +8,7 @@
 #ifndef _INCLUDE_BASICLIB_H_
 #define _INCLUDE_BASICLIB_H_
 
+#include "Initialize.h"
 #include "InternalMemManager.h"
 #include "BasicString.h"
 #include "Variant.h"
