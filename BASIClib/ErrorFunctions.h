@@ -12,6 +12,8 @@
 double vbd_err(STATEPARAMS);
 void vbpi_error(STATEPARAMS, int newErr);
 int vbi_erl(STATEPARAMS);
+int vbi_erdev(STATEPARAMS);
+PBasicString vbS_erdev_DC_(STATEPARAMS);
 
 #endif
 
