@@ -105,7 +105,7 @@ void __initThreadBasicError(int tidx);
 __boolean __isOnErrorThreadStateNULL(void);
 void __fatalRuntimeError(int errorNum);
 void __runtimeError(int errorNum);
-void __registerOnErrorHandler(__POnErrorHandler pHandler, void *handlerAddr);
+void __registerOnErrorHandler(__POnErrorHandler pHandler);
 void __deregisterOnErrorHandler(__POnErrorHandler pHandler);
 void __prepareResume(void *base);
 
@@ -119,30 +119,32 @@ void __prepareResume(void *base);
                                                          NULL}
                                                           
 
-#define __INITONERROR      __getBasePointer(&__onError.basePtr);  \
-                           __getStackPointer(&__onError.stackPtr)
+#define __ONERRORINIT      __getBasePointer(__onError.basePtr);   \
+                           __getStackPointer(__onError.stackPtr)
 
 
-#define __setOnErrorHandler(addr)  __registerOnErrorHandler(STATEARGS, \
-                                                            &__onError,  \
-                                                            addr)
+#define __setOnErrorHandler(addr) __getLabelAddr(addr, __onError.handlerAddr);\
+                                  __registerOnErrorHandler(&__onError)
+
 
 #define __setInstructs(iThis, iNext)  if (!__onError.isActive)              \
                                       {                                     \
-                                         __onError.thisInstruction = iThis; \
-                                         __onError.nextInstruction = iNext; \
+                                         __getLabelAddr(iThis,              \
+                                                __onError.thisInstruction); \
+                                         __getLabelAddr(iNext,              \
+                                                __onError.nextInstruction); \
                                       }
 
-#define __resumeNext        __prepareResume(STATEARGS, &__onError);  \
+#define __resumeNext        __prepareResume(&__onError);  \
                             __jump(__onError.nextInstruction)
 
-#define __resumeZero        __prepareResume(STATEARGS, &__onError);  \
+#define __resumeZero        __prepareResume(&__onError);  \
                             __jump(__onError.thisInstruction)
 
-#define __resumeLabel(addr) __prepareResume(STATEARGS, &__onError);  \
-                            __jump(addr)
+#define __resumeLabel(addr) __prepareResume(&__onError);  \
+                            __jumpLabel(addr)
 
-#define __exitCleanupOnError __deregisterOnErrorHandler(STATEARGS, &__onError)
+#define __exitCleanupOnError __deregisterOnErrorHandler(&__onError)
 
 #endif  /* _INCLUDE_BASICERROR_H_ */
 #endif  /* _INCLUDE_STDBASIC_H_   */

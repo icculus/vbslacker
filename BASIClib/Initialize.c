@@ -10,7 +10,7 @@ static long initFlags = INITFLAG_NOT_INITIALIZED;
 static __boolean initialized = false;
 
 
-void __initBasicLib(long flags, int argc, char **argv)
+void __initBasicLib(void *base, long flags, int argc, char **argv)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
  *  else with the library. This function just calls each other sections'
@@ -24,7 +24,7 @@ void __initBasicLib(long flags, int argc, char **argv)
     {
         initFlags = flags;
 
-        __initMemoryManager();
+        __initMemoryManager(base, NULL);   /* !!! FIX! */
         __initSignalHandlers();
         __initBasicError();
         __initConsoleFunctions();

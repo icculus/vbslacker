@@ -28,6 +28,7 @@ PBasicString __constString(char *asciz);
 PBasicString __assignString(PBasicString to, PBasicString from);
 PBasicString __catString(PBasicString str1, PBasicString str2);
 char *__basicStringToAsciz(PBasicString pStr);
+void __freeString(PBasicString pStr);
 
 #endif /* _INCLUDE_BASICSTRING_H_ */
 #endif /* _INCLUDE_STDBASIC_H_ */

@@ -157,7 +157,7 @@ static void __setOnErrorThreadState(__POnErrorHandler pHandler)
 
 
 
-void __registerOnErrorHandler(__POnErrorHandler pHandler, void *handlerAddr)
+void __registerOnErrorHandler(__POnErrorHandler pHandler)
 /*
  * This is somewhere between "low level but general" and "80x386 specific."
  *
@@ -168,28 +168,21 @@ void __registerOnErrorHandler(__POnErrorHandler pHandler, void *handlerAddr)
  *
  *  void myFunc(void)
  *  {
- *      __ONErrorSUPPORT;
- *                !!! write this.
- *      __register
+ *      __ONERRORVARS;
+ *      int anotherVar;
+ *      int yetAnotherVar;
+ *
+ *      __ONERRORINIT;
+ *      __setOnErrorHandler(labelOfHandler);
+ *      __setInstructs(labelForResumeZero, labelForResumeNext);
+ *      //...rest of your code... but at every possible return point...
+ *      __exitCleanupOnError;
+ *      return;
  *  }
  *
- * handlerAddr is the goto label we'll be blindly jumping to to handle the
- *  the runtime error. NULL is like ON ERROR GOTO 0.
- *
- * evType just guarantees that we don't call a timer handler for a runtime
- *  error, etc...
- *
- *    (*whew!*)   !!! rewrite all of this!
- *
- * All that said, call this function to register an error handler with
- *  BASIClib that will be called when appropriate. Ideally, the parser/compiler
- *  will generate all the calls to this function when it finds ON ERROR GOTO
- *  commands.
- *
- * Only one error handler of each type can be active for any given procedure.
- *  This function will check the handler to see if it should replace a
- *  previous one, based on base pointers, which will be constant for all
- *  calls from an instance of a single procedure.
+ * All that said, don't every call this function.  :) Actually, this is the
+ *  backend to the __setOnErrorHandler macro, so really, NEVER call this
+ *  directly.
  *
  *     returns : void.
  */
@@ -216,10 +209,9 @@ void __registerOnErrorHandler(__POnErrorHandler pHandler, void *handlerAddr)
     } /* if */
 
         /*
-         * Final setup...note that a lot of this was handled by the
+         * Final setup...note almost all of this was handled by the
          *  macros you should have used. You DID use them, didn't you?
          */
-    pHandler->handlerAddr = handlerAddr;
     pHandler->isActive = false;
 } /* __registerOnErrorHandler */
 
@@ -259,7 +251,7 @@ static __POnErrorHandler __getOnErrorHandler(void)
  *             handling has been disabled, or something.
  */
 {
-    __POnErrorHandler retVal;
+    __POnErrorHandler retVal = NULL;
     __POnErrorHandler list; 
     __POnErrorHandler pHandler;
 
@@ -290,18 +282,19 @@ static __POnErrorHandler __getOnErrorHandler(void)
          *  pointer, those handlers are deregistered, so the start of the list
          *  are always the most current base pointer's handler.)
          */
-    if (retVal->handlerAddr == NULL)    /* NULL == On Error Goto 0. */
-        retVal = NULL;
-    else                                /* move to start of list... */
+    if (retVal != NULL)
     {
-        for (; list != retVal; list = pHandler) /* ditch out-of-scope stuff */
+        if (retVal->handlerAddr == NULL)    /* NULL == On Error Goto 0. */
+            retVal = NULL;
+        else                                /* move to start of list... */
         {
-            pHandler = list->next;
-            free(pHandler);
-        } /* for */
-
-        __setOnErrorThreadState(retVal);
-    } /* else */
+                /*
+                 * Remove any handlers that are out-of-scope by setting
+                 *  the thread's state to the current point on stack...
+                 */
+            __setOnErrorThreadState(retVal);
+        } /* else */
+    } /* if */
 
     return(retVal);
 } /* __getOnErrorHandler */

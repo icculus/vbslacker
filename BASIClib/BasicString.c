@@ -20,8 +20,8 @@ PBasicString __allocString(int length, __boolean isFixed)
 {
     PBasicString retVal;
 
-    retVal = __memAllocInBoxcar(sizeof (BasicString));
-    retVal->data = (length > 0) ? __memAllocInBoxcar(length) : NULL;
+    retVal = __memAlloc(sizeof (BasicString));
+    retVal->data = (length > 0) ? __memAlloc(length) : NULL;
     retVal->length = length;
     retVal->fixedLength = isFixed;
 
@@ -182,11 +182,19 @@ char *__basicStringToAsciz(PBasicString pStr)
  *    returns : newly allocated C string in boxcar.
  */
 {
-    char *retVal = __memAllocInBoxcar(pStr->length + 1);
+    char *retVal = __memAlloc(pStr->length + 1);
     memcpy(retVal, pStr->data, pStr->length);
     retVal[pStr->length] = '\0';
     return(retVal);
 } /* __basicStringToAsciz */
+
+
+#warning keep __freeString()?
+void __freeString(PBasicString pStr)
+{
+    __memFree(pStr->data);
+    __memFree(pStr);
+}
 
 /* end of BasicString.c ... */
 
