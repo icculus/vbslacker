@@ -54,7 +54,7 @@ void test_rmdir(void)
 __insertLineLabel(rmdirChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
-    errors++;
+    warnings++;
     __exitCleanupOnError;
 } /* test_rmdir */
 
@@ -97,7 +97,7 @@ void test_mkdir(void)
 __insertLineLabel(mkdirChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
-    errors++;
+    warnings++;
     __exitCleanupOnError;
 } /* test_mkdir */
 
@@ -142,7 +142,7 @@ void test_kill(void)
 __insertLineLabel(killChoked);
 
     printf("\n - Threw error. (#%ld)\n", _vbl_err());
-    errors++;
+    warnings++;
     __exitCleanupOnError;
 } /* test_kill */
 
@@ -159,7 +159,6 @@ void test_name(void)
     PBasicString copyThis = __createString("testFileCopy", false);
     PBasicString copyHere = __createString("testName", false);
     struct stat statBuf;
-
 
     __ONERRORINIT;
     __setOnErrorHandler(nameChoked);
@@ -180,7 +179,7 @@ void test_name(void)
 __insertLineLabel(nameChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
-    errors++;
+    warnings++;
     __exitCleanupOnError;
 } /* test_name */
 
@@ -225,7 +224,7 @@ void test_filecopy(void)
 __insertLineLabel(fileCopyChoked);
 
     printf(" - Threw error. (#%ld)\n", _vbl_err());
-    errors++;
+    warnings++;
     __exitCleanupOnError;
 } /* test_filecopy */
 
