@@ -26,7 +26,8 @@ static int __curs_openConsole(void)
  *    returns : void.
  */
 {
-    int retVal = -1;
+    __integer retVal = -1;
+
     initscr();
     start_color();
     cons = newwin(0, 0, 0, 0);   /* full screen virtual window. */
@@ -60,7 +61,7 @@ static void __curs_deinitConsoleHandler(void)
 } /* __curs_deinitConsole */
 
 
-static void __curs_printNChars(char *str, int n)
+static void __curs_printNChars(__byte *str, __long n)
 /*
  * Write (n) chars at (str) to the printable window, scrolling if needed, 
  *  and moving the cursor to the new position.
@@ -70,7 +71,7 @@ static void __curs_printNChars(char *str, int n)
  *  returns : void.
  */
 {
-    int i;
+    __long i;
 
     __obtainThreadLock(&consoleLock);
     for (i = 0; i < n; i++)
@@ -91,7 +92,7 @@ static void __curs_printNewLine(void)
 } /* __curs_printNewLine */
 
 
-static void __curs_vbpii_viewPrint(int topRow, int bottomRow)
+static void __curs_vbpii_viewPrint(__integer topRow, __integer bottomRow)
 /*
  * Set console lines (top) to (bottom) as the printable window.
  *
@@ -100,8 +101,8 @@ static void __curs_vbpii_viewPrint(int topRow, int bottomRow)
  *    returns : void.
  */
 {
-    int lines;
-    int columns;
+    __integer lines;
+    __integer columns;
 
     __obtainThreadLock(&consoleLock);
     getmaxyx(stdscr, lines, columns);
@@ -131,8 +132,8 @@ static void __curs_vbp_viewPrint(void)
  *    returns : void.
  */
 {
-    int lines;
-    int columns;
+    __integer lines;
+    __integer columns;
 
     __obtainThreadLock(&consoleLock);
     getmaxyx(stdscr, lines, columns);
@@ -160,7 +161,7 @@ static void __curs_vbp_cls(void)
 } /* vbp_cls */
 
 
-static int __curs_vbi_csrline(void)
+static __integer __curs_vbi_csrline(void)
 /*
  * Return current cursor row.
  *
@@ -174,11 +175,12 @@ static int __curs_vbi_csrline(void)
     __obtainThreadLock(&consoleLock);
     getsyx(y, x);
     __releaseThreadLock(&consoleLock);
-    return(y);
+
+    return((__integer) y);
 } /* __curs_vbi_csrline */
 
 
-static int __curs_vbia_pos(void *pVar)
+static __integer __curs_vbia_pos(void *pVar)
 /*
  * Return current cursor column.
  *
@@ -192,11 +194,12 @@ static int __curs_vbia_pos(void *pVar)
     __obtainThreadLock(&consoleLock);
     getsyx(y, x);
     __releaseThreadLock(&consoleLock);
-    return(x);
+
+    return((__integer) x);
 } /* vbiA_pos */
 
 
-static void __curs_vbpiii_color(int fore, int back, int bord)
+static void __curs_vbpiii_color(__integer fore, __integer back, __integer bord)
 /*
  * Set a new printing color.
  *
@@ -210,7 +213,7 @@ static void __curs_vbpiii_color(int fore, int back, int bord)
 } /* __curs_vbpiii_color */
 
 
-static void __curs_vbpil_color(int fore, long feh)
+static void __curs_vbpil_color(__integer fore, __long feh)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
@@ -220,7 +223,7 @@ static void __curs_vbpil_color(int fore, long feh)
 } /* __curs_vbpiii_color */
 
 
-static void __curs_vbpi_color(int fore)
+static void __curs_vbpi_color(__integer fore)
 /*
  * This form of the COLOR command is only for graphics mode, so throw a
  *  runtime error.
@@ -230,7 +233,7 @@ static void __curs_vbpi_color(int fore)
 } /* __curs_vbpiii_color */
 
 
-static void __curs_getConsoleHandlerName(char *buffer, int size)
+static void __curs_getConsoleHandlerName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -260,21 +263,21 @@ __boolean __initCursesConsole(void)
         __deinitConsoleHandler = __curs_deinitConsoleHandler;
         __printNewLine = __curs_printNewLine;
         __printNChars = __curs_printNChars;
-        vbpii_viewPrint = __curs_vbpii_viewPrint;
-        vbp_viewPrint = __curs_vbp_viewPrint;
-        vbp_cls = __curs_vbp_cls;
-        vbi_csrline = __curs_vbi_csrline;
-        vbia_pos = __curs_vbia_pos;
-        vbpiii_color = __curs_vbpiii_color;
-        vbpil_color = __curs_vbpil_color;
-        vbpi_color = __curs_vbpi_color;
+        _vbpii_viewPrint = __curs_vbpii_viewPrint;
+        _vbp_viewPrint = __curs_vbp_viewPrint;
+        _vbp_cls = __curs_vbp_cls;
+        _vbi_csrline = __curs_vbi_csrline;
+        _vbia_pos = __curs_vbia_pos;
+        _vbpiii_color = __curs_vbpiii_color;
+        _vbpil_color = __curs_vbpil_color;
+        _vbpi_color = __curs_vbpi_color;
         retVal = true;
     } /* if */
 
     return(retVal);
 } /* __initCursesConsole */
 
-#endif  /* defined WIN32 */
+#endif  /* (!)defined NOCURSES */
 
 /* end of CursesConsole.c ... */
 

@@ -15,18 +15,18 @@
 extern "C" {
 #endif
 
-PBasicString vbSSi_right_DC_(PBasicString pStr, int count);
-PBasicString vbSSi_left_DC_(PBasicString pStr, int count);
-PBasicString vbSS_rtrim_DC_(PBasicString pStr);
-PBasicString vbSS_ltrim_DC_(PBasicString pStr);
-PBasicString vbSS_lcase_DC_(PBasicString pStr);
-PBasicString vbSS_ucase_DC_(PBasicString pStr);
-int vbiS_len(PBasicString pStr);
-PBasicString vbSi_space_DC_(int length);
-int vbiiSS_instr(int start, PBasicString str1, PBasicString str2);
-int vbiSS_instr(PBasicString str1, PBasicString str2);
-PBasicString vbSii_string_DC_(int rep, int ch);
-PBasicString vbSiS_string_DC_(int rep, PBasicString strCh);
+PBasicString _vbSSl_right_DC_(PBasicString pStr, __long count);
+PBasicString _vbSSl_left_DC_(PBasicString pStr, __long count);
+PBasicString _vbSS_rtrim_DC_(PBasicString pStr);
+PBasicString _vbSS_ltrim_DC_(PBasicString pStr);
+PBasicString _vbSS_lcase_DC_(PBasicString pStr);
+PBasicString _vbSS_ucase_DC_(PBasicString pStr);
+__long _vblS_len(PBasicString pStr);
+PBasicString _vbSl_space_DC_(__long length);
+__long _vbllSS_instr(__long start, PBasicString str1, PBasicString str2);
+__long _vblSS_instr(PBasicString str1, PBasicString str2);
+PBasicString _vbSli_string_DC_(__long rep, __integer ch);
+PBasicString _vbSlS_string_DC_(__long rep, PBasicString strCh);
 
 #ifdef __cplusplus
 }

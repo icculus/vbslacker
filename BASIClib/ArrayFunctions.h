@@ -13,9 +13,9 @@
 extern "C" {
 #endif
 
-void vbpAn_erase(__PBasicArray array);
-int vbiAi_lbound(__PBasicArray array, int dimension);
-int vbiAi_ubound(__PBasicArray array, int dimension);
+void _vbpAn_erase(__PBasicArray array);
+__long _vblAl_lbound(__PBasicArray array, __long dimension);
+__long _vblAl_ubound(__PBasicArray array, __long dimension);
 
 #ifdef __cplusplus
 }

@@ -20,7 +20,7 @@ extern "C" {
 typedef struct
 {
     void **addrs;
-    int count;
+    __integer count;
 } __GosubState;
 
 typedef __GosubState *__PGosubState;

@@ -18,7 +18,7 @@
 #include "FileSystemFunctions.h"
 
 
-__boolean __fileExists(char *fullPathName)
+__boolean __fileExists(__byte *fullPathName)
 /*
  * Check to see if (fileName) is an existing file in the file system.
  *  This doesn't do more than verify the existance; permissions, etc...
@@ -30,8 +30,8 @@ __boolean __fileExists(char *fullPathName)
 {
     DIR *dp;
     struct dirent *ep;
-    char path[strlen(fullPathName) + 1];
-    char *fileName;
+    __byte path[strlen(fullPathName) + 1];
+    __byte *fileName;
     __boolean getOut = false;
     __boolean retVal = false;
 
@@ -46,7 +46,7 @@ __boolean __fileExists(char *fullPathName)
         fileName++;        /* get past path char... */
     } /* else */
 
-    dp = opendir((fileName == path) ? CURRENTDIRSTR : path);
+    dp = opendir((fileName == path) ? CURRENTDIRSTR : (char *) path);
     if (dp == NULL)
         __runtimeError(ERR_INTERNAL_ERROR);
     else
@@ -65,7 +65,7 @@ __boolean __fileExists(char *fullPathName)
 } /* __fileExists */
 
 
-static char *__convertPathWinToUnix(char *pathName)
+static __byte *__convertPathWinToUnix(__byte *pathName)
 /*
  * Convert "C:\path\path\filename.txt" to "/path/path/filename.txt"
  *
@@ -76,9 +76,9 @@ static char *__convertPathWinToUnix(char *pathName)
  *    returns : see above.
  */
 {
-    int length = strlen(pathName);
-    char *retVal = __memAlloc(length + 1);
-    int i;
+    __integer length = strlen(pathName);
+    __byte *retVal = __memAlloc(length + 1);
+    __integer i;
 
     if ((length >= 2) && (pathName[1] == ':'))   /* drive letter? */
         pathName += 2;                           /* bump pathName past it. */
@@ -92,7 +92,7 @@ static char *__convertPathWinToUnix(char *pathName)
 
 
 
-static char *__convertPathUnixToWin(char *pathName)
+static __byte *__convertPathUnixToWin(__byte *pathName)
 /*
  * Convert "/path/path/filename.txt" to "C:\path\path\filename.txt"
  *
@@ -102,9 +102,9 @@ static char *__convertPathUnixToWin(char *pathName)
  *    returns : see above.
  */
 {
-    int length = strlen(pathName);
-    char *retVal = __memAlloc(length + 3);
-    int i;
+    __integer length = strlen(pathName);
+    __byte *retVal = __memAlloc(length + 3);
+    __integer i;
 
     strcpy(retVal, "C:");
 
@@ -117,7 +117,7 @@ static char *__convertPathUnixToWin(char *pathName)
 
 
 
-static int __fileSystemErrors(void)
+static __long __fileSystemErrors(void)
 /*
  * Convert C's (errno) into one of the common errors in the BASIClib
  *  file system API.
@@ -129,7 +129,7 @@ static int __fileSystemErrors(void)
 
 #warning __fileSystemErrors() is not accurate.
 
-    int errorType;
+    __long errorType;
 
     switch (errno)
     {
@@ -159,10 +159,10 @@ static int __fileSystemErrors(void)
 } /* __fileSystemErrors */
 
 
-void vbpS_kill(PBasicString fileName)
+void _vbpS_kill(PBasicString fileName)
 {
-    char *ascizFileName = __basicStringToAsciz(fileName);
-    int errorType;
+    __byte *ascizFileName = __basicStringToAsciz(fileName);
+    __long errorType;
 
     if (remove(ascizFileName) == -1)   /* -1 == error. */
     {
@@ -171,13 +171,13 @@ void vbpS_kill(PBasicString fileName)
     } /* if */
 
     __memFree(ascizFileName);
-} /* vbpS_kill */
+} /* _vbpS_kill */
 
 
-void vbpS_mkdir(PBasicString dirStr)
+void _vbpS_mkdir(PBasicString dirStr)
 {
-    char *ascizDirName = __basicStringToAsciz(dirStr);
-    int errorType;
+    __byte *ascizDirName = __basicStringToAsciz(dirStr);
+    __long errorType;
 
     if (mkdir(ascizDirName, S_IRWXU) == -1)
     {
@@ -186,13 +186,13 @@ void vbpS_mkdir(PBasicString dirStr)
     } /* if */
 
     __memFree(ascizDirName);
-} /* vbpS_mkdir */
+} /* _vbpS_mkdir */
 
 
-void vbpS_rmdir(PBasicString dirStr)
+void _vbpS_rmdir(PBasicString dirStr)
 {
-    char *ascizDirName = __basicStringToAsciz(dirStr);
-    int errorType;
+    __byte *ascizDirName = __basicStringToAsciz(dirStr);
+    __long errorType;
 
     if (rmdir(ascizDirName) == -1)
     {
@@ -201,14 +201,14 @@ void vbpS_rmdir(PBasicString dirStr)
     } /* if */
 
     __memFree(ascizDirName);
-} /* vbpS_rmdir */
+} /* _vbpS_rmdir */
 
 
-void vbpSS_name(PBasicString oldName, PBasicString newName)
+void _vbpSS_name(PBasicString oldName, PBasicString newName)
 {
-    char *ascizOldName = __basicStringToAsciz(oldName);
-    char *ascizNewName = __basicStringToAsciz(newName);
-    int errorType;
+    __byte *ascizOldName = __basicStringToAsciz(oldName);
+    __byte *ascizNewName = __basicStringToAsciz(newName);
+    __long errorType;
 
     if (rename(ascizOldName, ascizNewName) == -1)
     {
@@ -218,11 +218,13 @@ void vbpSS_name(PBasicString oldName, PBasicString newName)
 
     __memFree(ascizOldName);
     __memFree(ascizNewName);
-} /* vbpSS_name */
+} /* _vbpSS_name */
 
 
-void vbp_files(void)
+void _vbp_files(void)
 {
+#warning Scrap FILES statement?
+/* !!! SCRAP THIS?! */
     DIR *dp;
     struct dirent *ep;
 
@@ -239,12 +241,12 @@ void vbp_files(void)
         } /* while */
         closedir(dp);
     } /* else */
-} /* vbp_files */
+} /* _vbp_files */
 
 
-void vbpSS_filecopy(PBasicString src, PBasicString dest)
+void _vbpSS_filecopy(PBasicString src, PBasicString dest)
 {
-} /* vbpSS_filecopy */
+} /* _vbpSS_filecopy */
 
 /* end of FileSystemFunctions.c ... */
 

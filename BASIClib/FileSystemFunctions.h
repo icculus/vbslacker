@@ -17,13 +17,13 @@ extern "C" {
 extern "C" {
 #endif
 
-__boolean __fileExists(char *fullPathName);
-void vbpS_kill(PBasicString fileName);
-void vbpS_mkdir(PBasicString dirStr);
-void vbpS_rmdir(PBasicString dirStr);
-void vbpSS_name(PBasicString oldName, PBasicString newName);
-void vbp_files(void);
-void vbpSS_filecopy(PBasicString src, PBasicString dest);
+__boolean __fileExists(__byte *fullPathName);
+void _vbpS_kill(PBasicString fileName);
+void _vbpS_mkdir(PBasicString dirStr);
+void _vbpS_rmdir(PBasicString dirStr);
+void _vbpSS_name(PBasicString oldName, PBasicString newName);
+void _vbp_files(void);
+void _vbpSS_filecopy(PBasicString src, PBasicString dest);
 
 #ifdef __cplusplus
 }

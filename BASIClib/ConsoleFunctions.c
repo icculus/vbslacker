@@ -12,23 +12,25 @@
 #include "CursesConsole.h"
 #include "RedirectedConsole.h"
 
+#warning Need structure for driver entry points!
+
 /* internal function declarations needed at start... */
 static void __preinitPrintNewLine(void);
-static void __preinitPrintNChars(char *str, int n);
+static void __preinitPrintNChars(__byte *str, __long n);
 
 /* variable function pointers... */
-void (*__getConsoleHandlerName)(char *buf, int size) = NULL;
+void (*__getConsoleHandlerName)(__byte *buf, __integer size) = NULL;
 void (*__deinitConsoleHandler)(void) = NULL;
 void (*__printNewLine)(void) = __preinitPrintNewLine;
-void (*__printNChars)(char *str, int n) = __preinitPrintNChars;
-void (*vbpii_viewPrint)(int top, int bottom) = NULL;
-void (*vbp_viewPrint)(void) = NULL;
-void (*vbp_cls)(void) = NULL;
-int  (*vbi_csrline)(void) = NULL;
-int  (*vbia_pos)(void *pVar) = NULL;
-void (*vbpiii_color)(int fore, int back, int bord) = NULL;
-void (*vbpil_color)(int fore, long palette) = NULL;
-void (*vbpi_color)(int fore) = NULL;
+void (*__printNChars)(__byte *str, __long n) = __preinitPrintNChars;
+void (*_vbpii_viewPrint)( __integer top, __integer bottom) = NULL;
+void (*_vbp_viewPrint)(void) = NULL;
+void (*_vbp_cls)(void) = NULL;
+__integer (*_vbi_csrline)(void) = NULL;
+__integer (*_vbia_pos)(void *pVar) = NULL;
+void (*_vbpiii_color)(__integer fore, __integer back, __integer bord) = NULL;
+void (*_vbpil_color)(__integer fore, __long palette) = NULL;
+void (*_vbpi_color)(__integer fore) = NULL;
 
 
 void __initConsoleFunctions(void)
@@ -58,18 +60,18 @@ void __deinitConsoleFunctions(void)
     __deinitConsoleHandler = NULL;
     __printNewLine = __preinitPrintNewLine;
     __printNChars = __preinitPrintNChars;
-    vbpii_viewPrint = NULL;
-    vbp_viewPrint = NULL;
-    vbp_cls = NULL;
-    vbi_csrline = NULL;
-    vbia_pos = NULL;
-    vbpiii_color = NULL;
-    vbpil_color = NULL;
-    vbpi_color = NULL;
+    _vbpii_viewPrint = NULL;
+    _vbp_viewPrint = NULL;
+    _vbp_cls = NULL;
+    _vbi_csrline = NULL;
+    _vbia_pos = NULL;
+    _vbpiii_color = NULL;
+    _vbpil_color = NULL;
+    _vbpi_color = NULL;
 } /* __deinitConsoleFunctions */
 
 
-void vbpV_print(PVariant pVar)
+void _vbpV_print(PVariant pVar)
 /*
  * Take a variant, convert to a string, and print it.
  *
@@ -80,12 +82,12 @@ void vbpV_print(PVariant pVar)
     PBasicString str;
 
     str = __variantToString(pVar, true);
-    vbpS_print(str);
+    _vbpS_print(str);
 /*    __freeString(str);*/
-} /* vbpV_print */
+} /* _vbpV_print */
 
 
-void vbpS_print(PBasicString str)
+void _vbpS_print(PBasicString str)
 /*
  * Print a BASIC string to the console. NULL characters do not
  *  terminate the string, and are acceptable for printing.
@@ -95,10 +97,10 @@ void vbpS_print(PBasicString str)
  */
 {
     __printNChars(str->data, str->length);
-} /* vbpS_print */
+} /* _vbpS_print */
 
 
-void __printAsciz(char *str)
+void __printAsciz(__byte *str)
 /*
  * Print a null-terminated C string (ASCIZ string) to the console.
  *  If there is a null character in the string, it is considered the
@@ -109,11 +111,11 @@ void __printAsciz(char *str)
  *     returns : void.
  */
 {
-    __printNChars(str, strlen(str));
+    __printNChars(str, (__long) strlen(str));
 } /* __printAsciz */
 
 
-static void __preinitPrintNChars(char *str, int n)
+static void __preinitPrintNChars(__byte *str, __long n)
 /*
  * This function exists to allow initialization functions to
  *  write to stderr (under the guise of a full console driver)
@@ -125,7 +127,7 @@ static void __preinitPrintNChars(char *str, int n)
  *   returns : void.
  */
 {
-    int i;
+    __long i;
 
     for (i = 0; i < n; i++)
         fputc(str[i], stderr);

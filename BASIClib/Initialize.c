@@ -6,11 +6,11 @@
 
 #include "BasicLib.h"
 
-static long initFlags = INITFLAG_NOT_INITIALIZED;
+static __long initFlags = INITFLAG_NOT_INITIALIZED;
 static __boolean initialized = false;
 
 
-void __initBasicLib(void *base, long flags, int argc, char **argv)
+void __initBasicLib(void *base, __long flags, int argc, char **argv)
 /*
  * Global initialization function. Call __initBasicLib() before doing anything
  *  else with the library. This function just calls each other sections'
@@ -59,7 +59,7 @@ void __deinitBasicLib(void)
 } /* __deinitBasicLib */
 
 
-void __initThread(int tidx)
+void __initThread(__integer tidx)
 /*
  * This is a entry point to alert modules that a new thread has been spun, 
  *  and to allocate space as necessary. The given index might be recycled
@@ -74,7 +74,7 @@ void __initThread(int tidx)
 } /* __initThread */
 
 
-void __deinitThread(int tidx)
+void __deinitThread(__integer tidx)
 /*
  * This is a entry point to alert modules that a thread has died, 
  *  and to handle it as necessary. The given index might be recycled
@@ -88,7 +88,7 @@ void __deinitThread(int tidx)
 } /* __deinitThread */
 
 
-long __getInitFlags(void)
+__long __getInitFlags(void)
 /*
  * This function allows code to get the value of the (initFlags) variable,
  *  while protecting it from modification.

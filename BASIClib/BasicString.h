@@ -19,19 +19,19 @@ extern "C" {
 
 typedef struct
 {
-    unsigned int length;
+    __long length;
     __byte *data;          /* THIS IS -=NOT=- NULL-TERMINATED! */
     __boolean fixedLength;
 } BasicString;
 
 typedef BasicString *PBasicString;
 
-PBasicString __allocString(int length, __boolean isFixed);
-PBasicString __createString(char *asciz, __boolean fixedLength);
-PBasicString __constString(char *asciz);
+PBasicString __allocString(__long length, __boolean isFixed);
+PBasicString __createString(__byte *asciz, __boolean fixedLength);
+PBasicString __constString(__byte *asciz);
 PBasicString __assignString(PBasicString to, PBasicString from);
 PBasicString __catString(PBasicString str1, PBasicString str2);
-char *__basicStringToAsciz(PBasicString pStr);
+__byte *__basicStringToAsciz(PBasicString pStr);
 void __freeString(PBasicString pStr);
 
 #ifdef __cplusplus

@@ -29,9 +29,9 @@ void __initEnvrFunctions(int argc, char **argv)
  *     returns : void.
  */
 {
-    int i;
-    int size = 0;
-    char *cmdLine;
+    __integer i;
+    __integer size = 0;
+    __byte *cmdLine;
 
     __createThreadLock(&envrLock);
 
@@ -42,7 +42,7 @@ void __initEnvrFunctions(int argc, char **argv)
     /* !!! This is basically inefficient... */
 
     for (i = 1; i < argc; i++)        /* get size of command line string... */
-        size += strlen(argv[i]) + 1;
+        size += (__integer) (strlen(argv[i]) + 1);
 
     cmdLine = __memAlloc(size);
     memset(cmdLine, '\0', size);
@@ -73,7 +73,7 @@ void __deinitEnvrFunctions(void)
 } /* __initEnvrFunctions */
 
 
-void vbpS_chdir(PBasicString newDir)
+void _vbpS_chdir(PBasicString newDir)
 /*
  * Change the current working directory. All relative paths used in
  *  file i/o will work from the new working directory from now on.
@@ -82,10 +82,9 @@ void vbpS_chdir(PBasicString newDir)
  *   returns : void. Throws a few errors, though.
  */
 {
-    char *str = __basicStringToAsciz(newDir);
-    int rc;
+    __byte *str = __basicStringToAsciz(newDir);
+    int rc = chdir(str);
 
-    rc = chdir(str);
     __memFree(str);
 
     if (rc == -1)
@@ -116,10 +115,10 @@ void vbpS_chdir(PBasicString newDir)
 
         __runtimeError(rc);
     } /* if */
-} /* vbpS_chdir */
+} /* _vbpS_chdir */
 
 
-PBasicString vbSS_curdir_DC_(PBasicString drive)
+PBasicString _vbSS_curdir_DC_(PBasicString drive)
 /*
  * Return current working directory by drive letter. Under Unix-like
  *  Operating systems, the only valid drive letter is "C"...You can set
@@ -135,10 +134,10 @@ PBasicString vbSS_curdir_DC_(PBasicString drive)
  */
 {
     
-} /* vbSS_curdir */
+} /* _vbSS_curdir */
 
 
-PBasicString vbS_curdir_DC_(void)
+PBasicString _vbS_curdir_DC_(void)
 /*
  * Same as above vbSS_curdir_DC_(), but always gets current drives's
  *  working directory. Equivalent to vbSS_curdir_DC_("");
@@ -148,11 +147,11 @@ PBasicString vbS_curdir_DC_(void)
  */
 {
     PBasicString blankString = __createString("", false);
-    return(vbSS_curdir_DC_(blankString));
-} /* vbS_curdir_DC_ */
+    return(_vbSS_curdir_DC_(blankString));
+} /* _vbS_curdir_DC_ */
 
 
-PBasicString vbSS_environ_DC_(PBasicString envVarName)
+PBasicString _vbSS_environ_DC_(PBasicString envVarName)
 /*
  * Get the value of the environment variable named by (envVarName).
  *
@@ -161,14 +160,14 @@ PBasicString vbSS_environ_DC_(PBasicString envVarName)
  *              such a variable does not exist.
  */
 {
-    char *str = __basicStringToAsciz(envVarName);
-    char *rc;
+    __byte *str = __basicStringToAsciz(envVarName);
+    __byte *rc;
     PBasicString retVal;
 
         /* other threads may overwrite this, so lock it... */
     __obtainThreadLock(&envrLock);
     rc = getenv(str);
-    retVal = __createString((rc == NULL) ? "" : rc, false);
+    retVal = __createString((rc == NULL) ? "" : (char *) rc, false);
     __releaseThreadLock(&envrLock);
 
     __memFree(str);
@@ -176,7 +175,7 @@ PBasicString vbSS_environ_DC_(PBasicString envVarName)
 } /* vbSS_environ_DC_ */
 
 
-PBasicString vbSi_environ_DC_(int n)
+PBasicString _vbSi_environ_DC_(__integer n)
 /*
  * Get the (n)th string from the list of environment variables, whatever
  *  it may be.
@@ -188,21 +187,21 @@ PBasicString vbSi_environ_DC_(int n)
  */
 {
     PBasicString retVal;
-    int i;
+    __integer i;
 
     for (i = 0; (i < n) && (environ[i] != NULL); i++)
         /* do nothing. */;
 
     retVal = __createString(((environ[i] == NULL) ? "" : environ[i]), false);
     return(retVal);
-} /* vbSi_environ_DC_ */
+} /* _vbSi_environ_DC_ */
 
 
-void vbpS_environ(PBasicString newEnvrStr)
+void _vbpS_environ(PBasicString newEnvrStr)
 /*
  * Change or add environment variables for the process; any child processes
  *  spawned will reflect these changes, as well as future calls to
- *  vbSi_environ_DC_()...
+ *  _vbSi_environ_DC_()...
  *
  *   params : newEnvStr == BASIC string in the format of
  *                         "EnvVarName = EnvVarValue" or
@@ -212,9 +211,9 @@ void vbpS_environ(PBasicString newEnvrStr)
 {
 #if 0
     void *separator;
-    char *envrName;
-    char *envrVal;
-    char *buffer;
+    __byte *envrName;
+    __byte *envrVal;
+    __byte *buffer;
 
     separator = memchr(newEnvrStr->data, ' ', newEnvrStr->length);
     if (separator == NULL)
@@ -228,10 +227,10 @@ void vbpS_environ(PBasicString newEnvrStr)
     memcpy(envrName, newEnvrStr->data, separator - newEnvrStr->data);
     /* !!! not done! */
 #endif
-} /* vbpS_environ */
+} /* _vbpS_environ */
 
 
-int vbii_fre(int arg)
+__integer _vbii_fre(__integer arg)
 /*
  * Returns a byte count of available memory remaining.
  *
@@ -246,20 +245,20 @@ int vbii_fre(int arg)
  *   returns : see above.
  */
 {
-    int retVal = 0;
+    __integer retVal = 0;
 
     if (arg == -1)       /* return available memory. */
         /* !!! */ ;
     else if (arg == -2)  /* return available stack space. */
         /* !!! */ ;
     else                 /* return string space. */
-        retVal = vbiS_fre(NULL);
+        retVal = _vbiS_fre(NULL);
 
     return(retVal);
-} /* vbii_fre */
+} /* _vbii_fre */
 
 
-int vbiS_fre(PBasicString strExp)
+__integer _vbiS_fre(PBasicString strExp)
 /*
  * Compact memory (garbage collect), and return the available string space,
  *  in bytes.
@@ -269,11 +268,11 @@ int vbiS_fre(PBasicString strExp)
  */
 {
     __memDoFullCollect();
-    return(65767);  /* !!! */
-} /* vbiS_fre */
+    return((__integer) 65767);  /* !!! */
+} /* _vbiS_fre */
 
 
-PBasicString vbS_command_DC_(void)
+PBasicString _vbS_command_DC_(void)
 /*
  * Return the command line of this application.
  *
@@ -285,6 +284,6 @@ PBasicString vbS_command_DC_(void)
 
     retVal = __assignString(retVal, commandLine);
     return(retVal);
-} /* vbS_command_DC_ */
+} /* _vbS_command_DC_ */
 
 /* end of EnvrFunctions.c ... */

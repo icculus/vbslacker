@@ -52,18 +52,18 @@ void __deinitMemoryManager(void)
 } /* __deinitMemoryManager */
 
 
-void __initThreadMemoryManager(int tidx)
+void __initThreadMemoryManager(__integer tidx)
 {
 } /* __initThreadMemoryManager */
 
 
-void __deinitThreadMemoryManager(int tidx)
+void __deinitThreadMemoryManager(__integer tidx)
 {
 } /* __initThreadMemoryManager */
 
 
 
-void *__memAlloc(size_t amount)
+void *__memAlloc(__long amount)
 {
     void *retVal = malloc(amount);
 
@@ -74,7 +74,7 @@ void *__memAlloc(size_t amount)
 } /* __memAlloc */
 
 
-void *__memRealloc(void *oldPtr, size_t amount)
+void *__memRealloc(void *oldPtr, __long amount)
 {
     void *retVal = realloc(oldPtr, amount);
 
@@ -85,7 +85,7 @@ void *__memRealloc(void *oldPtr, size_t amount)
 } /* __memRealloc */
 
 
-void *__memAllocNoPtrs(size_t amount)
+void *__memAllocNoPtrs(__long amount)
 {
     void *retVal = malloc(amount);
 
@@ -96,7 +96,7 @@ void *__memAllocNoPtrs(size_t amount)
 } /* __memAllocNoPtrs */
 
 
-void *__memReallocNoPtrs(void *oldPtr, size_t amount)
+void *__memReallocNoPtrs(void *oldPtr, __long amount)
 {
     void *retVal = realloc(oldPtr, amount);
 

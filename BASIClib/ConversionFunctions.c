@@ -6,11 +6,12 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <math.h>
 #include "ConversionFunctions.h"
 
-#define __round(x) ((long) x + 0.5)
+#define __round(x) ((__long) x + 0.5)
 
-int vbiS_asc(PBasicString pBasicStr)
+__integer _vbiS_asc(PBasicString pBasicStr)
 /*
  * Get the ASCII value of the first character of (str)...
  *
@@ -18,18 +19,18 @@ int vbiS_asc(PBasicString pBasicStr)
  *   returns : ASCII value of first char in string.
  */
 {
-    unsigned int retVal = 0;
+    __integer retVal = 0;
 
     if (pBasicStr->length == 0)    /* blank string? */
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
-        retVal = (unsigned int) pBasicStr->data[0];
+        retVal = (__integer) ((unsigned int) pBasicStr->data[0]);
 
     return(retVal);
-} /* vbiS_asc */
+} /* _vbiS_asc */
 
 
-PBasicString vbSi_chr_DC_(int asciiValue)
+PBasicString _vbSi_chr_DC_(__integer asciiValue)
 /*
  * Returns a new basic string of one character length based on the ascii
  *  value passed.
@@ -44,16 +45,16 @@ PBasicString vbSi_chr_DC_(int asciiValue)
         __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
-        retVal = __allocString(1, false);
+        retVal = __allocString((__long) 1, false);
         retVal->data[0] = (__byte) asciiValue;
     } /* else */
 
     return(retVal);
-} /* vbSi_chr_DC_ */
+} /* _vbSi_chr_DC_ */
 
 
 
-PBasicString vbSd_str_DC_(double numeric)
+PBasicString _vbSd_str_DC_(__double numeric)
 /*
  * Convert a numeric to a BASIC string. If (numeric) is positive, the
  *  string contains a leading blank (' ') character. If negative, that
@@ -66,12 +67,12 @@ PBasicString vbSd_str_DC_(double numeric)
 {
 #ifdef BROKEN   /* !!! MEMORY LEAKS, AMONG OTHER PROBLEMS... */
     PBasicString retVal;
-    int allocated = 10;
-    int decimalPlaces = 0;
-    char *buffer = __memAlloc(allocated);
-    double i;
-    int index = 1;
-    int number;
+    __integer allocated = 10;
+    __integer decimalPlaces = 0;
+    __byte *buffer = __memAlloc(allocated);
+    __double i;
+    __long index = 1;
+    __long number;
 
     if (numeric < 0.0)   /* negative? */
     {
@@ -91,7 +92,7 @@ PBasicString vbSd_str_DC_(double numeric)
             index++;
         } /* if */
 
-        number = (int) (numeric / i);
+        number = (__integer) (numeric / i);
         numeric -= (number * i);
         buffer[index] = ('0' + number);
         index++;
@@ -118,7 +119,7 @@ PBasicString vbSd_str_DC_(double numeric)
     return(__createString(buffer, false));
 #endif
 
-} /* vbSd_str_DC_ */
+} /* _vbSd_str_DC_ */
 
 
 
@@ -130,18 +131,18 @@ static int __valEndOfNumberString(PBasicString pBasicStr)
  *  returns : index in string where number to convert ends.
  */
 {
-    __boolean pastFirst = false;    /* so extra '-' chars don't sneak in. */
-    __boolean foundDecimal = false; /* so extra '.' chars don't sneak in. */
-    __boolean foundEnd = false;     /* loop control variable.             */
-    int max = pBasicStr->length;    /* loop control variable.             */
-    int i;                          /* loop control variable.             */
-    char *str = pBasicStr->data;    /* the actual string data.            */
-    int ch;                         /* for individual chars in string.    */
+    __boolean pastFirst = false;       /* so extra '-' chars don't sneak in. */
+    __boolean foundDecimal = false;    /* so extra '.' chars don't sneak in. */
+    __boolean foundEnd = false;        /* loop control variable.             */
+    __integer max = pBasicStr->length; /* loop control variable.             */
+    __integer i;                       /* loop control variable.             */
+    __byte *str = pBasicStr->data;       /* the actual string data.            */
+    __integer ch;                      /* for individual chars in string.    */
 
     for (i = 0; (i < max) && (!foundEnd); i++)
     {
-        ch = (int) str[i];
-        if (!isdigit(ch))
+        ch = (__integer) str[i];
+        if (!isdigit((int) ch))
         {
             switch (ch)
             {
@@ -179,7 +180,7 @@ static int __valEndOfNumberString(PBasicString pBasicStr)
 
 
 
-double vbdS_val(PBasicString pBasicStr)
+double _vbdS_val(PBasicString pBasicStr)
 /*
  * Convert a BASIC string into a numeric. This function stops conversion
  *  at the end of the string, or when it runs into a character it can't
@@ -193,16 +194,16 @@ double vbdS_val(PBasicString pBasicStr)
 
 #warning "val() still isn't right!"
 
-    double retVal = 0.0;
-    int strEndIndex = __valEndOfNumberString(pBasicStr);
-    int decimalPlace = 1;
-    int ch;
-    int i;
+    __double retVal = 0.0;
+    __integer strEndIndex = __valEndOfNumberString(pBasicStr);
+    __integer decimalPlace = 1;
+    __integer ch;
+    __integer i;
 
     for (i = strEndIndex; i >= 0; i--)
     {
-        ch = (int) pBasicStr->data[i];
-        if (isdigit(ch))
+        ch = (__integer) pBasicStr->data[i];
+        if (isdigit((int) ch))
         {
             retVal += ((ch - '0') * decimalPlace);
             decimalPlace *= 10;
@@ -221,7 +222,7 @@ double vbdS_val(PBasicString pBasicStr)
                     break;
 
                 case '.':
-                    retVal /= (double) decimalPlace;
+                    retVal /= (__double) decimalPlace;
                     decimalPlace = 1;
                     break;
             } /* switch */
@@ -229,11 +230,10 @@ double vbdS_val(PBasicString pBasicStr)
     } /* for */
 
     return(retVal);
-} /* vbdS_val */
+} /* _vbdS_val */
 
 
-
-PBasicString vbSl_hex_DC_(long x)
+PBasicString _vbSl_hex_DC_(__long x)
 /*
  * Convert a numeric to a string in Hexadecimal format. Numeric is rounded
  *  as necessary.
@@ -242,21 +242,21 @@ PBasicString vbSl_hex_DC_(long x)
  *  returns : newly allocated BASIC string with hex version of (x).
  */
 {
-    unsigned int rounded;
+    __long rounded;
 
     /* !!! this is a kludge. Really write this... */
 
     char buffer[20];
 
-    rounded = __round(x);
-    sprintf(buffer, "%X", rounded);
+    rounded = __round(abs(x));
+    sprintf(buffer, "%lX", rounded);
 
     return(__createString(buffer, false));
-} /* vbSd_hex_DC_ */
+} /* _vbSd_hex_DC_ */
 
 
 
-PBasicString vbSl_oct_DC_(long x)
+PBasicString _vbSl_oct_DC_(__long x)
 /*
  * Convert a numeric to a string in Octal format. Numeric is rounded
  *  as necessary.
@@ -265,22 +265,22 @@ PBasicString vbSl_oct_DC_(long x)
  *  returns : newly allocated BASIC string with octal version of (x).
  */
 {
-    unsigned int rounded;
+    __long rounded;
 
     /* !!! this is a kludge. Really write this... */
 
     char buffer[20];
 
-    rounded = __round(x);
-    sprintf(buffer, "%o", rounded);
+    rounded = __round(abs(x));
+    sprintf(buffer, "%lo", rounded);
 
     return(__createString(buffer, false));
-} /* vbSd_oct_DC_ */
+} /* _vbSd_oct_DC_ */
 
 
-PBasicString vbS_mki_DC_(int num)
+PBasicString _vbS_mki_DC_(__integer num)
 {
-} /* vbS_mki_DC_ */
+} /* _vbS_mki_DC_ */
 
 
 /* !!! still need: */

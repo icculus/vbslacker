@@ -53,10 +53,10 @@ typedef Variant *PVariant;
 
 /* !!! need __intrinsicToVariant() calls, too. */
 void __freeVariant(PVariant var);
-int __variantToInt(PVariant var);
-long __variantToLong(PVariant var);
-float __variantToFloat(PVariant var);
-double __variantToDouble(PVariant var);
+__integer __variantToInt(PVariant var);
+__long __variantToLong(PVariant var);
+__single __variantToFloat(PVariant var);
+__double __variantToDouble(PVariant var);
 PBasicString __variantToString(PVariant pVar, __boolean byRef);
 
 #ifdef __cplusplus

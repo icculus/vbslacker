@@ -24,7 +24,7 @@ static void __redir_deinitConsoleHandler(void)
 } /* __redir_deinitConsole */
 
 
-static void __redir_printNChars(char *str, int n)
+static void __redir_printNChars(__byte *str, __long n)
 /*
  * Write (n) chars from (str) to the printable window, scrolling if 
  *  needed, and moving the cursor to the new position.
@@ -33,7 +33,7 @@ static void __redir_printNChars(char *str, int n)
  *  returns : void.
  */
 {
-    int i;
+    __long i;
 
     for (i = 0; i < n; i++)
         putchar(str[i]);
@@ -52,7 +52,7 @@ static void __redir_printNewLine(void)
 } /* __redir_printNewLine */
 
 
-static void __redir_vbpii_viewPrint(int topRow, int bottomRow)
+static void __redir_vbpii_viewPrint(__integer topRow, __integer bottomRow)
 /*
  * This can't do anything, if we're redirected, so just return.
  *
@@ -91,7 +91,7 @@ static void __redir_vbp_cls(void)
 } /* __redir_vbp_cls */
 
 
-static int __redir_vbi_csrline(void)
+static __integer __redir_vbi_csrline(void)
 /*
  * Can't manipulate the cursor in redirected mode, so return (0).
  *
@@ -103,7 +103,7 @@ static int __redir_vbi_csrline(void)
 } /* __redir_vbi_csrline */
 
 
-static int __redir_vbia_pos(void *pVar)
+static __integer __redir_vbia_pos(void *pVar)
 /*
  * Can't manipulate the cursor in redirected mode, so return (0).
  *
@@ -115,7 +115,7 @@ static int __redir_vbia_pos(void *pVar)
 } /* vbia_pos */
 
 
-static void __redir_vbpiii_color(int fore, int back, int bord)
+static void __redir_vbpiii_color(__integer fore, __integer back, __integer bord)
 /*
  * This can't do anything, if we're redirected, so just return.
  *
@@ -127,7 +127,7 @@ static void __redir_vbpiii_color(int fore, int back, int bord)
 } /* __redir_vbpiii_color */
 
 
-static void __redir_vbpil_color(int fore, long feh)
+static void __redir_vbpil_color(__integer fore, __long feh)
 /*
  * This is for graphic modes only; throw an error.
  *
@@ -140,7 +140,7 @@ static void __redir_vbpil_color(int fore, long feh)
 } /* __redir_vbpil_color */
 
 
-static void __redir_vbpi_color(int fore)
+static void __redir_vbpi_color(__integer fore)
 /*
  * This is for graphic modes only; throw an error.
  *
@@ -152,7 +152,7 @@ static void __redir_vbpi_color(int fore)
 } /* __redir_vbpi_color */
 
 
-static void __redir_getConsoleHandlerName(char *buffer, int size)
+static void __redir_getConsoleHandlerName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
  *  handler to a buffer.
@@ -199,14 +199,14 @@ void __forceRedirectedConsole(void)
     __deinitConsoleHandler = __redir_deinitConsoleHandler;
     __printNewLine = __redir_printNewLine;
     __printNChars = __redir_printNChars;
-    vbpii_viewPrint = __redir_vbpii_viewPrint;
-    vbp_viewPrint = __redir_vbp_viewPrint;
-    vbp_cls = __redir_vbp_cls;
-    vbi_csrline = __redir_vbi_csrline;
-    vbia_pos = __redir_vbia_pos;
-    vbpiii_color = __redir_vbpiii_color;
-    vbpil_color = __redir_vbpil_color;
-    vbpi_color = __redir_vbpi_color;
+    _vbpii_viewPrint = __redir_vbpii_viewPrint;
+    _vbp_viewPrint = __redir_vbp_viewPrint;
+    _vbp_cls = __redir_vbp_cls;
+    _vbi_csrline = __redir_vbi_csrline;
+    _vbia_pos = __redir_vbia_pos;
+    _vbpiii_color = __redir_vbpiii_color;
+    _vbpil_color = __redir_vbpil_color;
+    _vbpi_color = __redir_vbpi_color;
 } /* __forceRedirectedConsole */
 
 /* end of RedirectedConsole.c ... */

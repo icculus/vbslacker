@@ -6,7 +6,7 @@
 
 #include "MiscFunctions.h"
 
-void vbp_clear(void)
+void _vbp_clear(void)
 /*
  * There's no way in hell we're supporting this. Microsoft docs
  *  says that if it's used anywhere but the mainline, it throws
@@ -18,10 +18,10 @@ void vbp_clear(void)
  */
 {
     __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-} /* vbp_clear */
+} /* _vbp_clear */
 
 
-void vbpNNl_clear(__long stackSize)
+void _vbpNNl_clear(__long stackSize)
 /*
  * Refer to vbp_clear()...
  *
@@ -30,7 +30,7 @@ void vbpNNl_clear(__long stackSize)
  */
 {
     __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
-} /* vbNNl_clear */
+} /* _vbNNl_clear */
 
 /* end of MiscFunctions.c ... */
 

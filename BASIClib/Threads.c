@@ -32,7 +32,7 @@
      */
     typedef struct
     {
-        int tidx;                  /* New thread's BASIClib index. */
+        __integer tidx;            /* New thread's BASIClib index. */
         void (*fn)(void *args);    /* Function to call.            */
         void *args;                /* Args to function to call.    */
     } ThreadEntryArgs;
@@ -41,14 +41,14 @@
 
     static ThreadLock lock;              /* module-scope thread lock.        */
     static pthread_t *indexes;           /* Vector of actual TIDs...         */
-    static int threadCount = 0; /* Count of total existing threads. */
-    static int maxIndex = -1;   /* Size of (indexes) vector.        */
+    static __integer threadCount = 0;    /* Count of total existing threads. */
+    static __integer maxIndex = -1;      /* Size of (indexes) vector.        */
 #endif /* !defined SINGLE_THREADED */
 
 
 /* defined in Initialize.c, but only declared here for abstractness. */
-void __initThread(int tidx);
-void __deinitThread(int tidx);
+void __initThread(__integer tidx);
+void __deinitThread(__integer tidx);
 
 
 
@@ -86,7 +86,7 @@ void __deinitThreads(void)
  */
 {
 #if (!defined SINGLE_THREADED)
-    int i;
+    __integer i;
     pthread_t tid = pthread_self();
 
     __obtainThreadLock(&lock);
@@ -117,7 +117,7 @@ void __deinitThreads(void)
      */
 #if (!defined SINGLE_THREADED)
 
-static void __prepareThreadToTerminate(int tidx)
+static void __prepareThreadToTerminate(__integer tidx)
 /*
  * Sets up a thread for termination. Notifies other modules that
  *  thread is dying, and possibly resizes the vector containing TIDs.
@@ -129,8 +129,8 @@ static void __prepareThreadToTerminate(int tidx)
  *    returns : void.
  */
 {
-    int i;
-    int firstNULL = -1;
+    __integer i;
+    __integer firstNULL = -1;
     pthread_t tid;
 
     __deinitThread(tidx);   /* broadcast that thread is dying. */
@@ -171,7 +171,7 @@ void __terminateCurrentThread_f(void)
 } /* __terminateCurrentThread_f */
 
 
-void __terminateThread_f(int tidx)
+void __terminateThread_f(__integer tidx)
 /*
  * Terminate a thread. If the calling thread is the one that
  *  is requested to terminate, the function __terminateCurrentThread()
@@ -199,7 +199,7 @@ void __terminateThread_f(int tidx)
 } /* __terminateThread_f */
 
 
-void __waitForThreadToDie_f(int tidx)
+void __waitForThreadToDie_f(__integer tidx)
 /*
  * This function blocks until thread with the index (tidx)
  *  terminates. Calling this when (tidx) is the current thread
@@ -240,7 +240,7 @@ static void __threadEntry(void *args)
 } /* __threadStart */
 
 
-int __spinThread_f(void (*_fn)(void *x), void *_args)
+__integer __spinThread_f(void (*_fn)(void *x), void *_args)
 /*
  * Create ("spin") a new thread, and start it.
  *
@@ -251,7 +251,7 @@ int __spinThread_f(void (*_fn)(void *x), void *_args)
 {
     PThreadEntryArgs args = __memAlloc(sizeof (ThreadEntryArgs));
     pthread_t *saveLoc = NULL;
-    int retVal;
+    __integer retVal;
     int rc;
 
     args->fn = _fn;
@@ -294,7 +294,7 @@ int __spinThread_f(void (*_fn)(void *x), void *_args)
 } /* __spinThread_f */
 
 
-int __getThreadCount_f(void)
+__integer __getThreadCount_f(void)
 /*
  * Return count of current amount of threads in system. More handy is
  *  probably __getHighestThreadIndex(), below.
@@ -308,7 +308,7 @@ int __getThreadCount_f(void)
 } /* __getThreadCount_f */
 
 
-int __getHighestThreadIndex_f(void)
+__integer __getHighestThreadIndex_f(void)
 /*
  * Get the index of the thread with the highest-numbered index. Good for
  *  determining how to size arrays that handle thread-specific data...
@@ -321,7 +321,7 @@ int __getHighestThreadIndex_f(void)
 } /* __getHighestThreadIndex_f */
 
 
-int __getCurrentThreadIndex_f(void)
+__integer __getCurrentThreadIndex_f(void)
 /*
  * Get the index of the current calling thread.
  *
@@ -330,8 +330,8 @@ int __getCurrentThreadIndex_f(void)
  */
 {
     pthread_t tid = pthread_self();
-    int i;
-    int retVal = -1;
+    __integer i;
+    __integer retVal = -1;
 
     __obtainThreadLock_f(&lock);
 
@@ -372,7 +372,7 @@ void __createThreadLock_f(PThreadLock pThreadLock)
  *    returns : void.
  */
 {
-    int errType;
+    __long errType;
     pthread_mutexattr_t attr;
 
     pthread_mutexattr_init(&attr);
