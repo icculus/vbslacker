@@ -172,6 +172,11 @@ static void __redir_vbp_locate(void)
 } /* __redir_vbp_locate */
 
 
+static void __redir_playSound(__integer frequency, __single duration)
+{
+} /* __redir_playSound */
+
+
 static void __redir_vbp_beep(void)
 {
 } /* __redir_vbp_beep */
@@ -224,6 +229,7 @@ void __forceRedirectedConsole(void)
     __deinitConsoleDriver = __redir_deinitConsoleDriver;
     __printNewLine = __redir_printNewLine;
     __printNChars = __redir_printNChars;
+    __playSound = __redir_playSound;
     _vbpii_viewPrint = __redir_vbpii_viewPrint;
     _vbp_viewPrint = __redir_vbp_viewPrint;
     _vbp_cls = __redir_vbp_cls;
