@@ -6,7 +6,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Initialize.h"
 #include "Threads.h"
 #include "Boolean.h"
 
@@ -67,6 +66,8 @@ void testThreads(void)
 
 
 #ifdef STANDALONE
+
+#include "Initialize.h"
 
 int main(void)
 {
