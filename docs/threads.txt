@@ -137,6 +137,17 @@ Ignoring those as "problems that will fix themselves," however...
   thread that did the terminating (the one who called __terminateThread()
   or __terminateCurrentThread()) will be the one to call __deinitThread().
 
+- Be careful about obtaining thread locks and error handling; If you own
+  a thread lock, and there's a possibility of a runtime error being thrown,
+  register an OnError handler, that releases possession of the lock,
+  deregisters itself, and rethrows the error. Other protections include
+  making sure you don't call any routines that could possibly throw (standard
+  C library routines never do so, only BASIClib functions do), or registering
+  an OnError handler that fixes problems, and executes a RESUME of some sort.
+  If you don't take measures, other threads will block inexplicably and
+  probably permenently if they try to obtain the lock that your error-throwing
+  thread has possession of.
+
 - The best idea is just to avoid global and static data wherever possible.
   Remember  that every thread has it's own stack, and data stored on it will
   be separate from other functions...therefore local variables and arguments
