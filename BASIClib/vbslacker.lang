@@ -1,0 +1,80 @@
+#
+# Header file for ENGLISH string literals in BASIClib.
+#
+#  Copyright (c) 1999 Ryan C. Gordon and Gregory S. Read.
+#   This text written by Ryan C. Gordon.
+#
+# If you are translating to a new language, do this:
+#
+#  1. Ask yourself, "Do I have a good grasp of BASIC to understand
+#     this file, and what it's purpose is? Do I have sufficient translating
+#     skills? Do I have the ethics to NOT put naughty words that the
+#     BASIClib maintainers will not understand in here?" If you answered
+#     "no" to any of these questions, stop now.
+#  2. Change the "This text written by" line above to contain your
+#     name. DO NOT CHANGE THE COPYRIGHT. You will be given credit for your
+#     work, but by submitting your work, the maintainers of BASIClib gain
+#     sole ownership of it. If you don't like that, stop now.
+#  3. Change any occurence of the word "ENGLISH" to the language you
+#     have translated this file to. Please use the english form of the
+#     language's name: that is, use "Spanish" and not "Espanol."
+#  4. E-mail your completed work to ryan_gordon@hotmail.com. He'll
+#     incorporate it into the next release of BASIClib.
+#  5. Lines beginning with '#' are ignored when this file is parsed.
+#     Completely blank lines are also ignored by BASIClib. All the text must
+#     be kept in the current order; line 1 (first line that isn't ignored,
+#     that is) will always be the "unhandled runtime exception" line, for
+#     example. Don't reorganize this file's contents.
+#  6. Expect to be notified if we have more translating work for you
+#     in the future.  :)
+#  7. Questions about context of messages can be addressed to
+#     ryan_gordon@hotmail.com.
+#                                   Have fun,
+#                                      --ryan.
+
+
+# This is a title for the message box displayed when an error occurs...
+Unhandled Runtime Error
+
+
+# This batch of strings are error messages that might be encountered
+#  during the course of a BASIC program's execution.
+
+No error
+RETURN without GOSUB
+Out of data
+Illegal Function call
+Overflow
+Out of memory
+Subscript out of range
+Division by zero
+Type mismatch
+Out of string space
+Expression too complex
+Cannot continue
+Resume without error
+Subprogram not defined
+Internal error
+Bad file name or number
+File not found
+Bad file mode
+File already open
+Field statement active
+Device I/O error
+File already exists
+Bad record length
+Disk full
+Input past end of file
+Bad record number
+Too many files
+Device unavailable
+Communication buffer overflow
+Permission denied
+Disk not ready
+Rename across disks
+Path/File access error
+Path not found
+Unknown Error
+
+# end of (English) vbslacker.lang ...
+
