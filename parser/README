@@ -10,4 +10,4 @@ folder for instructions on how to build the ANTLR package.
 Also, I originally used the -classpath argument to specify the ANTLR folder
 so that java would run the grammar compiler.  The java that I have crashes
 for some reason when I use this, so for now you'll have to specify the
-ANTLR folder in your CLASSPATH environment manually.
+ANTLR folder in your CLASSPATH environment manually. DON'T USE THE ANTLR.JAR FILE!  THIS IS OUT OF DATE!  Use the classes inside the antlr subfolder instead.
