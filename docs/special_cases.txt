@@ -1,4 +1,5 @@
 APIs that need special handling in the parser/compiler:
+
 (Please read name_mangling.txt before this, to see if your special problem
 doesn't already have a solution encoded in the function name...)
 
@@ -32,7 +33,7 @@ CLOSE calls need to deal with the optional '#' chars before the numeric
  PRINT # and LINE INPUT # use this character to differentiate between two
  very different functions, too.
 --------------------------========++++++++++========--------------------------
-SWAP can probably be generated inline by the parser/compiler.
+SWAP should be generated inline by the parser/compiler.
 "SWAP a, b" becomes "tmp = a; a = b; b = tmp", plus type/range checking and
 debug/trace code.
 --------------------------========++++++++++========--------------------------
@@ -56,23 +57,26 @@ __integer tmp;
 x = 3;
 tmp = x;   /* needed in case of function...should run only once. */
 if ((tmp < 0) || (tmp > 255))  /* negatives or > 255 are errors. */
-    __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* or whatever error... */
+    __runtimeError(ERR_OUT_OF_RANGE);  /* or whatever error... */
 else if (tmp == 1)
-    __doGosub(&&line1, &&endOfOnNumGosub1);
+    __doGosub(line1, endOfOnNumGosub);
 else if (tmp == 2)
-    __doGosub(&&line2, &&endOfOnNumGosub1);
+    __doGosub(line2, endOfOnNumGosub);
 else if (tmp == 3)
-    __doGosub(&&line3, &&endOfOnNumGosub1);
-endOfOnNumGosub1:
+    __doGosub(line3, endOfOnNumGosub);
+
+endOfOnNumGosub:
+
 if ((tmp < 0) || (tmp > 255))  /* negatives or > 255 are errors. */
-    __runtimeError(STATEARGS, ERR_OUT_OF_RANGE);  /* or whatever error... */
+    __runtimeError(ERR_OUT_OF_RANGE);  /* or whatever error... */
 else if (tmp == 1)
-    goto line1;
+    __jumpLabel(line1);
 else if (tmp == 2)
-    goto line2;
+    __jumpLabel(line2);
 else if (tmp == 3)
-    goto line3;
-endOfOnNumGosub2:
+    __jumpLabel(line3);
+
+
 *-----
 This must be generated INLINE, EVERYTIME, by the parser/compiler.
 *-----
@@ -81,10 +85,7 @@ Refer to on_events.txt and gosub.txt for details on those, and strange
 things like ON ERROR RESUME NEXT...
 --------------------------========++++++++++========--------------------------
 SELECT CASE statements can NOT be converted directly to switch statements,
-since they are more flexible. You'll have to use if/else if constructs.
---------------------------========++++++++++========--------------------------
-All functions (and some macros) in BASIClib use STATEPARAMS. CDECL functions
-should not.
+since they are more flexible. You'll have to use "if/else if/else" constructs.
 --------------------------========++++++++++========--------------------------
 RESUME and RESUME 0 should both translate into a __resumeZero() call.
 RESUME NEXT should become a __resumeNext() call.
