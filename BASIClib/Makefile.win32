@@ -116,5 +116,8 @@ GUIFrontEnd.o : GUIFrontEnd.c GUIFrontEnd.h
 RegistryFunctions.o : RegistryFunctions.c RegistryFunctions.h
 	$(CC) $(COPTIONS) RegistryFunctions.o RegistryFunctions.c
 
+BasicFileSystem.o : BasicFileSystem.c BasicFileSystem.h
+	$(CC) $(COPTIONS) BasicFileSystem.o BasicFileSystem.c
+
 # end of Makefile.win32 ...
 
