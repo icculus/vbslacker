@@ -12,15 +12,20 @@ specified thread terminates is called "__waitForThreadToDie()".
 For BASIC API functions (functionality exposed to user-defined BASIC code),
 the function prototypes go like this (for example.) :
 
-PBasicString _vbSiS_string_DC_(int x, PBasicString y);
+In BASIC: FUNCTION String$(x as Integer, str as String) As String
+
+In C: PBasicString _vbSiS_string_DC_(int x, PBasicString str);
 
 To explain:
-All APIs start with "_vb". The next character is the return value.
 
-if it's a SUB (void), the character is 'p' for "procedure".
-otherwise, it'll be the type of data returned. See below.
+All APIs start with "_vb".
+
+The next character is the return value. If it's a
+SUB (void), the character is 'p' for "procedure". Otherwise, it'll be the type
+of data returned. See below.
 
 The next characters are the arguments. One character per argument. See below.
+
 The end of the encoded information in the above format is signified by an
 underscore character ('_'). After that, the proper name of the function
 (like "instr" or "bsave" or whatever) is appended, completing the "mangled"
@@ -29,7 +34,13 @@ API's name.
 So, in short, it's a modified hungarian notation. A little different, but
 VERY detailed.
 
-These chars can be:
+'$' chars, like "RTRIM$()", are encoded as "_DC_" (for "dollar
+character"), as you can see above. Other potential ones are "_NC_"
+('#'), _EC_ ('!'), _PC_ ('%')...
+
+
+The characters that signify parameters and return value can be:
+ (Note that case is significant...)
 
 'b' == "boolean BYVAL"
 'i' == "integer BYVAL"
@@ -59,8 +70,8 @@ reference (BYREF) passes a pointer to the structure. Passing them by value
 (BYVAL) requires the parser/compiler create an exact copy of the data, and
 pass a pointer to the clone of that data. Before return, the called function
 must clean up BYVAL structures like this. Intrinsics are just popped off the
-stack, and the called function does nothing with them. In fact, the way C
-works, the calling function doesn't pop the stack or arguments at all.
+stack, and the called function does nothing directly with them. In fact, the
+way C works, the calling function doesn't pop the stack or arguments at all.
 You can see why we used 'S' and not 's' in the above example. Intrinsic data
 types passed BYVAL and BYREF work just like their equivalents in C, and are
 typically passed by value in the average API call, even though BASIC-coded
@@ -68,14 +79,14 @@ functions are BYREF by default.
 
 **"Any" variable type is used for things like "pos(x)", where x is
 simply any filler. That's stupid, but that's BASIC. Whatever you pass
-for these functions are cast to a (void *), regardless of what sort of
+for these functions is cast to a (void *), regardless of what sort of
 data it really is, and sent along.
 
 ****API calls like "locate" can actually SKIP arguments, like
 [locate x, y, , 3] Yikes. The Null argument is made for the
 blank argument.
 
-*****These are for the OPEN calls. It's ugly. Sorry.
+*****These are for the OPEN calls. It's ugly. I'm sorry.
 
 ******Functions that accept variable arguments, like CLOSE and ERASE, will be
 broken down into multiple calls by the parser/compiler:
@@ -84,9 +95,9 @@ CLOSE 1, 5, 7
 
 becomes:
 
-vbpin_close(1);
-vbpin_close(5);
-vbpin_close(7);
+_vbpin_close(1);
+_vbpin_close(5);
+_vbpin_close(7);
 
 The identifier to signify that a given argument is repeated a variable amount
 of times is 'n'. Mathematically, 'n' is frequently used to specify iterations.
@@ -101,12 +112,12 @@ name.
 
 So, CLOSE has two forms:
 
-void vbp_close(STATEPARAMS);                 /* close all files      */
-void vbpin_close(STATEPARAMS, int fileNum);  /* close specific files */
+void _vbp_close();                     /* close all files; takes no argument */
+void _vbpin_close(__integer fileNum);  /* close specific files */
 
 The parser/compiler will figure out which function call is appropriate. If,
 in this case, there are arguments to a CLOSE statement, and each are castable
-to type (int), then the parser/compiler will generate as many calls to
+to type (__integer), then the parser/compiler will generate as many calls to
 vbpin_close() as there are arguments to the BASIC equivalent. This is easier
 to implement cleanly than using C's variable argument facilities, probably
 faster in the long run, and less bug prone in both BASIClib and end-user
@@ -125,10 +136,6 @@ into ZERO calls? That's obviously unwanted behavior.)
 
 
 Other stuff:
-
-'$' chars, like "RTRIM$()", are encoded as "_DC_" (for "dollar
-character"), as you can see above. Other potential ones are "_NC_"
-('#'), _EC_ ('!'), _PC_ ('%')...
 
 This system allows us to have "overloaded" functions, and gives the
 parser/compiler a more sane way than a giant conditional block to
