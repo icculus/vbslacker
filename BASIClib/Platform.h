@@ -77,6 +77,9 @@ extern "C" {
         #ifndef LINUX
             #define LINUX
         #endif
+        #ifndef UNIX
+            #define UNIX
+        #endif
         #define __I386
         #define __ARCHITECTURE      "i386"
         #define __FUNCNAME_PREPEND  ""
@@ -95,6 +98,9 @@ extern "C" {
     #elif defined LINUXAOUT_I386
         #ifndef LINUX
             #define LINUX
+        #endif
+        #ifndef UNIX
+            #define UNIX
         #endif
         #define __I386
         #define __ARCHITECTURE      "i386"
