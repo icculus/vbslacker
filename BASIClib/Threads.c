@@ -8,32 +8,42 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <signal.h>
+#include "InternalMemManager.h"
+#include "ErrorFunctions.h"
 #include "Threads.h"
+
 
 typedef struct
 {
+    int tidx;
     void *(*fn)(void*);
     void *args;
 } ThreadEntryArgs;
 
 typedef ThreadEntryArgs *PThreadEntryArgs;
 
-static volatile ThreadLock lock;
+
+
+static volatile ThreadLock lock;        /* module-scope thread lock. */
 static volatile pthread_t *indexes;
 static volatile int threadCount = 0;
 static volatile int maxIndex = 0;
+
+
 
     /* defined in Initialize.c, but only declared here for abstractness. */
 void __initThread(int tidx); 
 void __deinitThread(int tidx); 
 
 
+
+
 void __initThreads(void)
 {
     __createThreadLock(&lock);
     threadCount++;
-    maxIndex++;
-    indexes = malloc(sizeof (pthread_t));
+    indexes = __memAlloc(sizeof (pthread_t));
     indexes[0] = pthread_self();
 
     __initThread(0);
@@ -46,32 +56,118 @@ void __deinitThreads(void)
 } /* __deinitThreads */
 
 
+void __prepareThreadToTerminate(int tidx)
+{
+    int i;
+    int lastNULL = -1;
+
+    __deinitThread(tidx);   /* notify other modules that thread is dying. */
+
+    __obtainThreadLock(&lock);
+
+    threadCount--;
+
+    indexes[tidx] = NULL;
+    for (i = 0; i <= maxIndex; i++)
+    {
+        if (indexes[i] != NULL)
+            firstNULL = -1;
+        else if (firstNULL == -1)
+            firstNULL = i;
+    } /* for */
+
+    if (firstNULL != -1)
+    {
+        maxIndex = firstNULL - 1;
+        __memRealloc(indexes, firstNULL * sizeof (pthread_t));
+    } /* if */
+
+    __releaseThreadLock(&lock);
+} /* __prepareThreadToTerminate */
+
+
+void __terminateCurrentThread(void)
+{
+    __prepareThreadToTerminate(__getCurrentThreadIndex());
+    pthread_exit(0);
+} /* __terminateCurrentThread */
+
+
+void __terminateThread(int tidx)
+{
+    pthread_t thread;
+
+    __obtainThreadLock(&lock);
+    thread = indexes[tidx];
+    __releaseThreadLock(&lock);
+
+    __prepareThreadToTerminate(tidx);
+    pthread_kill(thread, SIGKILL);
+} /* __terminateThread */
+
+
+void __waitForThreadToDie(int tidx)
+{
+    pthread_t thread;
+
+    __obtainThreadLock(&lock);
+    thread = indexes[tidx];
+    __releaseThreadLock(&lock);
+
+    pthread_join(thread, NULL);
+} /* __waitForThreadToDie */
+
+
 void __threadEntry(void *_args)
 {
-    PThreadStartArgs args = (PThreadEntryArgs) _args;
+    void *threadArgs = ((PThreadEntryArgs) args)->args;
 
-    __initThread(args->tidx);
-    args->fn(args->args);
     __memFree(args);
+    __initThread(((PThreadEntryArgs) args)->tidx);
+    args->fn(threadArgs);
     __terminateCurrentThread();
 } /* __threadStart */
 
 
 int __spinThread(void *(*_fn)(void *), void *_args)
 {
-    int i;
     PThreadEntryArgs args = __memAlloc(sizeof (ThreadEntryArgs));
+    pthread_t *saveLoc = NULL;
+    int retVal;
+    int rc;
+
     args->fn = _fn;
     args->args = _args;
 
     __obtainThreadLock(&lock);
-    for (i = 0; i < maxIndex; i++)
+
+    for (args->tidx = 0; args->tidx <= maxIndex; args->tidx++)
     {
-        if (indexes[i] == NULL)
-            !!!
+        if (indexes[args->tidx] == NULL)
+            saveLoc = &indexes[args->tidx];
     } /* for */
 
+    if (saveLoc == NULL)    /* no space in table? */
+    {
+        maxIndex++;
+        indexes = __memRealloc(indexes, (maxIndex + 1) * sizeof (pthread_t));
+        saveLoc = &indexes[maxIndex];
+        args->tidx = maxIndex;
+    } /* if */
+
+    retVal = args->tidx;
+    rc = pthread_create(saveLoc, NULL, __threadEntry, args);
+
     __releaseThreadLock(&lock);
+
+    if (rc != 0)
+    {
+        __memFree(args);
+        retVal = -1;
+        __runtimeError(ERR_INTERNAL_ERROR);
+    } /* if */
+
+    return(retVal);
 } /* __spinThread */
 
 
