@@ -558,9 +558,9 @@ void testOnEvents(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
+    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
     testOnEvents(NULLSTATEARGS);
-    __deinitBasicLib(NULLSTATEARGS);
+    __deinitBasicLib();
     return(0);
 } /* main */
 

@@ -50,9 +50,9 @@ void testFileIOFunctions(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
+    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
     testFileIOFunctions(NULLSTATEARGS);
-    __deinitBasicLib(NULLSTATEARGS);
+    __deinitBasicLib();
     return(0);
 } /* main */
 

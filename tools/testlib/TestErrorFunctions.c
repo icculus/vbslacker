@@ -127,9 +127,9 @@ void testErrorFunctions(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAG);
+    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
     testErrorFunctions(NULLSTATEARGS);
-    __deinitBasicLib(NULLSTATEARGS);
+    __deinitBasicLib();
     return(0);
 } /* main */
 

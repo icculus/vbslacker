@@ -377,9 +377,9 @@ void testStringFunctions(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS);
+    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
     testStringFunctions(NULLSTATEARGS);
-    __deinitBasicLib(NULLSTATEARGS);
+    __deinitBasicLib();
     return(0);
 } /* main */
 
