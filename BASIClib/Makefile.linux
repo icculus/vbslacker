@@ -5,7 +5,7 @@ DYNLIBWHOLE = $(DYNLIBBASE).$(WHOLEVERSION)
 DYNLIBMAJOR = $(DYNLIBBASE).$(MAJORVER)
 
 OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
-       ErrorFunctions.o MathFunctions.o InternalMemManager.o Threads.o \
+       ErrorFunctions.o MathFunctions.o MemoryManager.o Threads.o \
        TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
        StringFunctions.o LowLevelFunctions.o SignalHandlers.o \
        ConsoleFunctions.o PenFunctions.o ProcessFunctions.o \
@@ -52,7 +52,7 @@ ConversionFunctions.o : ConversionFunctions.c ConversionFunctions.h
 Initialize.o : Initialize.c Initialize.h
 	$(CC) $(COPTIONS) Initialize.o Initialize.c
 
-OnEvents.o : OnEvents.c OnEvents.h InternalMemManager.h
+OnEvents.o : OnEvents.c OnEvents.h
 	$(CC) $(COPTIONS) OnEvents.o OnEvents.c
 
 ErrorFunctions.o : ErrorFunctions.c ErrorFunctions.h
@@ -61,8 +61,8 @@ ErrorFunctions.o : ErrorFunctions.c ErrorFunctions.h
 MathFunctions.o : MathFunctions.c MathFunctions.h
 	$(CC) $(COPTIONS) MathFunctions.o MathFunctions.c
 
-InternalMemManager.o : InternalMemManager.c InternalMemManager.h
-	$(CC) $(COPTIONS) InternalMemManager.o InternalMemManager.c
+MemoryManager.o : MemoryManager.c MemoryManager.h
+	$(CC) $(COPTIONS) MemoryManager.o MemoryManager.c
 
 Threads.o : Threads.c Threads.h
 	$(CC) $(COPTIONS) Threads.o Threads.c
