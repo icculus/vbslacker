@@ -18,20 +18,20 @@ void test_chr_DC_(void)
  *   returns : void.
  */
 {
-    unsigned char i;
+    int i;
     PBasicString rc;
 
     printf("Testing chr_DC_()...\n");
 
-    for (i = 0; i < 255; i++)
+    for (i = 0; i <= 255; i++)
     {
         rc = chr_DC_(i);
         if (rc->length != 1)
         {
-            printf("  - chr$(%d) returned incorrect string length %d!\n",
-                   (int)  i, rc->length);
+            printf("  - chr$(%d) returned incorrect string length [%d]!\n",
+                   (int) i, rc->length);
         } /* if */
-        else if (rc->data[0] != i)
+        else if ((unsigned char) rc->data[0] != (unsigned char) i)
             printf("  - chr$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
 
         __freeString(rc);
@@ -51,7 +51,7 @@ void test_str_DC_(void)
 {
     double i;
     PBasicString rc;
-    char buffer[30];
+    char buffer[40];
 
     printf("Testing str_DC_()...\n");
 
