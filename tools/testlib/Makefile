@@ -6,6 +6,7 @@ export REVISIONVER = 1
 export WHOLEVERSION = $(MAJORVER).$(MINORVER).$(REVISIONVER)
 
 export BASICLIBDIR = ../../BASIClib
+export GCLIBDIR = ../../libgc
 
 about:
 	@cat ../../docs/about.txt
@@ -13,7 +14,7 @@ about:
 clean : 
 	rm -f core
 	rm -f $(wildcard *.exe)
-	rm -f testlib
+	rm -f testlib testconsole
 	rm -f $(wildcard *.o)
 
 linux : Makefile.linux
