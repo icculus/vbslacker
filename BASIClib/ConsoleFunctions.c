@@ -17,6 +17,7 @@
 #warning Need structure for driver entry points!
 
 /* variable function pointers... */
+
 void (*__getConsoleDriverName)(__byte *buf, __integer size) = NULL;
 void (*__deinitConsoleDriver)(void) = NULL;
 void (*__printNewLine)(void) = NULL;
@@ -33,6 +34,7 @@ void (*_vbpii_locate)(__integer newY, __integer newX) = NULL;
 void (*_vbpNi_locate)(__integer newX) = NULL;
 void (*_vbpiN_locate)(__integer newY) = NULL;
 void (*_vbp_locate)(void) = NULL;
+void (*__playSound)(__integer freq, __single duration) = NULL;
 void (*_vbp_beep)(void) = NULL;
 
 
@@ -63,6 +65,7 @@ void __deinitConsoleFunctions(void)
     __deinitConsoleDriver = NULL;
     __printNewLine = NULL;
     __printNChars = NULL;
+    __playSound = NULL;
     _vbpii_viewPrint = NULL;
     _vbp_viewPrint = NULL;
     _vbp_cls = NULL;
@@ -123,6 +126,22 @@ void __printAsciz(__byte *str)
 } /* __printAsciz */
 
 
+void _vbpif_sound(__integer frequency, __single duration)
+{
+    if (__playSound != NULL)
+    {
+            /* These are the valid ranges according to VBDOS 1.0 ... */
+        if (frequency < 37)
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+
+        if ((duration < 0.0) || (duration > 65535.0))
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
+
+        __playSound(frequency, duration);
+    } /* if */
+} /* _vbpil_sound */
+
+
 /* qbcolor */
 /* color */
 /* write */
@@ -133,6 +152,7 @@ void __printAsciz(__byte *str)
 /* key */
 /* print using */
 /* tab */
+/* beep */
 
 /*  -- graphics ... -- */
 /* circle */
