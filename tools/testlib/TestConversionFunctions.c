@@ -7,11 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Initialize.h"
+#include "OnEvents.h"
 #include "ConversionFunctions.h"
 #include "BasicString.h"
+#include "ErrorFunctions.h"
 
 
-void test_chr_DC_(void)
+void test_chr_DC_(int x) /* !!! */
 /*
  * Test chr$() functionality.
  *
@@ -24,22 +26,41 @@ void test_chr_DC_(void)
 
     printf("Testing chr_DC_()...\n");
 
-    /* !!! ON ERROR RESUME NEXT */
+    __obtainThreadLock(&registerLock);
+    __getStackPointer(&_stack_ptr_);
+    __getBasePointer(&_base_ptr_);
+    __registerOnEventHandler(&&chrError, &x + sizeof (x),
+                             _stack_ptr_, _base_ptr_, ONERROR);
+    __releaseThreadLock(&registerLock);
 
-    for (i = 0; i <= 255; i++)
+
+    for (i = -32767; i <= 32767; i++)
     {
+        __basicErrno = ERR_NO_ERROR;
         rc = chr_DC_(i);
-        if (rc->length != 1)
+        if (__basicErrno == ERR_NO_ERROR)
         {
-            printf("  - chr$(%d) returned incorrect string length [%d]!\n",
+            if (rc->length != 1)
+            {
+                printf("  - chr$(%d) returned incorrect string length [%d]!\n",
                    (int) i, rc->length);
+            } /* if */
+            else if (rc->data[0] != (unsigned char) i)
+                printf("  - chr$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
+            __freeString(rc);
         } /* if */
-        else if ((unsigned char) rc->data[0] != (unsigned char) i)
-            printf("  - chr$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
-        __freeString(rc);
     } /* for */
 
-    /* !!! add test for out of range data when on error support is in. */
+    __deregisterOnEventHandler(&x + sizeof (x), ONERROR);
+    return;
+
+chrError:              /* error handler... */ 
+    __markOnEventHandlerAddr;
+
+    if ((i >= 0) && (i <= 255))  /* !!! string of error number? */
+        printf("  - chr$(%d) threw error %d!\n", i, __basicErrno);
+
+    __resumeNext();
 } /* test_chr_DC_ */
 
 
@@ -214,7 +235,7 @@ void testConversions(void)
 {
     printf("\n[TESTING CONVERSION FUNCTIONS...]\n");
 
-    test_chr_DC_();
+    test_chr_DC_(1);
     test_str_DC_();
     test_asc();
 /*    test_val();  !!! */
