@@ -3,7 +3,7 @@
 ;    Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
 
                               
-public __callOnEventHandler
+global __callOnEventHandler
 
 ; This procedure copies the stack from event handling procedure to top
 ;  of stack, calls event handler, and copies stack back. Neet, huh?
@@ -11,7 +11,7 @@ public __callOnEventHandler
 ;     params : POnEventHandler of handler to call at [esp + 4].
 ;    returns : any return value from BASIC routine in EAX.
 
-__callOnEventHandler    proc    near
+__callOnEventHandler    proc
         push    ebp                     ; Save calling function's base ptr.
         mov     ebp,esp                 ; Move stack ptr to base ptr.
 
