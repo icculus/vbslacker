@@ -29,10 +29,7 @@
 #include <signal.h>
 #endif
 
-#include "InternalMemManager.h"
-#include "ErrorFunctions.h"
 #include "Threads.h"
-
 
 /*
  * This structure contains the arguments to be
