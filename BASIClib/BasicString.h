@@ -24,6 +24,7 @@ PBasicString __constString(char *asciz);
 void __freeString(PBasicString pBasicStr);
 void __assignString(PBasicString *ppBasicStr, PBasicString pStrToAssign);
 void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat);
+char *__basicStringToAsciz(PBasicString pStr);
 
 #endif
 
