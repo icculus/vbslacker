@@ -21,7 +21,7 @@ void _vbp_clear(void)
 } /* _vbp_clear */
 
 
-void _vbpNNl_clear(__long stackSize)
+void _vbpNNl_clear(__attribute__ ((unused)) __long stackSize)
 /*
  * Refer to vbp_clear()...
  *
