@@ -6,7 +6,6 @@ We love not having source code files with the executable bit set.
 We love case-sensitive filenames.
 
 parser
-   -"unreferenced main" error when bulding right now.
    -error/exception handling (better than default)
    -makefile for win32
    -makefile for ANTLR should build a single .o file.
