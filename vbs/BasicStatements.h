@@ -15,7 +15,7 @@ class BasicStatements
         BasicStatements(void *pBasicContext);
         ~BasicStatements();
 
-        void ProcessStatement(char *strStatement);
+        void ProcessStatement(char *strStatement, long lLineNumber);
     private:
         void *m_pBasicContext;
         BasicStatement **m_pBasicStatements;

@@ -30,7 +30,7 @@ class BasicCompiler
     private:
         void Compile(char *strFileName);
         BASIC_FILE_TYPE GetFileType(char *strFileName);
-        BOOLEAN GetStatement();
+        void ProcessStatement();
         void CleanupString(char *strStatement);
 
                                 // Line of basic code read from input file
@@ -38,6 +38,8 @@ class BasicCompiler
         BasicContext *m_pBasicContext;
         BOOLEAN m_bCreatedBasicContext;
         FILE *m_pStream;        // Input file stream for basic module
+
+        long m_lLineNumber;     // Current line number we're on
 };
 
 #endif
