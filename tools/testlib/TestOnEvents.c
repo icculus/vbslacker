@@ -96,6 +96,20 @@ void test__getStackPointer_recurse(void)
 } /* test__getStackPointer_recurse */
 
 
+void __runtimeError_recurse(int newErrNo)
+/*
+ * This function calls itself RECURSION_COUNT times, to pile
+ *  some data on the stack, then throws runtime error (newErrNo).
+ */
+{
+    recursive++;
+    if (recursive == RECURSION_COUNT)
+        __runtimeError(newErrNo);
+    else
+        __runtimeError_recurse(newErrNo);
+} /* __runtimeError_recurse */
+
+
 void test__getStackPointer()
 /*
  * The theory being that a void function with void arguments should
@@ -126,21 +140,43 @@ void test__getStackPointer()
 } /* test__getStackPointer */
 
 
-void testOnErrorGotoHandling(int x)
+void testOnErrorGotoHandling(int runCount)
+/*
+ * This tests ON ERROR GOTO functionality. We set up a runtime error handler,
+ *  build up a couple of function calls on the stack, and trigger an error.
+ *
+ * This code checks to see if the error handler is called correctly, and if
+ *  the base pointer is correct. If the base pointer (and therefore the stack)
+ *  is fucked up, we dump some debug information to disk, and terminate the
+ *  program gracefully, before it is terminated ungracefully for us by a
+ *  corrupted stack.
+ *
+ * This function should be called more than once (but should be called several
+ *  times, if you err on the side of caution), to verify that
+ *  __(de)registerOnEventHandler() is working correctly. If not correctly, then
+ *  correctly enough. !!! A better test for this might be in order, but
+ *  this will at least catch segfaults if __deregister...() doesn't clean up
+ *  correctly.
+ *
+ *    params : runCount == count of times this function has been executed.
+ *   returns : void.
+ */
 {
     int testVar1 = TESTVAR_VALUE1;
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
     int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
-    printf("Testing ON ERROR GOTO handling...\n");
+    printf("Testing ON ERROR GOTO handling (run #%d)...\n", runCount);
 
     __getStackPointer(&_stack_ptr_);
     __getBasePointer(&_base_ptr_);
-    __registerOnEventHandler(&&errHandler, &x + sizeof (x),
-                             _stack_ptr_, &x - sizeof (void *),
+    __registerOnEventHandler(&&errHandler, &runCount + sizeof (runCount),
+                             _stack_ptr_, &runCount - sizeof (void *),
                              _base_ptr_, ONERROR);
-    __runtimeError(INTERNAL_ERROR);
+
+    recursive = 0;
+    __runtimeError_recurse(ERR_INTERNAL_ERROR);
 
     goto missedHandler;
 
@@ -188,13 +224,22 @@ endTest:
 
     testVar3[0] = '\0';  /* stops compiler whining. */
 
-    __deregisterOnEventHandler(&x + sizeof (x), ONERROR);
+    __deregisterOnEventHandler(&runCount + sizeof (runCount), ONERROR);
 } /* testOnErrorGotoHandling */
 
 
 void testOnErrorHandling(void)
+/*
+ * Test ON ERROR handling of various types.
+ *
+ *    params : void.
+ *   returns : void.
+ */
 {
-    testOnErrorGotoHandling(0);
+    int i;
+
+    for (i = 1; i <= 3; i++)
+        testOnErrorGotoHandling(i);
 } /* testOnErrorHandling */
 
 
