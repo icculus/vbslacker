@@ -417,7 +417,7 @@ PBasicString __VariantToString(PVariant pVar, boolean byRef)
         if (byRef)
             retVal = pVar->data._string;
         else
-            retVal = __cloneString(pVar->data._string);
+            __assignString(&retVal, pVar->data._string);
     } // if
     else
         __runtimeError(ILLEGAL_FUNCTION_CALL); /* !!! Is that the right error code? */
