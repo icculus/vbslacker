@@ -24,7 +24,7 @@ void *__memAlloc(size_t byteCount)
 
     retVal = malloc(byteCount);
     if (retVal == NULL)
-        __runtimeError(OUT_OF_MEMORY);
+        __runtimeError(ERR_OUT_OF_MEMORY);
     
     return(retVal);
 } /* __memAlloc */
@@ -45,7 +45,7 @@ void *__memRealloc(void *oldPtr, size_t byteCount)
 
     retVal = realloc(oldPtr, byteCount);
     if (retVal == NULL)
-        __runtimeError(OUT_OF_MEMORY);
+        __runtimeError(ERR_OUT_OF_MEMORY);
 
     return(retVal);
 } /* __memRealloc */

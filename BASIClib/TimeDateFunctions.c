@@ -39,7 +39,7 @@ struct tm *__getBrokenTime(void)
     struct tm *retVal = NULL;
     
     if (time(&currentTime) == (time_t) -1)     /* can't retrieve time?! */
-        __runtimeError(INTERNAL_ERROR);
+        __runtimeError(ERR_INTERNAL_ERROR);
     else
         retVal = localtime(&currentTime);
 
@@ -126,7 +126,7 @@ PBasicString __makeTimeDateString(int size, char *fmt)
     rc = strftime(buffer, sizeof (buffer), fmt, brokenTime);
 
     if ((unsigned int) rc == sizeof (buffer))  /* not enough space? */
-        __runtimeError(INTERNAL_ERROR);
+        __runtimeError(ERR_INTERNAL_ERROR);
     else
         retVal = __createString(buffer, false);
 
@@ -247,7 +247,7 @@ boolean __prepareDateString(char *str)
 
 
 boolean __setSystemDate(int month, int day, int year,
-                        PRuntimeErrEnum pErrVal)
+                        int *pErrVal)
 /*
  * Set system clock to new date.
  *
@@ -270,7 +270,7 @@ boolean __setSystemDate(int month, int day, int year,
     tv.tv_sec = mktime(brokenTime);
     if (tv.tv_sec == -1)
     {
-        *pErrVal = INTERNAL_ERROR;
+        *pErrVal = ERR_INTERNAL_ERROR;
         retVal = false;
     } /* if */
     else
@@ -279,9 +279,9 @@ boolean __setSystemDate(int month, int day, int year,
         {
             retVal = false;
             if (errno == EPERM)     /* access denied. */
-                *pErrVal = PERMISSION_DENIED;
+                *pErrVal = ERR_PERMISSION_DENIED;
             else
-                *pErrVal = INTERNAL_ERROR;
+                *pErrVal = ERR_INTERNAL_ERROR;
         } /* if */
     } /* else */
 
@@ -312,13 +312,13 @@ void proc_date_DC_(PBasicString newDateStr)
     int year;
     char str[newDateStr->length + 1];
     char *next;
-    RuntimeErrEnum errVal;
+    int errVal;
 
     memcpy(str, newDateStr->data, newDateStr->length);
     str[newDateStr->length] = '\0';
 
     if (__prepareDateString(str) == false)
-        __runtimeError(ILLEGAL_FUNCTION_CALL);
+        __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
     else
     {
         month = strtol(str, &next, 10);
@@ -329,7 +329,7 @@ void proc_date_DC_(PBasicString newDateStr)
             year += 1900;
 
         if (__checkDateBounds(month, day, year) == false)
-            __runtimeError(ILLEGAL_FUNCTION_CALL);
+            __runtimeError(ERR_ILLEGAL_FUNCTION_CALL);
 
         else if (__setSystemDate(month, day, year, &errVal) == false)
             __runtimeError(errVal);
