@@ -4,6 +4,8 @@
  *  Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
+#include <stdlib.h>
+#include <malloc.h>
 #include <string.h>
 #include "BasicError.h"
 
@@ -20,15 +22,384 @@
 int basicErrno = ERR_NO_ERROR;
 int __basicErrno = ERR_NO_ERROR;
 
+    /*
+     * These are the strings for ERROR$()...
+     */
 static char *errStrings[MAX_ERRS];
 
+    /*
+     * module-scope ThreadLock.
+     */
+static ThreadLock basicErrorLock;
 
-void __initErrorFunctions(STATEPARAMS)
+    /*
+     * onErrorThreadStates stores the start of the handler list used by each
+     *  thread. This is an array of pointers, so we only have to use
+     *  ThreadLocks when accessing this dynamic array, and not the individual
+     *  structures.
+     */
+static POnErrorHandler *onErrorThreadStates = NULL;
+
+
+static void __initErrorStringTable(STATEPARAMS);
+
+
+void __initBasicError(STATEPARAMS)
 /*
- * Initialize the table of errorStrings.
+ * This is called once at program startup for initialization purposes.
  *
- *  !!! write this later. Internationalization should be considered, eh?
+ *    params : void.
+ *   returns : void.
  */
+{
+    __createThreadLock(STATEARGS, &basicErrorLock);
+    __initErrorStringTable(STATEARGS);
+} /* __initErrorFunctions */
+
+
+void __deinitBasicError(STATEPARAMS)
+/*
+ * This is called once at program termination.
+ *  We use this to destroy our ThreadLock.
+ *
+ *    params : void.
+ *   returns : void.
+ */
+{
+    __destroyThreadLock(STATEARGS, &basicErrorLock);
+} /* __deinitBasicError */
+
+
+void __initThreadBasicError(STATEPARAMS, int tidx)
+/*
+ * This makes sure space exists in the thread-protected arrays for the
+ *  current thread index. This is called whenever a new thread is created.
+ *
+ * OBTAIN THE THREADLOCK BEFORE EVER TOUCHING (onErrorThreadStates)!
+ *
+ *      params : void.
+ *     returns : void, but all the tables could get realloc()ed.
+ */
+{
+    __obtainThreadLock(STATEARGS, &basicErrorLock);
+    onErrorThreadStates = realloc(onErrorThreadState,
+                                  (__getHighestThreadIndex(STATEARGS) + 1) *
+                                      sizeof (POnErrorHandler *));
+
+    if (onErrorThreadStates == NULL)
+        __fatalRuntimeError(STATEARGS, ERR_INTERNAL_ERROR);
+
+    onErrorThreadStates[tidx] = NULL;
+    __releaseThreadLock(STATEARGS, &basicErrorLock);
+} /* __initThreadOnError */
+
+
+
+
+/*
+ * There is no __deinitThreadBasicError(), since all the data we would free
+ *  is all just stored on the stack of functions that need On Error support.
+ *
+ * The only thing we would need to do is set an element in onErrorThreadStates
+ *  to NULL, which __initThreadOnError() will do anyhow if the thread index is ever
+ *  ever used again.
+ */
+
+
+
+
+static POnErrorHandler __getOnErrorThreadState(STATEPARAMS)
+/*
+ * Get a pointer to start of current thread's linked list of handlers. This
+ *  takes care of most of the thread-proofing details.
+ *
+ *     params : void.
+ *    returns : Pointer to start of current thread's linked list of handlers.
+ */
+{
+    POnErrorHandler retVal;
+
+    __obtainThreadLock(STATEARGS, &basicErrorLock);
+    retVal = onErrorThreadStates[__getCurrentThreadIndex(STATEARGS)];
+    __releaseThreadLock(STATEARGS, &basicErrorLock);
+
+    return(retVal);
+} /* __getOnErrorThreadState */
+
+
+static void __setOnErrorThreadState(STATEPARAMS, POnErrorHandler pHandler)
+/*
+ * Set the start of current thread's linked list of handlers. This
+ *  takes care of most of the thread-proofing details.
+ *
+ *     params : pHandler == Pointer to handler you want to start list.
+ *    returns : void.
+ */
+{
+    __obtainThreadLock(STATEARGS, &basicErrorLock);
+    onErrorThreadState[__getCurrentThreadIndex(STATEARGS)] = pHandler;
+    __releaseThreadLock(STATEARGS, &basicErrorLock);
+} /* __setOnErrorThreadState */
+
+
+
+void __registerOnErrorHandler(STATEPARAMS, POnErrorHandler pHandler, void *handlerAddr)
+/*
+ * This is somewhere between "low level but general" and "80x386 specific."
+ *
+ * Ideally, any module that contains a call to this function should
+ *  do something like this:
+ *
+ *  #include "StdBasic.h"
+ *
+ *  void myFunc(void)
+ *  {
+ *      __ONErrorSUPPORT;
+ *                !!! write this.
+ *      __register
+ *  }
+ *
+ * handlerAddr is the goto label we'll be blindly jumping to to handle the
+ *  the runtime error. NULL is like ON ERROR GOTO 0.
+ *
+ * evType just guarantees that we don't call a timer handler for a runtime
+ *  error, etc...
+ *
+ *    (*whew!*)   !!! rewrite all of this!
+ *
+ * All that said, call this function to register an error handler with
+ *  BASIClib that will be called when appropriate. Ideally, the parser/compiler
+ *  will generate all the calls to this function when it finds ON ERROR GOTO
+ *  commands.
+ *
+ * Only one error handler of each type can be active for any given procedure.
+ *  This function will check the handler to see if it should replace a
+ *  previous one, based on base pointers, which will be constant for all
+ *  calls from an instance of a single procedure.
+ *
+ *     returns : void.
+ */
+{
+    POnErrorHandler oldStartOfList;
+
+        /*
+         * Determine if we should replace a currently registered handler.
+         *  This is determined by whether any handlers exist for the
+         *  specified base pointer. If that condition is true, then we are
+         *  replacing a previous handler.
+         *
+         * Handlers are ordered in list starting with the most recent
+         *  base pointer. If the first handler != (base), then
+         *  this base pointer has not registered an error handler.
+         */
+
+    oldStartOfList = __getOnErrorThreadState(STATEARGS);
+
+    if (oldStartOfList != pHandler)         /* setup new handler? */
+    {
+        __setOnErrorThreadState(STATEARGS, pHandler);
+        pHandler->next = oldStartOfList;
+    } /* if */
+
+        /*
+         * Final setup...note that a lot of this was handled by the
+         *  macros you should have used. You DID use them, didn't you?
+         */
+    pHandler->handlerAddr = handlerAddr;
+    pHandler->isActive = false;
+} /* __registerOnErrorHandler */
+
+
+void __deregisterOnErrorHandler(STATEPARAMS, POnErrorHandler pHandler)
+/*
+ * Call this to deregister (pHandler).
+ *
+ * Do not call directly; please call the __exitCleanupOnError macro
+ *  (defined in OnError.h)
+ *
+ *      params : void.
+ *     returns : void.
+ */
+{
+    if (__getOnErrorThreadState(STATEARGS) == pHandler)
+        __setOnErrorThreadState(STATEARGS, pHandler->next);
+} /* __deregisterOnErrorHandler */
+
+
+static POnErrorHandler __getOnErrorHandler(STATEPARAMS, __integer evType)
+/*
+ * Returns the current ON ERROR GOTO handler. Ignores handlers that are
+ *  currently active.
+ *
+ * If we hit an error handler address for the specified type that is NULL,
+ *  then we stop looking, since this signifies an ON ERROR GOTO 0 command,
+ *  which disables handling for that OnError.
+ *
+ * All handlers registered to points above the stack from the chosen handler
+ *  (if a handler is chosen) are deregistered, since they will go out of
+ *  scope when the chosen handler is activated. Even activated ones go away,
+ *  in this case.
+ *
+ *    params : evType == type of error we want handler for.
+ *   returns : Most significant handler. NULL if there isn't one, or
+ *             handling has been disabled, or something.
+ */
+{
+    POnErrorHandler retVal;
+    POnErrorHandler list; 
+    POnErrorHandler pHandler;
+
+    pHandler = list = __getOnErrorThreadState(STATEARGS);
+
+    while ((pHandler != NULL) && (retVal == NULL))
+    {
+        if (pHandler->isActive == false)
+            retVal = pHandler;
+        pHandler = pHandler->next;
+    } /* while */
+
+        /*
+         * "On Error Goto 0" handlers are never "active", so code will fall
+         *  here if we stumble across one...but we need to check for it...
+         *  these are signified by a NULL in the handlerAddr field, and if
+         *  this is the case, there is no appropriate handler for the error,
+         *  since "On Error Goto 0" disables error trapping for the scope of
+         *  that procedure and above.
+         *
+         * If the handler is STILL acceptable after this check, it is moved to
+         *  the first position in the list, and all handlers registered to
+         *  points above the stack from the handler are removed. This means
+         *  that handlers are ordered in a first-in-last-out manner (or
+         *  perhaps this is better stated "last-triggered-first-listed"), so
+         *  when we hit a RESUME, we know the handler it belongs to is the
+         *  first (active) handler listed. (When we drop out of a given base
+         *  pointer, those handlers are deregistered, so the start of the list
+         *  are always the most current base pointer's handler.)
+         */
+    if (retVal->handlerAddr == NULL)    /* NULL == On Error Goto 0. */
+        retVal = NULL;
+    else                                /* move to start of list... */
+    {
+        for (; list != retVal; list = pHandler) /* ditch out-of-scope stuff */
+        {
+            pHandler = list->next;
+            free(pHandler);
+        } /* for */
+
+        __setOnErrorThreadState(STATEARGS, retVal);
+    } /* else */
+
+    return(retVal);
+} /* __getOnErrorHandler */
+
+
+static __boolean __triggerOnError(STATEPARAMS)
+/*
+ * This function activates the correct OnError handler.
+ *  Will only call a handler if it a) exists, and b) is not currently active.
+ *
+ * __setStackAndJump is a macro defined in Assembler.h ...
+ *
+ *    params : void.
+ *   returns : either won't return directly, due to stack voodoo, or if no
+ *              Error handler of specified type is available, returns (false).
+ */
+{
+    POnErrorHandler pHandler = __getOnErrorHandler(STATEARGS, evType);
+
+    if (pHandler == NULL)    /* No handler available?  Bail out. */
+        return(false);
+
+    pHandler->isActive = true;
+
+    __setStackAndJump(pHandler->basePtr,
+                      pHandler->stackPtr,
+                      pHandler->handlerAddr);
+
+    return(true);            /* should never hit this, but just in case... */
+} /* __triggerOnError */
+
+
+void __prepareResume(STATEPARAMS, void *base)
+/*
+ * Basic's RESUME command support. A (probably fatal) runtime error is
+ *  thrown if you call RESUME when no handlers are active for a given point
+ *  on the stack. If a handler is active, it is set to be NOT active, and
+ *  we return. Presumably, then the macro that should have called this will
+ *  perform an unconditional jump to somewhere...
+ *
+ * DO NOT CALL THIS FUNCTION DIRECTLY. Please use the macro __resumeNext,
+ *  __resumeZero, or __resumeLabel(addr) (defined in OnError.h).
+ *
+ *     params : void.
+ *    returns : Should never return, as code jumps elsewhere.
+ */
+{
+    POnErrorHandler pHandler = __getOnErrorThreadState(STATEARGS);
+    __boolean getOut = false;
+
+    if ((pHandler->basePtr != base) || (pHandler->isActive == false))
+        __runtimeError(STATEARGS, ERR_RESUME_WITHOUT_ERROR);
+    else
+        pHandler->isActive = false;
+} /* __prepareResume */
+
+
+static void __defaultRuntimeErrorHandler(STATEPARAMS)
+{
+    char *errStr;
+    char msg[strlen(errStr) + 300];   /* !!! generalize? */
+
+    errStr = ((basicErrno > MAX_ERRS) ?
+                STR_UNKNOWN_ERR : errStrings[basicErrno]);
+
+    if (errStr == NULL)
+        errStr = STR_UNKNOWN_ERR;
+
+    sprintf(msg, "\n\n***Unhandled runtime error***\n"
+                 "  \"%s\" (#%d)\n"
+                 "    - __stIP     == (%p)\n"
+                 "    - __stNextIP == (%p)\n"
+                 "    - __stBP     == (%p)\n"
+                 "    - __stSP     == (%p)\n"
+                 "\n\n",
+                 errStr, basicErrno, __stIP, __stNextIP, __stBP, __stSP);
+
+    __printAsciz(STATEARGS, msg);
+    exit(basicErrno);
+} /* __defaultRuntimeErrorHandler */
+
+
+void __fatalRuntimeError(STATEPARAMS, int errorNum)
+/*
+ * Call this instead of __runtimeError() if you want to throw an
+ *  unrecoverable error. Even ERR_NO_ERROR is fatal here.
+ *
+ *    params : errorNum == error number to throw.
+ *   returns : never.
+ */
+{
+    basicErrno = __basicErrno = errorNum;
+    __defaultRuntimeErrorHandler(STATEARGS);
+} /* __fatalRuntimeError */
+
+
+void __runtimeError(STATEPARAMS, int errorNum)
+{
+    POnEventHandler pHandler;
+
+    basicErrno = __basicErrno = errorNum;
+
+    if (errorNum != ERR_NO_ERROR)
+    {
+        if (__triggerOnEvent(STATEARGS, ONEVTYPE_ONERROR) == false)
+            __defaultRuntimeErrorHandler(STATEARGS);
+    } /* if */
+} /* __runtimeError */
+
+
+static void __initErrorStringTable(STATEPARAMS)
+/* !!! comment */
 {
     memset(errStrings, '\0', sizeof (errStrings));
     errStrings[ERR_NO_ERROR] = STR_NO_ERROR;
@@ -87,62 +458,7 @@ void __initErrorFunctions(STATEPARAMS)
     errStrings[ERR_RENAME_ACROSS_DISKS] = STR_RENAME_ACROSS_DISKS;
     errStrings[ERR_PATH_FILE_ACCESS_ERROR] = STR_PATH_FILE_ACCESS_ERROR;
     errStrings[ERR_PATH_NOT_FOUND] = STR_PATH_NOT_FOUND;
-} /* __initErrorFunctions */
-
-
-static void __defaultRuntimeErrorHandler(STATEPARAMS)
-{
-    char *errStr;
-    char msg[strlen(errStr) + 300];   /* !!! generalize? */
-
-    errStr = ((basicErrno > MAX_ERRS) ?
-                STR_UNKNOWN_ERR : errStrings[basicErrno]);
-
-    if (errStr == NULL)
-        errStr = STR_UNKNOWN_ERR;
-
-    sprintf(msg, "\n\n***Unhandled runtime error***\n"
-                 "  \"%s\" (#%d)\n"
-                 "    - __stIP     == (%p)\n"
-                 "    - __stNextIP == (%p)\n"
-                 "    - __stBP     == (%p)\n"
-                 "    - __stSP     == (%p)\n"
-                 "\n\n",
-                 errStr, basicErrno, __stIP, __stNextIP, __stBP, __stSP);
-
-    __printAsciz(STATEARGS, msg);
-    exit(basicErrno);
-} /* __defaultRuntimeErrorHandler */
-
-
-void __fatalRuntimeError(STATEPARAMS, int errorNum)
-/*
- * Call this instead of __runtimeError() if you want to throw an
- *  unrecoverable error. Even ERR_NO_ERROR is fatal here.
- *
- *    params : errorNum == error number to throw.
- *   returns : never.
- */
-{
-    basicErrno = __basicErrno = errorNum;
-    __defaultRuntimeErrorHandler(STATEARGS);
-} /* __fatalRuntimeError */
-
-
-
-void __runtimeError(STATEPARAMS, int errorNum)
-{
-    POnEventHandler pHandler;
-
-    basicErrno = __basicErrno = errorNum;
-
-    if (errorNum != ERR_NO_ERROR)
-    {
-        if (__triggerOnEvent(STATEARGS, ONEVTYPE_ONERROR) == false)
-            __defaultRuntimeErrorHandler(STATEARGS);
-    } /* if */
-} /* __runtimeError */
-
+} /* __initErrorStringTable */
 
 /* end of BasicError.c ... */
 
