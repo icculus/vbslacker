@@ -63,7 +63,6 @@ extern "C" {
 #define ERR_RENAME_ACROSS_DISKS            74
 #define ERR_PATH_FILE_ACCESS_ERROR         75
 #define ERR_PATH_NOT_FOUND                 76
-#define MAX_ERRS                           76
 
 typedef struct _ONERRORHANDLER
 {
