@@ -174,8 +174,8 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
 
 
 void __registerOnEventHandler(void *handlerAddr, void *stackStart,
-                              void *stackEnd, void *origReturnAddr,
-                              void *basePtr, OnEventTypeEnum evType)
+                              void *stackEnd, void *basePtr,
+                              OnEventTypeEnum evType)
 /*
  * This is somewhere between "low level but general" and "80x386 specific."
  *
@@ -186,8 +186,7 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  *   __getStackPointer(&_stack_ptr_);
  *   __getBasePointer(&_base_ptr);
  *   __registerOnEventHandler(&&handlerLabel, &lastArg + sizeof(lastArg),
- *                            _stack_ptr_, &firstArg - sizeof(void *),
- *                            _base_ptr_, ONERROR);
+ *                            _stack_ptr_, _base_ptr_, ONERROR);
  *   __exitCriticalThreadSection();
  *
  *
@@ -209,15 +208,6 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
  * stackEnd is the stack pointer we saved. The area of memory between
  *  stackStart and stackEnd covers not only arguments and local variables,
  *  but also base ptrs, return addresses, and registers saved on the stack.
- *
- * origReturnAddr is the location on the stack of the pointer to where the
- *  function in question was originally called from. We can only find this
- *  while we specifically know what the arguments are; the address is on
- *  the stack directly before the first argument to the function, as it is
- *  pushed last, after all the arguments. So we take the address of the first
- *  arg and subtract the size of a void ptr, which should give us access to
- *  the caller's address. We need to patch that address with a new one when
- *  we are ready to call the event handler.
  *
  * evType just guarantees that we don't call a timer handler for a runtime
  *  error, etc...
@@ -266,7 +256,6 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
     pHandler->handlerAddr = handlerAddr;
     pHandler->stackStart = stackStart;
     pHandler->stackEnd = stackEnd;
-    pHandler->origReturnAddr = origReturnAddr;
     pHandler->basePtr = basePtr;
 } /* __registerOnEventHandler */
 
