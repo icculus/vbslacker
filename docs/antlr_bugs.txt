@@ -1,0 +1,4 @@
+ANTLR found bugs
+----------------
+If "importVocab" statement is in the options of the file, as opposed to the
+options of the parser class.
