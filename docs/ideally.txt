@@ -58,7 +58,8 @@ void butts(int fileNo, PBasicString message)
     __freeString(totalMsg_DC_);
     return;
 
-crackpipe:   /* error handler... */
+crackpipe:    /* error handler... */ 
+    __markOnEventHandlerAddr;
     __assignString(&stringBuffer, strConst3); 
     __catString(&stringBuffer, str_DC_(err()));
     print(stringBuffer);
