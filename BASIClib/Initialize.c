@@ -84,10 +84,7 @@ char *__getUserAppDir(void)
     char *retVal = NULL;
 
     if (vbHomeDir != NULL)
-    {
-        retVal = __memAllocNoPtrs(strlen(vbHomeDir) + 1);
-        strcpy(retVal, vbHomeDir);
-    } /* if */
+        retVal = __copyAscizString(vbHomeDir);
 
     return(retVal);
 } /* __getUserAppDir */
