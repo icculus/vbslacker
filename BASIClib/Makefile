@@ -19,11 +19,11 @@ ASM = nasm
 
 # Shipping command lines
 #COPTIONS = -Wall -fPIC -fasm -finline-functions -O2 -s -c -o
-#LOPTIONS = -shared -Wl,-soname,$(DYNLIBLN) -s -O2 -o
+#LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
 
 # Debug command lines...
 COPTIONS = -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
-LOPTIONS = -shared -Wl,-soname,$(DYNLIBLN) -g -o
+LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -g -o
 ASMOPTIONS = -f elf -o
 
 # end of makelib ...
