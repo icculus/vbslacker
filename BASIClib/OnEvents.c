@@ -47,8 +47,8 @@ static int threadCount = 0;
 
     /* These have an extra dimension for thread-proofing. */
 static PHandlerVector *pTables = NULL;
-void volatile ***basePtrStacks = NULL;
-int volatile *basePtrIndexes = NULL;
+void ***basePtrStacks = NULL;
+int *basePtrIndexes = NULL;
 
 
 void __initThreadOnEvents(int tidx)
@@ -84,12 +84,12 @@ void __initThreadOnEvents(int tidx)
     pTables[tidx] = table;
     for (i = 0; i < (OnEventTypeEnum) TOTAL; i++)
     {
-        table[i]->count = 0;
-        table[i]->handlers = NULL;
+        table[i].count = 0;
+        table[i].handlers = NULL;
     } /* for */
 
     basePtrStacks[tidx] = NULL;
-    basePtrIndexes[tidx] = NULL;
+    basePtrIndexes[tidx] = 0;
 } /* __initThreadOnEvents */
 
 
@@ -105,11 +105,10 @@ void __deinitThreadOnEvents(int tidx)
     int i;
 
     for (i = 0; i < (OnEventTypeEnum) TOTAL; i++)
-        __memFree(table->handlers);
+        __memFree(table[i].handlers);
 
     __memFree(table);
     __memFree(basePtrStacks[tidx]);
-    __memFree(basePtrIndexes[tidx]);
 } /* __deinitThreadOnEvents */
 
 
@@ -124,9 +123,10 @@ POnEventHandler __getOnEventHandler(OnEventTypeEnum evType)
 {
     POnEventHandler retVal = NULL;
     PHandlerVector evVect;
+    int tidx = __getCurrentThreadIndex();
 
     __enterCriticalThreadSection();
-    evVect = pTables[tidx][evType];
+    evVect = &pTables[tidx][evType];
     __exitCriticalThreadSection();
 
     if (evVect->count > 0)
@@ -201,9 +201,10 @@ void __registerOnEventHandler(void *handlerAddr, void *stackStart,
 {
     POnEventHandler pHandler = NULL;
     PHandlerVector evVect;
+    int tidx = __getCurrentThreadIndex();
 
     __enterCriticalThreadSection();
-    evVect = pTables[tidx][evType];
+    evVect = &pTables[tidx][evType];
     __exitCriticalThreadSection();
 
     if ((evVect->count <= 0) ||    /* setup new handler? */
@@ -251,13 +252,15 @@ void __deregisterOnEventHandler(void *stackStart, OnEventTypeEnum evType)
     int tidx = __getCurrentThreadIndex();    
     PHandlerVector evVect;
 
+
+        /* !!! can we separate this into another function? */
     __enterCriticalThreadSection();
-    evVect = pTables[tidx][evType];
+    evVect = &pTables[tidx][evType];
     __exitCriticalThreadSection();
 
     if (evVect->count > 0)
     {
-        if (evVect>handlers[evVect->count - 1]->stackStart == stackStart)
+        if (evVect->handlers[evVect->count - 1]->stackStart == stackStart)
         {
             evVect->count--;
             __memFree(evVect->handlers[evVect->count]);
