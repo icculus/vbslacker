@@ -419,7 +419,7 @@ void __memReleaseAllBoxcars(STATEPARAMS)
 
     __obtainThreadLock(STATEARGS, &boxcarListLock);
 
-    for (pCar = firstCar; pCar != NULL; pCar = next);
+    for (pCar = firstCar; pCar != NULL; pCar = next)
     {
         next = pCar->next;
         __memReleaseBoxcarByPtr(STATEARGS, pCar);
@@ -442,7 +442,7 @@ void __memReleaseBoxcarsBelow(STATEPARAMS, unsigned long boxcarId)
 
     __obtainThreadLock(STATEARGS, &boxcarListLock);
 
-    for (pCar = firstCar; pCar != NULL; pCar = next);
+    for (pCar = firstCar; pCar != NULL; pCar = next)
     {
         next = pCar->next;
         if (pCar->id <= boxcarId)
@@ -466,7 +466,7 @@ void __memReleaseBoxcarsAbove(STATEPARAMS, unsigned long boxcarId)
 
     __obtainThreadLock(STATEARGS, &boxcarListLock);
 
-    for (pCar = firstCar; pCar != NULL; pCar = next);
+    for (pCar = firstCar; pCar != NULL; pCar = next)
     {
         next = pCar->next;
         if (pCar->id >= boxcarId)
