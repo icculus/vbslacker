@@ -29,8 +29,8 @@
 #include "BasicArray.h"
 #include "SignalHandlers.h"
 #include "Gosub.h"
-
 #include "ConsoleFunctions.h"
+#include "BasicFileSystem.h"
 
 #endif /* _INCLUDE_STDBASIC_H_ */
 
