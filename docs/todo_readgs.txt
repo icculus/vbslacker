@@ -7,4 +7,7 @@ parser
     needs to be fixed...either by #pragma, or other.
    -The parser executable seems a bit big.  No doubt this is due to linking
     with the ANTLR libraries.  Maybe they can be shrunken down a bit???
+   -Some minor type checking is done at parse time...i.e. "Dim WithEvents A As
+    Integer" will barf at parse time because you can't handle events of the type
+    Integer.
    -get it working.
