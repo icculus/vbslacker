@@ -22,7 +22,7 @@
 typedef struct
 {
     int tidx;
-    void *(*fn)(STATEPARAMS, void *args);
+    void (*fn)(STATEPARAMS, void *args);
     void *args;
 } ThreadEntryArgs;
 
@@ -33,7 +33,7 @@ typedef ThreadEntryArgs *PThreadEntryArgs;
 static ThreadLock lock;        /* module-scope thread lock. */
 static pthread_t *indexes;
 static volatile int threadCount = 0;
-static volatile int maxIndex = 0;
+static volatile int maxIndex = -1;
 
 
 
@@ -43,11 +43,11 @@ void __deinitThread(STATEPARAMS, int tidx);
 
 
 
-
 void __initThreads(STATEPARAMS)
 {
     __createThreadLock(STATEARGS, &lock);
     threadCount++;
+    maxIndex++;
     indexes = __memAlloc(STATEARGS, sizeof (pthread_t));
 
 #ifndef WIN32
@@ -62,7 +62,22 @@ void __initThreads(STATEPARAMS)
 
 void __deinitThreads(STATEPARAMS)
 {
+#ifndef WIN32
+    int i;
+    pthread_t tid = pthread_self();
+
+    __obtainThreadLock(STATEARGS, &lock);
+
+    for (i = 0; i < maxIndex; i++)
+    {
+        if ((indexes[i] != (pthread_t) NULL) && (indexes[i] != tid))
+            __terminateThread(STATEARGS, indexes[i]);
+    } /* for */
+
+    __releaseThreadLock(STATEARGS, &lock);
+
     __destroyThreadLock(STATEARGS, &lock);
+#endif
 } /* __deinitThreads */
 
 
@@ -70,6 +85,7 @@ void __prepareThreadToTerminate(STATEPARAMS, int tidx)
 {
     int i;
     int firstNULL = -1;
+    pthread_t tid;
 
     __deinitThread(STATEARGS, tidx);   /* broadcast that thread is dying. */
 
@@ -77,12 +93,11 @@ void __prepareThreadToTerminate(STATEPARAMS, int tidx)
 
     threadCount--;
 
+    tid = indexes[tidx];
     indexes[tidx] = (pthread_t) NULL;
-    for (i = 0; i <= maxIndex; i++)
+    for (i = maxIndex; (i >= 0) && (firstNULL == -1); i--)
     {
-        if (indexes[i] != (pthread_t) NULL)
-            firstNULL = -1;
-        else if (firstNULL == -1)
+        if (indexes[i] == (pthread_t) NULL)
             firstNULL = i;
     } /* for */
 
@@ -92,6 +107,9 @@ void __prepareThreadToTerminate(STATEPARAMS, int tidx)
         __memRealloc(STATEARGS, indexes, firstNULL * sizeof (pthread_t));
     } /* if */
 
+#ifndef WIN32
+    pthread_detach(tid);
+#endif
     __releaseThreadLock(STATEARGS, &lock);
 } /* __prepareThreadToTerminate */
 
@@ -110,12 +128,19 @@ void __terminateThread(STATEPARAMS, int tidx)
 #ifndef WIN32
     pthread_t thread;
 
-    __obtainThreadLock(STATEARGS, &lock);
-    thread = indexes[tidx];
-    __releaseThreadLock(STATEARGS, &lock);
+    if (tidx == __getCurrentThreadIndex(STATEARGS))
+        __terminateCurrentThread(STATEARGS);
+    else
+    {
+        __obtainThreadLock(STATEARGS, &lock);
+        if (tidx <= maxIndex)
+            thread = indexes[tidx];
+        __releaseThreadLock(STATEARGS, &lock);
 
-    __prepareThreadToTerminate(STATEARGS, tidx);
-    pthread_kill(thread, SIGKILL);
+        /* !!! suspend thread? */
+        __prepareThreadToTerminate(STATEARGS, tidx);
+        pthread_kill(thread, SIGKILL);
+    } /* else */
 #endif
 } /* __terminateThread */
 
@@ -123,13 +148,15 @@ void __terminateThread(STATEPARAMS, int tidx)
 void __waitForThreadToDie(STATEPARAMS, int tidx)
 {
 #ifndef WIN32
-    pthread_t thread;
+    pthread_t thread = 0;
 
     __obtainThreadLock(STATEARGS, &lock);
-    thread = indexes[tidx];
+    if (tidx <= maxIndex)
+        thread = indexes[tidx];
     __releaseThreadLock(STATEARGS, &lock);
 
-    pthread_join(thread, NULL);
+    if (thread != 0)
+        pthread_join(thread, NULL);
 #endif
 } /* __waitForThreadToDie */
 
@@ -149,7 +176,7 @@ void __threadEntry(void *_args)
 } /* __threadStart */
 
 
-int __spinThread(STATEPARAMS, void *(*_fn)(STATEPARAMS, void *x), void *_args)
+int __spinThread(STATEPARAMS, void (*_fn)(STATEPARAMS, void *x), void *_args)
 {
 #ifndef WIN32
     PThreadEntryArgs args = __memAlloc(STATEARGS, sizeof (ThreadEntryArgs));
@@ -162,7 +189,8 @@ int __spinThread(STATEPARAMS, void *(*_fn)(STATEPARAMS, void *x), void *_args)
 
     __obtainThreadLock(STATEARGS, &lock);
 
-    for (args->tidx = 0; args->tidx <= maxIndex; args->tidx++)
+    for (args->tidx = 0; (args->tidx <= maxIndex) && (saveLoc == NULL);
+            args->tidx++)
     {
         if (indexes[args->tidx] == (pthread_t) NULL)
             saveLoc = &indexes[args->tidx];
@@ -176,9 +204,13 @@ int __spinThread(STATEPARAMS, void *(*_fn)(STATEPARAMS, void *x), void *_args)
         saveLoc = &indexes[maxIndex];
         args->tidx = maxIndex;
     } /* if */
+    else
+        args->tidx--;
+
+    threadCount++;
 
     retVal = args->tidx;
-    rc = pthread_create(saveLoc, NULL, (void *) __threadEntry, args);
+    rc = pthread_create(saveLoc, NULL, (void *) __threadEntry, (void *) args);
 
     __releaseThreadLock(STATEARGS, &lock);
 
