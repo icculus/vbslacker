@@ -1,0 +1,3 @@
+SRCS = CursesConsole.c NoConsole.c DirectConsole.c RedirectedConsole.c
+#SDLConsole.c
+
