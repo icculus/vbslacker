@@ -16,7 +16,7 @@ LOPTIONS = -Wall -L $(BASICLIBDIR) -lm -g -o
 
 all : testlib.exe
 
-testlib.exe : $(OBJS)
+testlib.exe : $(OBJS) $(wildcard $(BASICLIBDIR)/*.o)
 	$(LINKER) $(LOPTIONS) testlib.exe $(OBJS) $(wildcard $(BASICLIBDIR)/*.o)
 
 TestLib.o : TestLib.c TestLib.h
