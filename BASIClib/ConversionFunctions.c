@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include "ConversionFunctions.h"
 #include "BasicString.h"
 #include "ErrorFunctions.h"
 #include "Variant.h"
@@ -96,7 +97,7 @@ PBasicString str_DC_(double numeric)
 
 
 
-int BASICINT_valEndOfNumberString(PBasicString pBasicStr)
+int __valEndOfNumberString(PBasicString pBasicStr)
 /*
  * Used by val() to find index in string where number ends.
  *
@@ -149,7 +150,7 @@ int BASICINT_valEndOfNumberString(PBasicString pBasicStr)
     } /* for */
 
     return(i - 1);   /* minus one since for-loop will bump us past end... */
-} /* BASICINT_valEndOfNumberString */
+} /* __valEndOfNumberString */
 
 
 
@@ -165,7 +166,7 @@ double val(PBasicString pBasicStr)
  */
 {
     double retVal = 0.0;
-    int strEndIndex = BASICINT_valEndOfNumberString(pBasicStr);
+    int strEndIndex = __valEndOfNumberString(pBasicStr);
     int decimalPlace = 1;
     char ch;
     int i;
@@ -256,7 +257,7 @@ PBasicString oct_DC_(double x)
     sprintf(buffer, "%o", rounded);
 
     return(__createString(buffer, false));
-} /* hex_DC_ */
+} /* oct_DC_ */
 
 
 
