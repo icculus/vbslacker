@@ -209,7 +209,7 @@ static void __curs_vbpiii_color(STATEPARAMS, int fore, int back, int bord)
  *   returns : void.
  */
 {
-/*    wcolor_set(cons, !!! */
+/*    wcolor_set(cons, , NULL); !!! */
 } /* __curs_vbpiii_color */
 
 
