@@ -15,7 +15,7 @@ ASM = nasm
 
 # Shipping command lines
 #COPTIONS = -Wall -I $(BASICLIBDIR) -O2 -s -c -o
-#LOPTIONS = -Wall -shared -s -O2 -o
+#LOPTIONS = -Wall -s -O2 -o
 
 # Debug command lines...
 COPTIONS = -Wall -I $(BASICLIBDIR) -DDEBUG -g -c -o
