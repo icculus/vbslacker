@@ -10,19 +10,17 @@ CC = gcc
 LINKER = gcc
 ASM = gcc
 
-LANGUAGE=ENGLISH
-
 # Use this before $(COPTIONS) on modules that use inb, outb, etc ...
 IOACCESS = -O3
 
 # Shipping command lines
-#COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -O2 -fPIC -fasm -finline-functions -s -c -o
+#COPTIONS = -DLINUXELF_I386 -D_REENTRANT -Wall -O2 -fPIC -fasm -finline-functions -s -c -o
 #LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
 #ASMOPTIONS = -Wall -c -o
 
 # Debug command lines...
-COPTIONS = -I../libgc -DSINGLE_THREADED -D_REENTRANT -DLINUX_THREADS -DLINUXELF_I386 -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
-#COPTIONS = -DLINUXELF_I386 -D_REENTRANT -DLANG_$(LANGUAGE) -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
+COPTIONS = -I../libgc -DSINGLE_THREADED -D_REENTRANT -DLINUX_THREADS -DLINUXELF_I386 -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
+#COPTIONS = -DLINUXELF_I386 -D_REENTRANT -Wall -fPIC -fasm -finline-functions -fno-omit-frame-pointer -DDEBUG -c -g -o
 LOPTIONS = -Wall -shared -Wl,-soname,$(DYNLIBMAJOR) -o
 ASMOPTIONS = -D_REENTRANT -Wall -c -o
 
