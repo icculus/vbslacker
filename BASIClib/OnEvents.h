@@ -8,6 +8,7 @@
 #define _INCLUDE_ONEVENTS_H_
 
 #include "Threads.h"
+#include "RegState.h"
 
 typedef enum
 {
@@ -19,27 +20,23 @@ typedef enum
 
 typedef OnEventTypeEnum *POnEventTypeEnum;
 
-
 /*
- * DO NOT REORDER THE FOLLOWING STRUCTURE! Assembly code expects this format.
+ * DO NOT REORDER THE FOLLOWING STRUCTURES! Assembly code expects this format.
  *
  *  Adding fields to the bottom should be okay, since the ASM code
  *   references fields by their offsets to the structure's base pointer.
  */
+
 typedef struct
-{
+{    
     void *handlerAddr;
-    void *stackStart;
-    void *stackEnd;
     void *basePtr;
+    void *stackPtr;
+    OnEventTypeEnum evType;
 } OnEventHandler;
 
 typedef OnEventHandler *POnEventHandler;
 
-
-extern ThreadLock registerLock;
-extern void *_stack_ptr_;
-extern void *_base_ptr_;
 
 
 /* God, inline assembly is SCARY lookin' in gcc, isn't it? */
@@ -55,31 +52,34 @@ extern void *_base_ptr_;
  */
 #define __getBasePointer(retVal) __asm__ __volatile__ ("movl %%ebp, %0\n\t" \
                                                         : "=q" (*retVal) )
-
 /*
- * Insert this right AFTER a line label that serves as the start of an
- *  ON EVENT handler.
- *
- * The i386 version guarantees that optimizations aren't saving any
- *  important data in the registers. By telling gcc we fucked with memory, it
- *  believes we've "clobbered" all the registers, and will reload anything
- *  stored in them.
+ * Reset compiler assumptions about optimizations. By telling gcc we fucked
+ *  with memory, it believes we've "clobbered" all the registers, and will
+ *  reload anything stored in them.
  */
-#define __markOnEventHandlerAddr __asm__ __volatile__ ("nop\n\t" : \
-                                                        : : "memory" );
+#define __resetAssumptions __asm__ __volatile__ ("\n\t" \
+                                                 : /* no output */ \
+                                                 : /* no input */  \
+                                                 : "memory" );
 
-POnEventHandler __getOnEventHandler(OnEventTypeEnum evType);
-void __initOnEvents(void);
-void __deinitOnEvents(void);
-void __initThreadOnEvents(int tidx);
-void __deinitThreadOnEvents(int tidx);
-void __registerOnEventHandler(void *handlerAddr, void *stackSize,
-                              void *stackEnd, void *basePtr,
+
+/* function prototypes... */
+
+POnEventHandler __getOnEventHandler(STATEPARAMS, OnEventTypeEnum evType);
+void __initOnEvents(STATEPARAMS);
+void __deinitOnEvents(STATEPARAMS);
+void __initThreadOnEvents(STATEPARAMS, int tidx);
+void __deinitThreadOnEvents(STATEPARAMS, int tidx);
+void __resumeNext(STATEPARAMS);
+void __resumeZero(STATEPARAMS);
+void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType);
+void __deregisterAllOnEventHandlers(STATEPARAMS);
+void __deregisterOnEventHandlers(STATEPARAMS);
+void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
+                              void *basePtr, void *stackPtr,
                               OnEventTypeEnum evType);
-void __deregisterOnEventHandler(void *handlerAddr, OnEventTypeEnum evType);
-void __triggerOnEventByType(OnEventTypeEnum evType);
-void __triggerOnEvent(POnEventHandler pHandler, OnEventTypeEnum evType);
-void __resumeNext(void);
+void __triggerOnEvent(STATEPARAMS, POnEventHandler pHandler,
+                      OnEventTypeEnum evType);
 
 #endif
 
