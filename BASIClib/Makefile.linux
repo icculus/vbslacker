@@ -6,7 +6,7 @@ DYNLIBMAJOR = $(DYNLIBBASE).$(MAJORVER)
 
 OBJS = BasicString.o ConversionFunctions.o Initialize.o OnEvents.o \
        ErrorFunctions.o MathFunctions.o InternalMemManager.o Threads.o \
-       TimeDateFunctions.o OnEventsAsm.o FileIOFunctions.o BasicFileStream.o \
+       TimeDateFunctions.o FileIOFunctions.o BasicFileStream.o \
        StringFunctions.o LowLevel.o
 
 CC = gcc
@@ -73,9 +73,6 @@ BasicFileStream.o : BasicFileStream.c BasicFileStream.h
 
 FileIOFunctions.o : FileIOFunctions.c FileIOFunctions.h BasicString.h Variant.h
 	$(CC) $(COPTIONS) FileIOFunctions.o FileIOFunctions.c
-
-OnEventsAsm.o : OnEvents.S
-	$(ASM) $(ASMOPTIONS) OnEventsAsm.o OnEvents.S
 
 StringFunctions.o : StringFunctions.c StringFunctions.h BasicString.h \
                     ErrorFunctions.h
