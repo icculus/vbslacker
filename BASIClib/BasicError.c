@@ -17,11 +17,6 @@
 static __long *basicErrno = NULL;
 
     /*
-     * These are the strings for ERROR$()...
-     */
-static __byte *errStrings[MAX_ERRS];
-
-    /*
      * module-scope ThreadLock.
      */
 static ThreadLock basicErrorLock;
@@ -35,7 +30,50 @@ static ThreadLock basicErrorLock;
 static __POnErrorHandler *onErrorThreadStates = NULL;
 
 
-static void __initErrorStringTable(void);
+static struct {__long errNum; __BASIClibStringIndex strIndex;} errMsgTable[] =
+{
+    {ERR_NO_ERROR,                        STR_NO_ERROR                      },
+    {ERR_RETURN_WITHOUT_GOSUB,            STR_RETURN_WITHOUT_GOSUB          },
+    {ERR_OUT_OF_DATA,                     STR_OUT_OF_DATA                   },
+    {ERR_ILLEGAL_FUNCTION_CALL,           STR_ILLEGAL_FUNCTION_CALL         },
+    {ERR_OVERFLOW,                        STR_OVERFLOW                      },
+    {ERR_OUT_OF_MEMORY,                   STR_OUT_OF_MEMORY                 },
+    {ERR_SUBSCRIPT_OUT_OF_RANGE,          STR_SUBSCRIPT_OUT_OF_RANGE        },
+    {ERR_DIVISION_BY_ZERO,                STR_DIVISION_BY_ZERO              },
+    {ERR_TYPE_MISMATCH,                   STR_TYPE_MISMATCH                 },
+    {ERR_OUT_OF_STRING_SPACE,             STR_OUT_OF_STRING_SPACE           },
+    {ERR_EXPRESSION_TOO_COMPLEX,          STR_EXPRESSION_TOO_COMPLEX        },
+    {ERR_CANNOT_CONTINUE,                 STR_CANNOT_CONTINUE               },
+    {ERR_RESUME_WITHOUT_ERROR,            STR_RESUME_WITHOUT_ERROR          },
+    {ERR_SUBPROGRAM_NOT_DEFINED,          STR_SUBPROGRAM_NOT_DEFINED        },
+    {ERR_INTERNAL_ERROR,                  STR_INTERNAL_ERROR                },
+    {ERR_BAD_FILE_NAME_OR_NUMBER,         STR_BAD_FILE_NAME_OR_NUMBER       },
+    {ERR_FILE_NOT_FOUND,                  STR_FILE_NOT_FOUND                },
+    {ERR_BAD_FILE_MODE,                   STR_BAD_FILE_MODE                 },
+    {ERR_FILE_ALREADY_OPEN,               STR_FILE_ALREADY_OPEN             },
+    {ERR_FIELD_STATEMENT_ACTIVE,          STR_FIELD_STATEMENT_ACTIVE        },
+    {ERR_DEVICE_IO_ERROR,                 STR_DEVICE_IO_ERROR               },
+    {ERR_FILE_ALREADY_EXISTS,             STR_FILE_ALREADY_EXISTS           },
+    {ERR_BAD_RECORD_LENGTH,               STR_BAD_RECORD_LENGTH             },
+    {ERR_DISK_FULL,                       STR_DISK_FULL                     },
+    {ERR_INPUT_PAST_END_OF_FILE,          STR_INPUT_PAST_END_OF_FILE        },
+    {ERR_BAD_RECORD_NUMBER,               STR_BAD_RECORD_NUMBER             },
+    {ERR_TOO_MANY_FILES,                  STR_TOO_MANY_FILES                },
+    {ERR_DEVICE_UNAVAILABLE,              STR_DEVICE_UNAVAILABLE            },
+    {ERR_COMMUNICATION_BUFFER_OVERFLOW,   STR_COMMUNICATION_BUFFER_OVERFLOW },
+    {ERR_PERMISSION_DENIED,               STR_PERMISSION_DENIED             },
+    {ERR_DISK_NOT_READY,                  STR_DISK_NOT_READY                },
+    {ERR_RENAME_ACROSS_DISKS,             STR_RENAME_ACROSS_DISKS           },
+    {ERR_PATH_FILE_ACCESS_ERROR,          STR_PATH_FILE_ACCESS_ERROR        },
+    {ERR_PATH_NOT_FOUND,                  STR_PATH_NOT_FOUND                },
+
+        /* add more errors above this next one.                    */
+        /*  yes, the duplicate ERR_PATH_NOT_FOUND is intentional.  */
+        /*  it prevents findErrorString() from ever coming up with */
+        /*  STR_UNKNOWN_ERR unless it means to.                    */
+
+    {ERR_PATH_NOT_FOUND,                  STR_UNKNOWN_ERR                   }
+}; /* errMsgTable */
 
 
 void __initBasicError(void)
@@ -47,7 +85,6 @@ void __initBasicError(void)
  */
 {
     __createThreadLock(&basicErrorLock);
-    __initErrorStringTable();
 } /* __initErrorFunctions */
 
 
@@ -102,6 +139,37 @@ void __initThreadBasicError(__integer tidx)
  *  to NULL, which __initThreadOnError() will do anyhow if the thread index is ever
  *  ever used again.
  */
+
+
+
+char *__findErrorString(__long errorNumber)
+/*
+ * Get the ASCIZ error message related to a specific runtime error number.
+ * Returned value is the original. Do not modify or free!
+ * Perhaps you should consider vbS_error_DC_() instead?  !!! check that.
+ *
+ *
+ *      params : errorNumber == error number to get message for.
+ *                              if no message is associated with this
+ *                              number, then a "unknown error" string is
+ *                              returned.
+ *     returns : ASCIZ text of error message.
+ */
+{
+    __long i;
+    __long max = (__BASIClibStringIndex) _TOTAL_STRING_COUNT_;
+
+    for (i = 0; i < max; i++)
+    {
+        if (errorNumber == (__long) errMsgTable[i].errNum)
+            return(__BASIClibStrings[errMsgTable[i].strIndex]);
+    } /* for */
+
+        // !!! the above search could be made more efficient.
+
+    return(__BASIClibStrings[(__BASIClibStringIndex) STR_UNKNOWN_ERR]);
+} /* __findErrorString */
+
 
 
 __long __getBasicErrno(void)
@@ -382,13 +450,10 @@ static void __defaultRuntimeErrorHandler(__long bErr)
 {
     char numeric[20];
     char consDriverName[25];
-    char *errStr = ( (bErr > MAX_ERRS) ?
-                      STR_UNKNOWN_ERR : ((char *) errStrings[bErr]) );
+    char *errStr = __findErrorString(bErr);
+    char *introMsg = __BASIClibStrings[STR_UNHANDLED_RT_ERROR];
 
     sprintf(numeric, "(#%ld)", bErr);
-
-    if (errStr == NULL)
-        errStr = STR_UNKNOWN_ERR;
 
     if (__getInitFlags() & INITFLAG_ENABLE_GUIFRONTEND)
         /* !!! put up a msgbox...when GUI support is in place... */ ;
@@ -400,7 +465,7 @@ static void __defaultRuntimeErrorHandler(__long bErr)
             __printNewLine();
             __printNewLine();
             __printAsciz("***");
-            __printAsciz(STR_UNHANDLED_RT_ERROR);
+            __printAsciz(introMsg);
             __printAsciz("***");
             __printNewLine();
             __printAsciz("  \"");
@@ -487,62 +552,6 @@ void __runtimeError(__long errorNum)
         } /* if */
     } /* else */
 } /* __runtimeError */
-
-
-static void __initErrorStringTable(void)
-/*
- * Set up the error string table. This is an array of char pointers. Each
- *  index corresponds to an error number that BASIC can throw. Therefore,
- *  when trying to determine what error #76 means, you'll find that
- *  errStrings[76] contains a pointer to the string "Path not found."
- *  (or whatever that would be in the current language BASIClib is using...)
- *
- * Elements set to NULL are undefined and/or user-thrown errors.
- *
- *  !!! TODO : Make this read in from a text file at startup. That way, we
- *              don't need to recompile for every language...
- *
- *     params : void.
- *    returns : void.
- */
-{
-    memset(errStrings, '\0', sizeof (errStrings));
-    errStrings[ERR_NO_ERROR] = STR_NO_ERROR;
-    errStrings[ERR_RETURN_WITHOUT_GOSUB] = STR_RETURN_WITHOUT_GOSUB;
-    errStrings[ERR_OUT_OF_DATA] = STR_OUT_OF_DATA;
-    errStrings[ERR_ILLEGAL_FUNCTION_CALL] = STR_ILLEGAL_FUNCTION_CALL;
-    errStrings[ERR_OVERFLOW] = STR_OVERFLOW;
-    errStrings[ERR_OUT_OF_MEMORY] = STR_OUT_OF_MEMORY;
-    errStrings[ERR_SUBSCRIPT_OUT_OF_RANGE] = STR_SUBSCRIPT_OUT_OF_RANGE;
-    errStrings[ERR_DIVISION_BY_ZERO] = STR_DIVISION_BY_ZERO;
-    errStrings[ERR_TYPE_MISMATCH] = STR_TYPE_MISMATCH;
-    errStrings[ERR_OUT_OF_STRING_SPACE] = STR_OUT_OF_STRING_SPACE;
-    errStrings[ERR_EXPRESSION_TOO_COMPLEX] = STR_EXPRESSION_TOO_COMPLEX;
-    errStrings[ERR_CANNOT_CONTINUE] = STR_CANNOT_CONTINUE;
-    errStrings[ERR_RESUME_WITHOUT_ERROR] = STR_RESUME_WITHOUT_ERROR;
-    errStrings[ERR_SUBPROGRAM_NOT_DEFINED] = STR_SUBPROGRAM_NOT_DEFINED;
-    errStrings[ERR_INTERNAL_ERROR] = STR_INTERNAL_ERROR;
-    errStrings[ERR_BAD_FILE_NAME_OR_NUMBER] = STR_BAD_FILE_NAME_OR_NUMBER;
-    errStrings[ERR_FILE_NOT_FOUND] = STR_FILE_NOT_FOUND;
-    errStrings[ERR_BAD_FILE_MODE] = STR_BAD_FILE_MODE;
-    errStrings[ERR_FILE_ALREADY_OPEN] = STR_FILE_ALREADY_OPEN;
-    errStrings[ERR_FIELD_STATEMENT_ACTIVE] = STR_FIELD_STATEMENT_ACTIVE;
-    errStrings[ERR_DEVICE_IO_ERROR] = STR_DEVICE_IO_ERROR;
-    errStrings[ERR_FILE_ALREADY_EXISTS] = STR_FILE_ALREADY_EXISTS;
-    errStrings[ERR_BAD_RECORD_LENGTH] = STR_BAD_RECORD_LENGTH;
-    errStrings[ERR_DISK_FULL] = STR_DISK_FULL;
-    errStrings[ERR_INPUT_PAST_END_OF_FILE] = STR_INPUT_PAST_END_OF_FILE;
-    errStrings[ERR_BAD_RECORD_NUMBER] = STR_BAD_RECORD_NUMBER;
-    errStrings[ERR_TOO_MANY_FILES] = STR_TOO_MANY_FILES;
-    errStrings[ERR_DEVICE_UNAVAILABLE] = STR_DEVICE_UNAVAILABLE;
-    errStrings[ERR_COMMUNICATION_BUFFER_OVERFLOW] =
-               STR_COMMUNICATION_BUFFER_OVERFLOW;
-    errStrings[ERR_PERMISSION_DENIED] = STR_PERMISSION_DENIED;
-    errStrings[ERR_DISK_NOT_READY] = STR_DISK_NOT_READY;
-    errStrings[ERR_RENAME_ACROSS_DISKS] = STR_RENAME_ACROSS_DISKS;
-    errStrings[ERR_PATH_FILE_ACCESS_ERROR] = STR_PATH_FILE_ACCESS_ERROR;
-    errStrings[ERR_PATH_NOT_FOUND] = STR_PATH_NOT_FOUND;
-} /* __initErrorStringTable */
 
 /* end of BasicError.c ... */
 
