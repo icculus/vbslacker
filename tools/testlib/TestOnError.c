@@ -650,7 +650,7 @@ void testOnErrorHandling(void)
 } /* testOnErrorHandling */
 
 
-void testOnErrors(void)
+void testOnError(void)
 /*
  * Test ON Error functionality in BASIClib.
  *
@@ -663,7 +663,7 @@ void testOnErrors(void)
     test__getStackPointer();
     test__jump();
     testOnErrorHandling();
-} /* testOnErrors */
+} /* testOnError */
 
 
 #ifdef STANDALONE
@@ -675,7 +675,7 @@ int main(int argc, char **argv)
     __getBasePointer(base);
 
     __initBasicLib(base, INITFLAG_DISABLE_CONSOLE, argc, argv);
-    testOnErrors();
+    testOnError();
     __deinitBasicLib();
     return(0);
 } /* main */

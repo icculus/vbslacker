@@ -11,7 +11,7 @@
 static __boolean changed = false;
 
 
-void threadFunc(STATEPARAMS, void *args)
+void threadFunc(void *args)
 /*
  * This sets (changed), and returns. Test that variable to see if
  *  this function ever ran.
@@ -21,7 +21,7 @@ void threadFunc(STATEPARAMS, void *args)
 } /* threadFunc */
 
 
-void test__spinThread(STATEPARAMS)
+void test__spinThread(void)
 /*
  * Test __spinThread() functionality.
  *
@@ -36,21 +36,21 @@ void test__spinThread(STATEPARAMS)
 
     changed = false;
 
-    tidx = __spinThread(STATEARGS, (void *) threadFunc, NULL);
+    tidx = __spinThread((void *) threadFunc, NULL);
     if (tidx == -1)
         printf("  - Couldn't spin thread. retVal == -1.\n");
     else
     {
         for (i = 0; i < 10000; i++)
-            __threadTimeslice(STATEARGS);
-        __waitForThreadToDie(STATEARGS, tidx);
+            __threadTimeslice();
+        __waitForThreadToDie(tidx);
         if (changed != true)
             printf("  - Thread didn't run, or didn't change flag.\n");
     } /* else */
 } /* test__spinThread */
 
 
-void testThreads(STATEPARAMS)
+void testThreads(void)
 /*
  * This code tests all testable thread functions in BASIClib.
  *
@@ -60,7 +60,7 @@ void testThreads(STATEPARAMS)
 {
     printf("\n[TESTING THREAD FUNCTIONS...]\n");
 
-    test__spinThread(STATEARGS);
+    test__spinThread();
 
     /* !!! needs more testing. */
 
@@ -71,8 +71,8 @@ void testThreads(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
-    testThreads(NULLSTATEARGS);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE);
+    testThreads();
     __deinitBasicLib();
     return(0);
 } /* main */

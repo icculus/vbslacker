@@ -22,7 +22,7 @@ uchar TEST_LTRIM[] =         "Here's some trimmable spaces!     ";
 uchar TEST_RTRIM[] = "        Here's some trimmable spaces!";
 
 
-void cmpStr(STATEPARAMS, PBasicString pStr, char *data,
+void cmpStr(PBasicString pStr, char *data,
             int length, __boolean fixedLength)
 /*
  * This function checks a BasicString to verify that its various attributes
@@ -56,7 +56,7 @@ void cmpStr(STATEPARAMS, PBasicString pStr, char *data,
 } /* cmpStr */
 
 
-void test___constString(STATEPARAMS)
+void test___constString(void)
 /*
  * Test __constString functionality.
  *
@@ -68,8 +68,8 @@ void test___constString(STATEPARAMS)
 
     printf("Testing __constString()...\n");
 
-    rc = __constString(STATEARGS, TEST_TEXT2);
-    cmpStr(STATEARGS, rc, TEST_TEXT2, strlen(TEST_TEXT2), true);
+    rc = __constString(TEST_TEXT2);
+    cmpStr(rc, TEST_TEXT2, strlen(TEST_TEXT2), true);
 
         /* extra test; not only must data match, but it must be same pointer. */
     if (rc != NULL)
@@ -82,7 +82,7 @@ void test___constString(STATEPARAMS)
 } /* test___constString */
 
 
-void test___createString(STATEPARAMS)
+void test___createString(void)
 /*
  * Test __createString functionality.
  *
@@ -94,13 +94,13 @@ void test___createString(STATEPARAMS)
 
     printf("Testing __createString()...\n");
 
-    rc = __createString(STATEARGS, TEST_TEXT1, true);
-    cmpStr(STATEARGS, rc, TEST_TEXT1, strlen(TEST_TEXT1), true);
-    __freeString(STATEARGS, rc);
+    rc = __createString(TEST_TEXT1, true);
+    cmpStr(rc, TEST_TEXT1, strlen(TEST_TEXT1), true);
+    __freeString(rc);
 } /* test___createString */
 
 
-void test___assignString(STATEPARAMS)
+void test___assignString(void)
 /*
  * Test __assignString functionality.
  *
@@ -108,19 +108,19 @@ void test___assignString(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString copyThis = __createString(STATEARGS, TEST_TEXT1, true);
+    PBasicString copyThis = __createString(TEST_TEXT1, true);
     PBasicString rc = NULL;
 
     printf("Testing __assignString()...\n");
 
-    __assignString(STATEARGS, &rc, copyThis);
-    cmpStr(STATEARGS, rc, copyThis->data, copyThis->length, false);
-    __freeString(STATEARGS, rc);
-    __freeString(STATEARGS, copyThis);
+    rc = __assignString(rc, copyThis);
+    cmpStr(rc, copyThis->data, copyThis->length, false);
+    __freeString(rc);
+    __freeString(copyThis);
 } /* test___assignString */
 
 
-void test___catString(STATEPARAMS)
+void test___catString(void)
 /*
  * Test __catString functionality.
  *
@@ -128,8 +128,8 @@ void test___catString(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString str1 = __createString(STATEARGS, TEST_TEXT1, false);
-    PBasicString str2 = __createString(STATEARGS, TEST_TEXT2, false);
+    PBasicString str1 = __createString(TEST_TEXT1, false);
+    PBasicString str2 = __createString(TEST_TEXT2, false);
     int length = str1->length + str2->length;
     char buffer[length + 1];
 
@@ -137,14 +137,14 @@ void test___catString(STATEPARAMS)
 
     sprintf(buffer, "%s%s", TEST_TEXT1, TEST_TEXT2);
 
-    __catString(STATEARGS, &str1, str2);
-    cmpStr(STATEARGS, str1, buffer, length, false);
-    __freeString(STATEARGS, str1);
-    __freeString(STATEARGS, str2);
+    str1 = __catString(str1, str2);
+    cmpStr(str1, buffer, length, false);
+    __freeString(str1);
+    __freeString(str2);
 } /* test___catString */
 
 
-void test_len(STATEPARAMS)
+void test_len(void)
 /*
  * Test LEN() functionality.
  *
@@ -152,20 +152,20 @@ void test_len(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(STATEARGS, TEST_TEXT1, false);
+    PBasicString pStr = __createString(TEST_TEXT1, false);
     int rc;
 
     printf("Testing LEN()...\n");
 
-    rc = vbiS_len(STATEARGS, pStr);
+    rc = vbiS_len(pStr);
     if (rc != pStr->length)
         printf("  - Failed. Returned (%d), expected (%d).\n", rc, pStr->length);
 
-    __freeString(STATEARGS, pStr);
+    __freeString(pStr);
 } /* test_len */
 
 
-void test_space_DC_(STATEPARAMS)
+void test_space_DC_(void)
 /*
  * Test SPACE$() functionality.
  *
@@ -178,13 +178,13 @@ void test_space_DC_(STATEPARAMS)
 
     printf("Testing SPACE$()...\n");
 
-    rc = vbSi_space_DC_(STATEARGS, length);
-    cmpStr(STATEARGS, rc, TEST_SPACE, length, false);
-    __freeString(STATEARGS, rc);
+    rc = vbSi_space_DC_(length);
+    cmpStr(rc, TEST_SPACE, length, false);
+    __freeString(rc);
 } /* test_space_DC_ */
 
 
-void test_right_DC_(STATEPARAMS)
+void test_right_DC_(void)
 /*
  * Test RIGHT$() functionality. A string is right$()ed five times with
  *  different random sizes requested each time. Results are compared.
@@ -193,7 +193,7 @@ void test_right_DC_(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(STATEARGS, TEST_TEXT3, false);
+    PBasicString pStr = __createString(TEST_TEXT3, false);
     PBasicString rc;
     int length = pStr->length;
     int i;
@@ -202,16 +202,16 @@ void test_right_DC_(STATEPARAMS)
 
     for (i = 0; i <= length; i++)
     {
-        rc = vbSSi_right_DC_(STATEARGS, pStr, i);
-        cmpStr(STATEARGS, rc, (TEST_TEXT3 + length) - i, i, false);
-        __freeString(STATEARGS, rc);
+        rc = vbSSi_right_DC_(pStr, i);
+        cmpStr(rc, (TEST_TEXT3 + length) - i, i, false);
+        __freeString(rc);
     } /* for */
 
-    __freeString(STATEARGS, pStr);
+    __freeString(pStr);
 } /* test_right_DC_ */
 
 
-void test_left_DC_(STATEPARAMS)
+void test_left_DC_(void)
 /*
  * Test LEFT$() functionality. A string is left$()ed five times with
  *  different random sizes requested each time. Results are compared.
@@ -220,7 +220,7 @@ void test_left_DC_(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(STATEARGS, TEST_TEXT3, false);
+    PBasicString pStr = __createString(TEST_TEXT3, false);
     PBasicString rc;
     int length = pStr->length;
     int i;
@@ -229,16 +229,16 @@ void test_left_DC_(STATEPARAMS)
 
     for (i = 1; i <= length; i++)
     {
-        rc = vbSSi_left_DC_(STATEARGS, pStr, i);
-        cmpStr(STATEARGS, rc, TEST_TEXT3, i, false);
-        __freeString(STATEARGS, rc);
+        rc = vbSSi_left_DC_(pStr, i);
+        cmpStr(rc, TEST_TEXT3, i, false);
+        __freeString(rc);
     } /* for */
 
-    __freeString(STATEARGS, pStr);
+    __freeString(pStr);
 } /* test_left_DC_ */
 
 
-void test_ucase_DC_(STATEPARAMS)
+void test_ucase_DC_(void)
 /*
  * Test UCASE$() functionality.
  *
@@ -246,19 +246,19 @@ void test_ucase_DC_(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(STATEARGS, TEST_CASE, false);
+    PBasicString pStr = __createString(TEST_CASE, false);
     PBasicString rc;
 
     printf("Testing UCASE$()...\n");
 
-    rc = vbSS_ucase_DC_(STATEARGS, pStr);
-    cmpStr(STATEARGS, rc, TEST_UCASE, pStr->length, false);
-    __freeString(STATEARGS, pStr);
-    __freeString(STATEARGS, rc);
+    rc = vbSS_ucase_DC_(pStr);
+    cmpStr(rc, TEST_UCASE, pStr->length, false);
+    __freeString(pStr);
+    __freeString(rc);
 } /* test_ucase_DC_ */
 
 
-void test_lcase_DC_(STATEPARAMS)
+void test_lcase_DC_(void)
 /*
  * Test LCASE$() functionality.
  *
@@ -266,19 +266,19 @@ void test_lcase_DC_(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(STATEARGS, TEST_CASE, false);
+    PBasicString pStr = __createString(TEST_CASE, false);
     PBasicString rc;
 
     printf("Testing LCASE$()...\n");
 
-    rc = vbSS_lcase_DC_(STATEARGS, pStr);
-    cmpStr(STATEARGS, rc, TEST_LCASE, pStr->length, false);
-    __freeString(STATEARGS, pStr);
-    __freeString(STATEARGS, rc);
+    rc = vbSS_lcase_DC_(pStr);
+    cmpStr(rc, TEST_LCASE, pStr->length, false);
+    __freeString(pStr);
+    __freeString(rc);
 } /* test_lcase_DC_ */
 
 
-void test_ltrim_DC_(STATEPARAMS)
+void test_ltrim_DC_(void)
 /*
  * Test LTRIM$() functionality.
  *
@@ -286,19 +286,19 @@ void test_ltrim_DC_(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(STATEARGS, TEST_TRIM, false);
+    PBasicString pStr = __createString(TEST_TRIM, false);
     PBasicString rc;
 
     printf("Testing LTRIM$()...\n");
 
-    rc = vbSS_ltrim_DC_(STATEARGS, pStr);
-    cmpStr(STATEARGS, rc, TEST_LTRIM, strlen(TEST_LTRIM), false);
-    __freeString(STATEARGS, pStr);
-    __freeString(STATEARGS, rc);
+    rc = vbSS_ltrim_DC_(pStr);
+    cmpStr(rc, TEST_LTRIM, strlen(TEST_LTRIM), false);
+    __freeString(pStr);
+    __freeString(rc);
 } /* test_ltrim_DC_ */
 
 
-void test_rtrim_DC_(STATEPARAMS)
+void test_rtrim_DC_(void)
 /*
  * Test RTRIM$() functionality.
  *
@@ -306,19 +306,19 @@ void test_rtrim_DC_(STATEPARAMS)
  *   returns : void.
  */
 {
-    PBasicString pStr = __createString(STATEARGS, TEST_TRIM, false);
+    PBasicString pStr = __createString(TEST_TRIM, false);
     PBasicString rc;
 
     printf("Testing RTRIM$()...\n");
 
-    rc = vbSS_rtrim_DC_(STATEARGS, pStr);
-    cmpStr(STATEARGS, rc, TEST_RTRIM, strlen(TEST_RTRIM), false);
-    __freeString(STATEARGS, pStr);
-    __freeString(STATEARGS, rc);
+    rc = vbSS_rtrim_DC_(pStr);
+    cmpStr(rc, TEST_RTRIM, strlen(TEST_RTRIM), false);
+    __freeString(pStr);
+    __freeString(rc);
 } /* test_rtrim_DC_ */
 
 
-void testInternalStringFuncs(STATEPARAMS)
+void testInternalStringFuncs(void)
 /*
  * Entry for tests for internal string functions, like __createString() and
  *  __assignString()...
@@ -329,15 +329,15 @@ void testInternalStringFuncs(STATEPARAMS)
 {
     printf("\n[TESTING INTERNAL STRING FUNCTIONS...]\n");
 
-    test___constString(STATEARGS);
-    test___createString(STATEARGS);
-    test___assignString(STATEARGS);
-    test___catString(STATEARGS);
+    test___constString();
+    test___createString();
+    test___assignString();
+    test___catString();
 } /* testInternalStringFuncs */
 
 
 
-void testUserStringFuncs(STATEPARAMS)
+void testUserStringFuncs(void)
 /*
  * Entry for tests for user-called string functions, like rtrim$() and
  *  left$()...
@@ -348,19 +348,19 @@ void testUserStringFuncs(STATEPARAMS)
 {
     printf("\n[TESTING USER-CALLED STRING FUNCTIONS...]\n");
 
-    test_len(STATEARGS);
-    test_space_DC_(STATEARGS);
-    test_right_DC_(STATEARGS);
-    test_left_DC_(STATEARGS);
-    test_rtrim_DC_(STATEARGS);
-    test_ltrim_DC_(STATEARGS);
-    test_lcase_DC_(STATEARGS);
-    test_ucase_DC_(STATEARGS);
+    test_len();
+    test_space_DC_();
+    test_right_DC_();
+    test_left_DC_();
+    test_rtrim_DC_();
+    test_ltrim_DC_();
+    test_lcase_DC_();
+    test_ucase_DC_();
 } /* testUserStringFuncs */
 
 
 
-void testStringFunctions(STATEPARAMS)
+void testStringFunctions(void)
 /*
  * This code tests all the string functions in BASIClib.
  *
@@ -368,8 +368,8 @@ void testStringFunctions(STATEPARAMS)
  *   returns : void.
  */
 {
-    testInternalStringFuncs(STATEARGS);
-    testUserStringFuncs(STATEARGS);
+    testInternalStringFuncs();
+    testUserStringFuncs();
 } /* testStringFunctions */
 
 
@@ -377,8 +377,8 @@ void testStringFunctions(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
-    testStringFunctions(NULLSTATEARGS);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE);
+    testStringFunctions();
     __deinitBasicLib();
     return(0);
 } /* main */
@@ -386,18 +386,18 @@ int main(void)
 #endif
 
 /* !!! check to see if all these are tested...
-PBasicString vbSSi_right_DC_(STATEPARAMS, PBasicString pStr, int count);
-PBasicString vbSSi_left_DC_(STATEPARAMS, PBasicString pStr, int count);
-PBasicString vbSS_rtrim_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString vbSS_ltrim_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString vbSS_lcase_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString vbSS_ucase_DC_(STATEPARAMS, PBasicString pStr);
-PBasicString vbSi_space_DC_(STATEPARAMS, int length);
-PBasicString vbSii_string_DC_(STATEPARAMS, int rep, int ch);
-PBasicString vbSiS_string_DC_(STATEPARAMS, int rep, PBasicString strCh);
-int vbiiSS_instr(STATEPARAMS, int start, PBasicString str1, PBasicString str2);
-int vbiSS_instr(STATEPARAMS, PBasicString str1, PBasicString str2);
-int vbiS_len(STATEPARAMS, PBasicString pStr);
+PBasicString vbSSi_right_DC_(PBasicString pStr, int count);
+PBasicString vbSSi_left_DC_(PBasicString pStr, int count);
+PBasicString vbSS_rtrim_DC_(PBasicString pStr);
+PBasicString vbSS_ltrim_DC_(PBasicString pStr);
+PBasicString vbSS_lcase_DC_(PBasicString pStr);
+PBasicString vbSS_ucase_DC_(PBasicString pStr);
+PBasicString vbSi_space_DC_(int length);
+PBasicString vbSii_string_DC_(int rep, int ch);
+PBasicString vbSiS_string_DC_(int rep, PBasicString strCh);
+int vbiiSS_instr(int start, PBasicString str1, PBasicString str2);
+int vbiSS_instr(PBasicString str1, PBasicString str2);
+int vbiS_len(PBasicString pStr);
 */
 
 

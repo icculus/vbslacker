@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "BasicLib.h"
 
-void test_chr_DC_(STATEPARAMS)
+void test_chr_DC_(void)
 /*
  * Test chr$() functionality.
  *
@@ -16,24 +16,27 @@ void test_chr_DC_(STATEPARAMS)
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     int i;
     PBasicString rc;
 
-    __setStateStack;
-    __setStateInstructs(&&chrErrorResume, &&chrErrorResumeNext);
-
     printf("Testing CHR$()...\n");
 
-    __registerOnEventHandler(STATEARGS, &&chrError, ONERROR);
+    __ONERRORINIT;
+
+    __setOnErrorHandler(chrError);
+    __setInstructs(chrErrorResume, chrErrorResumeNext);
 
     for (i = -32767; i <= 32767; i++)
     {
         __basicErrno = ERR_NO_ERROR;
 
-chrErrorResume:
-        rc = vbSi_chr_DC_(STATEARGS, i);
+__insertLineLabel(chrErrorResume);
 
-chrErrorResumeNext:
+        rc = vbSi_chr_DC_(i);
+
+__insertLineLabel(chrErrorResumeNext);
+
         if (__basicErrno == ERR_NO_ERROR)
         {
             if (rc->length != 1)
@@ -43,22 +46,22 @@ chrErrorResumeNext:
             } /* if */
             else if (rc->data[0] != (unsigned char) i)
                 printf("  - CHR$(%d) returned '\\%d'!\n", i, (int) rc->data[0]);
-            __freeString(STATEARGS, rc);
+            __freeString(rc);
         } /* if */
     } /* for */
 
-    __deregisterOnEventHandlers(STATEARGS);
+    __exitCleanupOnError;
     return;
 
-chrError:              /* error handler... */ 
+__insertLineLabel(chrError);   /* error handler... */
     if ((i >= 0) && (i <= 255))  /* !!! string of error number? */
         printf("  - CHR$(%d) threw error %d!\n", i, __basicErrno);
 
-    __resumeNext(STATEARGS);
+    __resumeNext;
 } /* test_chr_DC_ */
 
 
-void test_str_DC_(STATEPARAMS)
+void test_str_DC_(void)
 /*
  * Test str$() functionality.
  *
@@ -74,7 +77,7 @@ void test_str_DC_(STATEPARAMS)
 
     i = -32523.9921;
     sprintf(buffer, "%s%f", (i < 0.0) ? "" : " ", i);
-    rc = vbSd_str_DC_(STATEARGS, i);
+    rc = vbSd_str_DC_(i);
 
     if (rc->length > sizeof (buffer))
         printf("  - STR$(%f) returned %d byte string.\n", i, rc->length);
@@ -86,11 +89,11 @@ void test_str_DC_(STATEPARAMS)
         printf("  - STR$(%f) returned \"%s\"!\n", i, buffer);
     } /* if */
 
-    __freeString(STATEARGS, rc);
+    __freeString(rc);
 } /* test_str_DC_ */
 
 
-void test_asc(STATEPARAMS)
+void test_asc(void)
 /*
  * Test asc() functionality.
  *
@@ -98,28 +101,30 @@ void test_asc(STATEPARAMS)
  *   returns : void.
  */
 {
+    __ONERRORVARS;
     int i;
     int rc;
-    PBasicString argStr = __createString(STATEARGS, "The Quick brown fox... ",
+    PBasicString argStr = __createString("The Quick brown fox... ",
                                          false);
 
-    __setStateStack;
-    __setStateInstructs(&&ascErrorResume, &&ascErrorResumeNext);
+    __ONERRORINIT;
+
+    __setInstructs(ascErrorResume, ascErrorResumeNext);
 
     printf("Testing ASC()...\n");
 
-    __registerOnEventHandler(STATEARGS, &&ascError, ONERROR);
+    __setOnErrorHandler(ascError);
 
     for (i = -32767; i < 32767; i++)
     {
         argStr->data[0] = i;
         __basicErrno = ERR_NO_ERROR;
 
-ascErrorResume:
-        rc = vbiS_asc(STATEARGS, argStr);
+__insertLineLabel(ascErrorResume);
+        rc = vbiS_asc(argStr);
 
-ascErrorResumeNext:
-        if ((vbi_err(STATEARGS) == ERR_NO_ERROR) && (rc != i))
+__insertLineLabel(ascErrorResumeNext);
+        if ((vbi_err() == ERR_NO_ERROR) && (rc != i))
         {
             argStr->data[argStr->length - 1] = '\0';
             printf("  - ASC(\"%s\") returned [%d]! Should be (%d).\n",
@@ -127,10 +132,11 @@ ascErrorResumeNext:
         } /* if */
     } /* for */
 
-    __freeString(STATEARGS, argStr);
+    __freeString(argStr);
+    __exitCleanupOnError;
     return;
 
-ascError:
+__insertLineLabel(ascError);
     argStr->data[argStr->length - 1] = '\0';
     if ((i >= 0) && (i <= 255))
     {
@@ -138,11 +144,11 @@ ascError:
                 argStr->data);
     } /* if */
 
-    __resumeNext(STATEARGS);
+    __resumeNext;
 } /* test_asc */
 
 
-void test_hex_DC_(STATEPARAMS)
+void test_hex_DC_(void)
 /*
  * Test hex$() functionality.
  *
@@ -159,7 +165,7 @@ void test_hex_DC_(STATEPARAMS)
     for (i = 0; i < 0xFFFF; i++)
     {
         sprintf(buffer, "%X", i);
-        rc = vbSl_hex_DC_(STATEARGS, i);
+        rc = vbSl_hex_DC_(i);
 
         if (memcmp(rc->data, buffer, rc->length) != 0)
         {
@@ -168,12 +174,12 @@ void test_hex_DC_(STATEPARAMS)
             printf("  - HEX$(&H%X) returned \"%s\"!\n", i, buffer);
         } /* if */
 
-        __freeString(STATEARGS, rc);
+        __freeString(rc);
     } /* for */
 } /* test_hex_DC_ */
 
 
-void test_oct_DC_(STATEPARAMS)
+void test_oct_DC_(void)
 /*
  * Test oct$() functionality.
  *
@@ -190,7 +196,7 @@ void test_oct_DC_(STATEPARAMS)
     for (i = 0; i < 0xFFFF; i++)
     {
         sprintf(buffer, "%o", i);
-        rc = vbSl_oct_DC_(STATEARGS, i);
+        rc = vbSl_oct_DC_(i);
 
         if (memcmp(rc->data, buffer, rc->length) != 0)
         {
@@ -199,12 +205,12 @@ void test_oct_DC_(STATEPARAMS)
             printf("  - OCT$(%d) returned \"%s\"!\n", i, buffer);
         } /* if */
 
-        __freeString(STATEARGS, rc);
+        __freeString(rc);
     } /* for */
 } /* test_oct_DC_ */
 
 
-void test_val(STATEPARAMS)
+void test_val(void)
 {
     double i;
     double rc;
@@ -227,20 +233,20 @@ void test_val(STATEPARAMS)
             buffer[5] = ' ';
         } /* if */
 
-        pStr = __createString(STATEARGS, buffer, false);
+        pStr = __createString(buffer, false);
 
-        rc = vbdS_val(STATEARGS, pStr);
+        rc = vbdS_val(pStr);
         if (rc != i)
             printf("  - VAL(\"%s\") returned [%f]!\n", buffer, rc);
 
-        __freeString(STATEARGS, pStr);
+        __freeString(pStr);
     } /* for */
 
     /* !!! test for nulls/non numeric strings... */
 } /* test_val */
 
 
-void test_str_DC_and_val(STATEPARAMS)
+void test_str_DC_and_val(void)
 /*
  * Does str$ and val() testing by passing a value between both and
  *  seeing if it comes back to the original value.
@@ -257,16 +263,16 @@ void test_str_DC_and_val(STATEPARAMS)
 
     for (i = -2000.9274; i < 32523.9921; i += 321.3214);
     {
-        rcS = vbSd_str_DC_(STATEARGS, i);
-        rcD = vbdS_val(STATEARGS, rcS);
-        __freeString(STATEARGS, rcS);
+        rcS = vbSd_str_DC_(i);
+        rcD = vbdS_val(rcS);
+        __freeString(rcS);
         if (rcD != i)
             printf("  - Value (%f) came back as (%f).\n", i, rcD);
     } /* for */
 } /* test_str_DC_and_val */
 
 
-void testConversionFunctions(STATEPARAMS)
+void testConversionFunctions(void)
 /*
  * This code tests all the conversion functions in BASIClib.
  *
@@ -276,14 +282,14 @@ void testConversionFunctions(STATEPARAMS)
 {
     printf("\n[TESTING CONVERSION FUNCTIONS...]\n");
 
-    test_chr_DC_(STATEARGS);
-    test_asc(STATEARGS);
-    test_str_DC_(STATEARGS);
-    test_str_DC_and_val(STATEARGS);
+    test_chr_DC_();
+    test_asc();
+    test_str_DC_();
+    test_str_DC_and_val();
 #warning test_val() is commented out! Fix val()!!!
 /*    test_val();  !!! */
-    test_hex_DC_(STATEARGS);
-    test_oct_DC_(STATEARGS);
+    test_hex_DC_();
+    test_oct_DC_();
 } /* testConversionFunctions */
 
 
@@ -291,8 +297,8 @@ void testConversionFunctions(STATEPARAMS)
 
 int main(void)
 {
-    __initBasicLib(NULLSTATEARGS, INITFLAG_DISABLE_CONSOLE);
-    testConversionFunctions(NULLSTATEARGS);
+    __initBasicLib(INITFLAG_DISABLE_CONSOLE);
+    testConversionFunctions();
     __deinitBasicLib();
     return(0);
 } /* main */
