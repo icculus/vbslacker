@@ -419,8 +419,7 @@ void testOnEventHandling(void)
 
     for (i = 1; i <= 3; i++)
     {
-#warning testOnEventGotoRecursiveHandling() is commented out!
-/*        testOnEventGotoRecurseHandling(i); */
+        testOnEventGotoRecurseHandling(i); 
         checkBPIndexes();
     } /* for */
 
