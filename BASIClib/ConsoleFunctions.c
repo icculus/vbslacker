@@ -31,6 +31,10 @@ __integer (*_vbia_pos)(void *pVar) = NULL;
 void (*_vbpiii_color)(__integer fore, __integer back, __integer bord) = NULL;
 void (*_vbpil_color)(__integer fore, __long palette) = NULL;
 void (*_vbpi_color)(__integer fore) = NULL;
+void (*_vbpii_locate)(__integer newY, __integer newX) = NULL;
+void (*_vbpNi_locate)(__integer newX) = NULL;
+void (*_vbpiN_locate)(__integer newY) = NULL;
+void (*_vbp_locate)(void) = NULL;
 
 
 void __initConsoleFunctions(void)
@@ -68,6 +72,10 @@ void __deinitConsoleFunctions(void)
     _vbpiii_color = NULL;
     _vbpil_color = NULL;
     _vbpi_color = NULL;
+    _vbpii_locate = NULL;
+    _vbpNi_locate = NULL;
+    _vbpiN_locate = NULL;
+    _vbp_locate = NULL;
 } /* __deinitConsoleFunctions */
 
 
@@ -148,7 +156,6 @@ static void __preinitPrintNewLine(void)
 
 /* qbcolor */
 /* color */
-/* locate */
 /* write */
 /* input */
 /* line input */

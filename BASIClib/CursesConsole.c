@@ -237,6 +237,26 @@ static void __curs_vbpi_color(__integer fore)
 } /* __curs_vbpiii_color */
 
 
+static void __curs_vbpii_locate(__integer newY, __integer newX)
+{
+} /* __curs_vbpii_locate */
+
+
+static void __curs_vbpNi_locate(__integer newX)
+{
+} /* __curs_vbpNi_locate */
+
+
+static void __curs_vbpiN_locate(__integer newY)
+{
+} /* __curs_vbpiN_locate */
+
+
+static void __curs_vbp_locate(void)
+{
+} /* __curs_vbp_locate */
+
+
 static void __curs_getConsoleHandlerName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
@@ -275,6 +295,10 @@ __boolean __initCursesConsole(void)
         _vbpiii_color = __curs_vbpiii_color;
         _vbpil_color = __curs_vbpil_color;
         _vbpi_color = __curs_vbpi_color;
+        _vbpii_locate = __curs_vbpii_locate;
+        _vbpNi_locate = __curs_vbpNi_locate;
+        _vbpiN_locate = __curs_vbpiN_locate;
+        _vbp_locate = __curs_vbp_locate;
         retVal = true;
     } /* if */
 

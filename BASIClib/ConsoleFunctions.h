@@ -25,6 +25,11 @@ extern __integer (*_vbia_pos)(void *pVar);
 extern void (*_vbpiii_color)(__integer fore, __integer back, __integer bord);
 extern void (*_vbpil_color)(__integer fore, __long palette);
 extern void (*_vbpi_color)(__integer fore);
+extern void (*_vbpii_locate)(__integer newY, __integer newX);
+extern void (*_vbpNi_locate)(__integer newX);
+extern void (*_vbpiN_locate)(__integer newY);
+extern void (*_vbp_locate)(void);
+
 
 void __initConsoleFunctions(void);
 void __deinitConsoleFunctions(void);

@@ -63,6 +63,26 @@ static void __nocons_vbpi_color(__integer fore)
     __runtimeError(ERR_CANNOT_CONTINUE);
 } /* __nocons_vbpi_color */
 
+static void __nocons_vbpii_locate(__integer newY, __integer newX)
+{
+    __runtimeError(ERR_CANNOT_CONTINUE);
+} /* __nocons_vbpii_locate */
+
+static void __nocons_vbpNi_locate(__integer newX)
+{
+    __runtimeError(ERR_CANNOT_CONTINUE);
+} /* __nocons_vbpNi_locate */
+
+static void __nocons_vbpiN_locate(__integer newY)
+{
+    __runtimeError(ERR_CANNOT_CONTINUE);
+} /* __nocons_vbpiN_locate */
+
+static void __nocons_vbp_locate(void)
+{
+    __runtimeError(ERR_CANNOT_CONTINUE);
+} /* __nocons_vbp_locate */
+
 static void __nocons_getConsoleHandlerName(__byte *buffer, __integer size)
 /*
  * (Getting rather object-oriented...) copy the name of this console
@@ -103,6 +123,10 @@ __boolean __initNoConsole(void)
         _vbpiii_color = __nocons_vbpiii_color;
         _vbpil_color = __nocons_vbpil_color;
         _vbpi_color = __nocons_vbpi_color;
+        _vbpii_locate = __nocons_vbpii_locate;
+        _vbpNi_locate = __nocons_vbpNi_locate;
+        _vbpiN_locate = __nocons_vbpiN_locate;
+        _vbp_locate = __nocons_vbp_locate;
     } /* if */
 
     return(retVal);
