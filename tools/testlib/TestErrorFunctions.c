@@ -6,7 +6,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Initialize.h"
 #include "OnEvents.h"
 #include "ErrorFunctions.h"
 
@@ -131,6 +130,8 @@ void testErrorFunctions(void)
 
 
 #ifdef STANDALONE
+
+#include "Initialize.h"
 
 int main(void)
 {

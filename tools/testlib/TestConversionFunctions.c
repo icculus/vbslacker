@@ -6,7 +6,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Initialize.h"
 #include "OnEvents.h"
 #include "ConversionFunctions.h"
 #include "BasicString.h"
@@ -270,6 +269,8 @@ void testConversionFunctions(void)
 
 
 #ifdef STANDALONE
+
+#include "Initialize.h"
 
 int main(void)
 {
