@@ -1,5 +1,5 @@
 /*
- * This is the inline assembly macros for GNU C++ compilation on
+ * This is the inline assembly macros for GNU C/C++ compilation on
  *  Intel 386-compatible chipsets...
  *
  * Please see asm_skeleton.h for instructions on modifying this
