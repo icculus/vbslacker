@@ -2,11 +2,11 @@
 
 set -e
 
-cd ../libgc
+cd libgc
 make clean
-make linux
+make gc.a
 
-cd BASIClib
+cd ../BASIClib
 make clean
 make linux
 
