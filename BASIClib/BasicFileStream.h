@@ -27,11 +27,12 @@ typedef struct
 typedef __BasicFileStream *__PBasicFileStream;
 
 /*** Function Declarations ***/
-__PBasicFileStream __getFileStream(short fileNumber);
-boolean __deleteFileStream(short fileNumber);
+__PBasicFileStream __getFileStream(STATEPARAMS, short fileNumber);
+boolean __deleteFileStream(STATEPARAMS, short fileNumber);
 void __initBasicFileStream(STATEPARAMS);
-boolean __invalidFileNumber(short fileNumber);
-__PBasicFileStream __createFileStream(short fileNumber);
+boolean __invalidFileNumber(STATEPARAMS, short fileNumber);
+__PBasicFileStream __createFileStream(STATEPARAMS, short fileNumber);
 
 #endif
+
 /* end of BasicFileStream.h ... */

@@ -17,23 +17,24 @@
 #include "InternalMemManager.h"
 
 /*** Private function declarations ***/
-static void __VBopen(PBasicString pathName, FileModeEnum mode,
+static void __VBopen(STATEPARAMS, PBasicString pathName, FileModeEnum mode,
                      FileAccessEnum *access, FileLockEnum *lock,
                      short fileNumber, short *recLength);
-static void __VBclose(short handleCount, short *fileHandles);
-static void __VBget(short fileNumber, PVariant recNumber,
+static void __VBclose(STATEPARAMS, short handleCount, short *fileHandles);
+static void __VBget(STATEPARAMS, short fileNumber, PVariant recNumber,
                     void *varName, boolean isVariant);
-static void __VBput(short fileNumber, PVariant recNumber,
+static void __VBput(STATEPARAMS, short fileNumber, PVariant recNumber,
                     void *varName, boolean isVariant);
-static short __VBFreeFile(short rangeNumber);
-static void __GetFileOpenMode(char *Dest, const char *pathName, FileModeEnum mode, FileAccessEnum access);
-static boolean __FileExist(const char *fileName);
+static short __VBFreeFile(STATEPARAMS, short rangeNumber);
+static void __GetFileOpenMode(STATEPARAMS, char *Dest, const char *pathName,
+                              FileModeEnum mode, FileAccessEnum access);
+static boolean __FileExist(STATEPARAMS, const char *fileName);
 
 /*** Private constants ***/
 #define MAX_FILE_MODE_LENGTH    5   /* Length of 'mode' parameter for fopen */
 
 /*** Close Statement ***/
-void __VBclose(short handleCount, short *fileHandles)
+void __VBclose(STATEPARAMS, short handleCount, short *fileHandles)
 /*
  * Closes file I/O for the specified handle(s).
  *
@@ -52,14 +53,14 @@ void __VBclose(short handleCount, short *fileHandles)
                                     /* Cycle through all handles */
         for(i = 1; i < MAX_FILE_HANDLES; i++)
         {
-            if((pFileStream = __getFileStream(i)) != NULL)
+            if((pFileStream = __getFileStream(STATEARGS, i)) != NULL)
             {
                                     /* Reset locking on file */
                 /* !!! LOCKING NOT SUPPORTED YET !!! */
                                     /* Close associated file stream */
                 fclose(pFileStream->fileStream);
                                     /* Delete file stream object */
-                __deleteFileStream(i);
+                __deleteFileStream(STATEARGS, i);
             }
         }
     }
@@ -70,18 +71,20 @@ void __VBclose(short handleCount, short *fileHandles)
                                     /* Cycle through all handles */
         for(i = 0; i < handleCount; i++)
         {
-            if((pFileStream = __getFileStream(*pTemp)) != NULL)
+            if((pFileStream = __getFileStream(STATEARGS, *pTemp)) != NULL)
             {
                                     /* Close associated file stream */
                 fclose(pFileStream->fileStream);
                                     /* Delete file stream object */
                                     /* Increment to next array element */
-                __deleteFileStream(*pTemp++);
+                __deleteFileStream(STATEARGS, *pTemp++);
             }
         }
     }
 }
-void VBclose_Params(short handleCount, short firstFileHandle, ...)
+
+
+void VBclose_Params(STATEPARAMS, short handleCount, short firstFileHandle, ...)
 {
     short *pFileHandles;            /* Array of file handles */
     va_list pArgs;                   /* Function argument pointer */
@@ -93,7 +96,7 @@ void VBclose_Params(short handleCount, short firstFileHandle, ...)
         return;
 
                                     /* Allocate memory for handle array */
-    pFileHandles = (short *) __memAlloc(handleCount * sizeof(short));
+    pFileHandles = (short *) __memAlloc(STATEARGS, handleCount * sizeof(short));
 
     va_start(pArgs, firstFileHandle);
     
@@ -108,18 +111,21 @@ void VBclose_Params(short handleCount, short firstFileHandle, ...)
     va_end(pArgs);                  /* Reset variable arguments. */
 
                                     /* Close handles specified in arguments */
-    __VBclose(handleCount, pFileHandles);
+    __VBclose(STATEARGS, handleCount, pFileHandles);
 }
-void VBclose_NoParams(void)
+
+
+void VBclose_NoParams(STATEPARAMS)
 {
-    __VBclose(0, NULL);             /* Close all file handles */
+    __VBclose(STATEARGS, 0, NULL);             /* Close all file handles */
 }
 /*** End Close Statement ***/
 
 
 /*** Open Statement ***/
-void __VBopen(PBasicString pathName, FileModeEnum mode, FileAccessEnum *access, 
-             FileLockEnum *lock, short fileNumber, short *recLength)
+void __VBopen(STATEPARAMS, PBasicString pathName, FileModeEnum mode,
+              FileAccessEnum *access, FileLockEnum *lock, short fileNumber,
+              short *recLength)
 /*
  * Enables I/O to a file.  mode, access, and recLength are set to NULL by
  *  the appropriate function overload.  This indicates that the parameter is
@@ -154,9 +160,9 @@ void __VBopen(PBasicString pathName, FileModeEnum mode, FileAccessEnum *access,
     char            *strPathName;   /* C string version of pathName */
 
 									/* File number was invalid */
-	if(__invalidFileNumber(fileNumber))
+	if(__invalidFileNumber(STATEARGS, fileNumber))
 	{
-		__runtimeError(ERR_BAD_FILE_NAME_OR_NUMBER);
+		__runtimeError(STATEARGS, ERR_BAD_FILE_NAME_OR_NUMBER);
 		return;
 	}
 
@@ -169,23 +175,23 @@ void __VBopen(PBasicString pathName, FileModeEnum mode, FileAccessEnum *access,
     else                    sRecLength = *recLength;
 
     /* Convert BASIC string to a C string */
-    strPathName = (char *)__memAlloc(pathName->length + 1);
+    strPathName = (char *)__memAlloc(STATEARGS, pathName->length + 1);
     memcpy(strPathName, pathName->data, pathName->length);
                                     /* Add NULL terminator */
     strPathName[pathName->length] = 0x00;
     
     /* We're all good...let's go */
                                     /* Try to create a new stream object */
-    pNewFileStream = __createFileStream(fileNumber);
+    pNewFileStream = __createFileStream(STATEARGS, fileNumber);
     if(pNewFileStream == NULL)      /* If creation failed */
     {  
-        __runtimeError(ERR_OUT_OF_MEMORY);
+        __runtimeError(STATEARGS, ERR_OUT_OF_MEMORY);
         return;
     }
     
                                     /* Get file mode string based on VB mode */
                                     /*  and access values */
-    __GetFileOpenMode(strOpenFileMode, strPathName, mode, enuAccess);
+    __GetFileOpenMode(STATEARGS, strOpenFileMode, strPathName, mode, enuAccess);
 
     /* Set share lock on file */
     /* !!! LOCKING NOT SUPPORTED YET !!! */
@@ -194,8 +200,8 @@ void __VBopen(PBasicString pathName, FileModeEnum mode, FileAccessEnum *access,
                                     /* Attempt to open the file */
     if((pNewFileStream->fileStream = fopen(strPathName, strOpenFileMode)) == NULL)
     {
-        __deleteFileStream(fileNumber);
-        __runtimeError(ERR_PATH_FILE_ACCESS_ERROR);
+        __deleteFileStream(STATEARGS, fileNumber);
+        __runtimeError(STATEARGS, ERR_PATH_FILE_ACCESS_ERROR);
         return;
     }
 
@@ -206,56 +212,78 @@ void __VBopen(PBasicString pathName, FileModeEnum mode, FileAccessEnum *access,
     pNewFileStream->lock = enuLock;
     pNewFileStream->recLength = sRecLength;
 }
-void VBopen_NoAccess_NoLock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-									 short fileNumber)
+
+
+void VBopen_NoAccess_NoLock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                     FileModeEnum mode, short fileNumber)
 {
-    __VBopen(pathName, mode, NULL, NULL, fileNumber, NULL);
-}
-void VBopen_NoAccess_NoLock_RecLen(PBasicString pathName, FileModeEnum mode, 
-                                   short fileNumber, short recLength)
-{
-    __VBopen(pathName, mode, NULL, NULL, fileNumber, &recLength);
-}
-void VBopen_NoAccess_Lock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-								   FileLockEnum lock, short fileNumber)
-{
-    __VBopen(pathName, mode, NULL, &lock, fileNumber, NULL);
-}
-void VBopen_NoAccess_Lock_RecLen(PBasicString pathName, FileModeEnum mode, 
-								 FileAccessEnum access, FileLockEnum lock,
-                                 short fileNumber, short recLength)
-{
-    __VBopen(pathName, mode, NULL, &lock, fileNumber, &recLength);
-}
-void VBopen_Access_NoLock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-								   FileAccessEnum access, short fileNumber)
-{
-    __VBopen(pathName, mode, &access, NULL, fileNumber, NULL);
-}
-void VBopen_Access_NoLock_RecLen(PBasicString pathName, FileModeEnum mode, 
-								 FileAccessEnum access, short fileNumber,
-                                 short recLength)
-{
-    __VBopen(pathName, mode, &access, NULL, fileNumber, &recLength);
-}
-void VBopen_Access_Lock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-								 FileAccessEnum access, FileLockEnum lock,
-                                 short fileNumber)
-{
-    __VBopen(pathName, mode, &access, &lock, fileNumber, NULL);
+    __VBopen(STATEARGS, pathName, mode, NULL, NULL, fileNumber, NULL);
 }
 
-void VBopen_Access_Lock_RecLen(PBasicString pathName, FileModeEnum mode, 
-							   FileAccessEnum access, FileLockEnum lock,
-                               short fileNumber, short recLength)
+
+void VBopen_NoAccess_NoLock_RecLen(STATEPARAMS, PBasicString pathName,
+                                   FileModeEnum mode, short fileNumber,
+                                   short recLength)
 {
-    __VBopen(pathName, mode, &access, &lock, fileNumber, &recLength);
+    __VBopen(STATEARGS, pathName, mode, NULL, NULL, fileNumber, &recLength);
 }
+
+
+void VBopen_NoAccess_Lock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                   FileModeEnum mode, FileLockEnum lock,
+                                   short fileNumber)
+{
+    __VBopen(STATEARGS, pathName, mode, NULL, &lock, fileNumber, NULL);
+}
+
+
+void VBopen_NoAccess_Lock_RecLen(STATEPARAMS, PBasicString pathName,
+                                 FileModeEnum mode, FileAccessEnum access,
+                                 FileLockEnum lock, short fileNumber,
+                                 short recLength)
+{
+    __VBopen(STATEARGS, pathName, mode, NULL, &lock, fileNumber, &recLength);
+}
+
+
+void VBopen_Access_NoLock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                   FileModeEnum mode, FileAccessEnum access,
+                                   short fileNumber)
+{
+    __VBopen(STATEARGS, pathName, mode, &access, NULL, fileNumber, NULL);
+}
+
+
+void VBopen_Access_NoLock_RecLen(STATEPARAMS, PBasicString pathName,
+                                 FileModeEnum mode, FileAccessEnum access,
+                                 short fileNumber, short recLength)
+{
+    __VBopen(STATEARGS, pathName, mode, &access, NULL, fileNumber, &recLength);
+}
+
+
+void VBopen_Access_Lock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                 FileModeEnum mode, FileAccessEnum access,
+                                 FileLockEnum lock, short fileNumber)
+{
+    __VBopen(STATEARGS, pathName, mode, &access, &lock, fileNumber, NULL);
+}
+
+
+void VBopen_Access_Lock_RecLen(STATEPARAMS, PBasicString pathName,
+                               FileModeEnum mode, FileAccessEnum access,
+                               FileLockEnum lock, short fileNumber,
+                               short recLength)
+{
+    __VBopen(STATEARGS, pathName, mode, &access, &lock, fileNumber, &recLength);
+}
+
 /*** End Open Statement ***/
 
 
 /*** Get Statement ***/
-void __VBget(short fileNumber, PVariant recNumber, void *varName,
+
+void __VBget(STATEPARAMS, short fileNumber, PVariant recNumber, void *varName,
              boolean isVariant)
 /*
  * Reads data from an open disk file into a variable
@@ -270,27 +298,39 @@ void __VBget(short fileNumber, PVariant recNumber, void *varName,
  */
 {
 }
-void VBget_NoRecNum_NoVar(short fileNumber, void *varName)
+
+
+void VBget_NoRecNum_NoVar(STATEPARAMS, short fileNumber, void *varName)
 {
-    __VBget(fileNumber, NULL, varName, false);
+    __VBget(STATEARGS, fileNumber, NULL, varName, false);
 }
-void VBget_NoRecNum_Var(short fileNumber, PVariant *varName)
+
+
+void VBget_NoRecNum_Var(STATEPARAMS, short fileNumber, PVariant *varName)
 {
-    __VBget(fileNumber, NULL, varName, true);
+    __VBget(STATEARGS, fileNumber, NULL, varName, true);
 }
-void VBget_RecNum_NoVar(short fileNumber, PVariant recNumber, void *varName)
+
+
+void VBget_RecNum_NoVar(STATEPARAMS, short fileNumber,
+                        PVariant recNumber, void *varName)
 {
-    __VBget(fileNumber, recNumber, varName, false);
+    __VBget(STATEARGS, fileNumber, recNumber, varName, false);
 }
-void VBget_RecNum_Var(short fileNumber, PVariant recNumber, PVariant *varName)
+
+
+void VBget_RecNum_Var(STATEPARAMS, short fileNumber,
+                      PVariant recNumber, PVariant *varName)
 {
-    __VBget(fileNumber, recNumber, varName, true);
+    __VBget(STATEARGS, fileNumber, recNumber, varName, true);
 }
+
 /*** End Get Statement ***/
 
 
 /*** Put Statement ***/
-void __VBput(short fileNumber, PVariant recNumber, void *varName,
+
+void __VBput(STATEPARAMS, short fileNumber, PVariant recNumber, void *varName,
              boolean isVariant)
 /*
  * Reads data from an open disk file into a variable
@@ -305,26 +345,37 @@ void __VBput(short fileNumber, PVariant recNumber, void *varName,
  */
 {
 }
-void VBput_NoRecNum_NoVar(short fileNumber, void *varName)
+
+
+void VBput_NoRecNum_NoVar(STATEPARAMS, short fileNumber, void *varName)
 {
-    __VBput(fileNumber, NULL, varName, false);
+    __VBput(STATEARGS, fileNumber, NULL, varName, false);
 }
-void VBput_NoRecNum_Var(short fileNumber, PVariant *varName)
+
+
+void VBput_NoRecNum_Var(STATEPARAMS, short fileNumber, PVariant *varName)
 {
-    __VBput(fileNumber, NULL, varName, true);
+    __VBput(STATEARGS, fileNumber, NULL, varName, true);
 }
-void VBput_RecNum_NoVar(short fileNumber, PVariant recNumber, void *varName)
+
+
+void VBput_RecNum_NoVar(STATEPARAMS, short fileNumber,
+                        PVariant recNumber, void *varName)
 {
-    __VBput(fileNumber, recNumber, varName, false);
+    __VBput(STATEARGS, fileNumber, recNumber, varName, false);
 }
-void VBput_RecNum_Var(short fileNumber, PVariant recNumber, PVariant *varName)
+
+
+void VBput_RecNum_Var(STATEPARAMS, short fileNumber,
+                      PVariant recNumber, PVariant *varName)
 {
-    __VBput(fileNumber, recNumber, varName, true);
+    __VBput(STATEARGS, fileNumber, recNumber, varName, true);
 }
+
 /*** End Put Statement ***/
 
 
-PBasicString VBfunc_input(long number, short fileNumber)
+PBasicString VBfunc_input(STATEPARAMS, long number, short fileNumber)
 /*
  * Returns a string containing characters from a file openend in Input of
  *  Binary mode.
@@ -337,7 +388,8 @@ PBasicString VBfunc_input(long number, short fileNumber)
     return NULL;
 }
 
-PBasicString VBproc_input(short fileNumber, PVariant varList, ...)
+
+PBasicString VBproc_input(STATEPARAMS, short fileNumber, PVariant varList, ...)
 /*
  * Returns a string containing characters from a file openend in Input of
  *  Binary mode.
@@ -350,7 +402,7 @@ PBasicString VBproc_input(short fileNumber, PVariant varList, ...)
     return NULL;
 }
 
-PBasicString VBlineInput(short fileNumber, PBasicString varName)
+PBasicString VBlineInput(STATEPARAMS, short fileNumber, PBasicString varName)
 /*
  * Read a single line and saves it into varName.
  *
@@ -362,7 +414,7 @@ PBasicString VBlineInput(short fileNumber, PBasicString varName)
     return NULL;
 }
 
-void VBprint(short fileNumber, PVariant outputList, ...)
+void VBprint(STATEPARAMS, short fileNumber, PVariant outputList, ...)
 /*
  * Writes display-formatted data to a sequential file.
  *
@@ -373,7 +425,7 @@ void VBprint(short fileNumber, PVariant outputList, ...)
 {
 }
 
-void VBwrite(short fileNumber, PVariant outputList, ...)
+void VBwrite(STATEPARAMS, short fileNumber, PVariant outputList, ...)
 /*
  * Writes data to a sequential file.
  *
@@ -384,17 +436,17 @@ void VBwrite(short fileNumber, PVariant outputList, ...)
 {
 }
 
-void VB_EOF(short fileNumber)
+void VB_EOF(STATEPARAMS, short fileNumber)
 {
 }
 
-void VB_LOF(short fileNumber)
+void VB_LOF(STATEPARAMS, short fileNumber)
 {
 }
 
 
 /*** FreeFile Statement ***/
-short __VBFreeFile(short rangeNumber)
+short __VBFreeFile(STATEPARAMS, short rangeNumber)
 {
     short sStart;                   /* Start and end of search loop */
     short sEnd;
@@ -415,7 +467,7 @@ short __VBFreeFile(short rangeNumber)
     for(i = sStart; i <= sEnd; i++)
     {
                                     /* If we found our man...err...number */
-        if(__getFileStream(i) == NULL)
+        if(__getFileStream(STATEARGS, i) == NULL)
         {
             sReturnedFileNumber = i;
             break;                  /* Break out of loop */
@@ -425,38 +477,45 @@ short __VBFreeFile(short rangeNumber)
                                     /* If all of the file handles were taken */
     if(sReturnedFileNumber == -1)
     {
-        __runtimeError(ERR_TOO_MANY_FILES);
+        __runtimeError(STATEARGS, ERR_TOO_MANY_FILES);
         return 0;
     }
     
     return sReturnedFileNumber;     /* Return the free file handle */
 }
 
-short VBFreeFile_Range(short rangeNumber)
+
+short VBFreeFile_Range(STATEPARAMS, short rangeNumber)
 {
-    return __VBFreeFile(rangeNumber);
+    return __VBFreeFile(STATEARGS, rangeNumber);
 }
 
-short VBFreeFile_NoRange(void)
+
+short VBFreeFile_NoRange(STATEPARAMS)
 {
-    return __VBFreeFile(0);         /* Specify default range */
+    return __VBFreeFile(STATEARGS, 0);         /* Specify default range */
 }
+
 /*** End FreeFile Statement ***/
 
-void VBloc(short fileNumber)
+
+void VBloc(STATEPARAMS, short fileNumber)
 {
 }
 
-void VBfunc_seek(short fileNumber)
+void VBfunc_seek(STATEPARAMS, short fileNumber)
 {
 }
 
-void VBproc_seek(short fileNumber, long position)
+void VBproc_seek(STATEPARAMS, short fileNumber, long position)
 {
 }
+
 
 /*** Miscellaneous Private Methods ***/
-void __GetFileOpenMode(char *Dest, const char *pathName, FileModeEnum mode, FileAccessEnum access)
+
+void __GetFileOpenMode(STATEPARAMS, char *Dest, const char *pathName,
+                       FileModeEnum mode, FileAccessEnum access)
 /*
  * Gets the 'fopen' equivelent file mode string for the specified VB mode and access.
  *
@@ -499,7 +558,7 @@ void __GetFileOpenMode(char *Dest, const char *pathName, FileModeEnum mode, File
                 case ReadWrite:
                                     /* If file exists, we don't want to */
                                     /*  overwrite it. */
-                    if(__FileExist(pathName))
+                    if(__FileExist(STATEARGS, pathName))
                         strcpy(Dest, "r+b");
                     else
                         strcpy(Dest, "w+b");
@@ -508,7 +567,7 @@ void __GetFileOpenMode(char *Dest, const char *pathName, FileModeEnum mode, File
     }
 }
 
-boolean __FileExist(const char *fileName)
+boolean __FileExist(STATEPARAMS, const char *fileName)
 /*
  * Checks to see if specified file exists.
  *

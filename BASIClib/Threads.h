@@ -34,7 +34,7 @@ void __deinitThreads(STATEPARAMS);
 void __terminateCurrentThread(STATEPARAMS);
 void __terminateThread(STATEPARAMS, int tidx);
 void __waitForThreadToDie(STATEPARAMS, int tidx);
-int  __spinThread(STATEPARAMS, void *(*_fn)(void *), void *_args);
+int  __spinThread(STATEPARAMS, void *(*_fn)(STATEPARAMS, void *x), void *_args);
 int  __getThreadCount(STATEPARAMS);
 int  __getHighestThreadIndex(STATEPARAMS);
 int  __getCurrentThreadIndex(STATEPARAMS);

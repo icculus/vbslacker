@@ -48,7 +48,7 @@ struct tm *__getBrokenTime(STATEPARAMS)
     struct tm *retVal = NULL;
     
     if (time(&currentTime) == (time_t) -1)     /* can't retrieve time?! */
-        __runtimeError(ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
     else
         retVal = localtime(&currentTime);
 
@@ -135,7 +135,7 @@ PBasicString __makeTimeDateString(STATEPARAMS, int size, char *fmt)
     rc = strftime(buffer, sizeof (buffer), fmt, brokenTime);
 
     if ((unsigned int) rc == sizeof (buffer))  /* not enough space? */
-        __runtimeError(STATEARGS. ERR_INTERNAL_ERROR);
+        __runtimeError(STATEARGS, ERR_INTERNAL_ERROR);
     else
         retVal = __createString(STATEARGS, buffer, false);
 
@@ -325,7 +325,7 @@ void proc_date_DC_(STATEPARAMS, PBasicString newDateStr)
     memcpy(str, newDateStr->data, newDateStr->length);
     str[newDateStr->length] = '\0';
 
-    if (__prepareDateString(str) == false)
+    if (__prepareDateString(STATEARGS, str) == false)
         __runtimeError(STATEARGS, ERR_ILLEGAL_FUNCTION_CALL);
     else
     {

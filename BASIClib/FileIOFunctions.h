@@ -11,6 +11,8 @@
 #ifndef _INCLUDE_FILEIOFUNCTIONS_H_
 #define _INCLUDE_FILEIOFUNCTIONS_H_
 
+#include "RegState.h"
+
 typedef enum
 {
     Append,
@@ -36,48 +38,59 @@ typedef enum
 } FileLockEnum;
 
 /*** Function Declarations ***/
-void VBclose_Params(short handleCount, short firstFileHandle, ...);
-void VBclose_NoParams(void);
-void VBopen_NoAccess_NoLock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-									 short fileNumber);
-void VBopen_NoAccess_NoLock_RecLen(PBasicString pathName, FileModeEnum mode, 
-                                   short fileNumber, short recLength);
-void VBopen_NoAccess_Lock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-								   FileLockEnum lock, short fileNumber);
-void VBopen_NoAccess_Lock_RecLen(PBasicString pathName, FileModeEnum mode, 
-								 FileAccessEnum access, FileLockEnum lock,
-                                 short fileNumber, short recLength);
-void VBopen_Access_NoLock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-								   FileAccessEnum access, short fileNumber);
-void VBopen_Access_NoLock_RecLen(PBasicString pathName, FileModeEnum mode, 
-								 FileAccessEnum access, short fileNumber,
+void VBclose_Params(STATEPARAMS, short handleCount, short firstFileHandle, ...);
+void VBclose_NoParams(STATEPARAMS);
+void VBopen_NoAccess_NoLock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                     FileModeEnum mode, short fileNumber);
+void VBopen_NoAccess_NoLock_RecLen(STATEPARAMS, PBasicString pathName,
+                                   FileModeEnum mode, short fileNumber,
+                                   short recLength);
+void VBopen_NoAccess_Lock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                   FileModeEnum mode, FileLockEnum lock,
+                                   short fileNumber);
+void VBopen_NoAccess_Lock_RecLen(STATEPARAMS, PBasicString pathName,
+                                 FileModeEnum mode, FileAccessEnum access,
+                                 FileLockEnum lock, short fileNumber,
                                  short recLength);
-void VBopen_Access_Lock_NoRecLen(PBasicString pathName, FileModeEnum mode, 
-								 FileAccessEnum access, FileLockEnum lock,
-                                 short fileNumber);
-void VBopen_Access_Lock_RecLen(PBasicString pathName, FileModeEnum mode, 
-							   FileAccessEnum access, FileLockEnum lock,
-                               short fileNumber, short recLength);
-void VBget_NoRecNum_NoVar(short fileNumber, void *varName);
-void VBget_NoRecNum_Var(short fileNumber, PVariant *varName);
-void VBget_RecNum_NoVar(short fileNumber, PVariant recNumber, void *varName);
-void VBget_RecNum_Var(short fileNumber, PVariant recNumber, PVariant *varName);
-void VBput_NoRecNum_NoVar(short fileNumber, void *varName);
-void VBput_NoRecNum_Var(short fileNumber, PVariant *varName);
-void VBput_RecNum_NoVar(short fileNumber, PVariant recNumber, void *varName);
-void VBput_RecNum_Var(short fileNumber, PVariant recNumber, PVariant *varName);
-PBasicString VBfunc_input(long number, short fileNumber);
-PBasicString VBproc_input(short fileNumber, PVariant varList, ...);
-PBasicString VBlineInput(short fileNumber, PBasicString varName);
-void VBprint(short fileNumber, PVariant outputList, ...);
-void VBwrite(short fileNumber, PVariant outputList, ...);
-void VB_EOF(short fileNumber);
-void VB_LOF(short fileNumber);
-short VBFreeFile_Range(short rangeNumber);
-short VBFreeFile_NoRange(void);
-void VBloc(short fileNumber);
-void VBfunc_seek(short fileNumber);
-void VBproc_seek(short fileNumber, long position);
+void VBopen_Access_NoLock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                   FileModeEnum mode, FileAccessEnum access,
+                                   short fileNumber);
+void VBopen_Access_NoLock_RecLen(STATEPARAMS, PBasicString pathName,
+                                 FileModeEnum mode, FileAccessEnum access,
+                                 short fileNumber, short recLength);
+void VBopen_Access_Lock_NoRecLen(STATEPARAMS, PBasicString pathName,
+                                 FileModeEnum mode, FileAccessEnum access,
+                                 FileLockEnum lock, short fileNumber);
+void VBopen_Access_Lock_RecLen(STATEPARAMS, PBasicString pathName,
+                               FileModeEnum mode, FileAccessEnum access,
+                               FileLockEnum lock, short fileNumber,
+                               short recLength);
+void VBget_NoRecNum_NoVar(STATEPARAMS, short fileNumber, void *varName);
+void VBget_NoRecNum_Var(STATEPARAMS, short fileNumber, PVariant *varName);
+void VBget_RecNum_NoVar(STATEPARAMS, short fileNumber,
+                        PVariant recNumber, void *varName);
+void VBget_RecNum_Var(STATEPARAMS, short fileNumber,
+                      PVariant recNumber, PVariant *varName);
+void VBput_NoRecNum_NoVar(STATEPARAMS, short fileNumber, void *varName);
+void VBput_NoRecNum_Var(STATEPARAMS, short fileNumber, PVariant *varName);
+void VBput_RecNum_NoVar(STATEPARAMS, short fileNumber,
+                        PVariant recNumber, void *varName);
+void VBput_RecNum_Var(STATEPARAMS, short fileNumber,
+                      PVariant recNumber, PVariant *varName);
+PBasicString VBfunc_input(STATEPARAMS, long number, short fileNumber);
+PBasicString VBproc_input(STATEPARAMS, short fileNumber, PVariant varList, ...);
+PBasicString VBlineInput(STATEPARAMS, short fileNumber, PBasicString varName);
+void VBprint(STATEPARAMS, short fileNumber, PVariant outputList, ...);
+void VBwrite(STATEPARAMS, short fileNumber, PVariant outputList, ...);
+void VB_EOF(STATEPARAMS, short fileNumber);
+void VB_LOF(STATEPARAMS, short fileNumber);
+short VBFreeFile_Range(STATEPARAMS, short rangeNumber);
+short VBFreeFile_NoRange(STATEPARAMS);
+void VBloc(STATEPARAMS, short fileNumber);
+void VBfunc_seek(STATEPARAMS, short fileNumber);
+void VBproc_seek(STATEPARAMS, short fileNumber, long position);
 
 #endif
+
 /* end of FileIOFunctions.h ... */
+

@@ -22,7 +22,7 @@
 typedef struct
 {
     int tidx;
-    void *(*fn)(void*);
+    void *(*fn)(STATEPARAMS, void *args);
     void *args;
 } ThreadEntryArgs;
 
@@ -38,8 +38,8 @@ static volatile int maxIndex = 0;
 
 
     /* defined in Initialize.c, but only declared here for abstractness. */
-void __initThread(int tidx); 
-void __deinitThread(int tidx); 
+void __initThread(STATEPARAMS, int tidx); 
+void __deinitThread(STATEPARAMS, int tidx); 
 
 
 
@@ -149,7 +149,7 @@ void __threadEntry(void *_args)
 } /* __threadStart */
 
 
-int __spinThread(STATEPARAMS, void *(*_fn)(void *), void *_args)
+int __spinThread(STATEPARAMS, void *(*_fn)(STATEPARAMS, void *x), void *_args)
 {
 #ifndef WIN32
     PThreadEntryArgs args = __memAlloc(STATEARGS, sizeof (ThreadEntryArgs));

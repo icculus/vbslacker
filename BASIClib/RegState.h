@@ -40,7 +40,7 @@
                             "pushl   $0\n\t" \
                             "pushl   $0\n\t" \
                             "pushl   $0\n\t"
-#define POPNULLSTATEARGS    "addl    $16,%%esp\n\t"
+#define STATEARGSSIZESTR    "16"
 
 #endif
 

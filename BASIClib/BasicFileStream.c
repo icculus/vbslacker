@@ -15,8 +15,6 @@ static __PBasicFileStream __fileNumbers[MAX_FILE_HANDLES + 1];
 
 /*** File stream functions ***/
 
-#warning BasicFileStream.[c,h] still needs REGSTATE stuff...
-
 void __initBasicFileStream(STATEPARAMS)
 /*
  *  Initializes the file stream array if it hasn't already been initialized.
@@ -31,7 +29,7 @@ void __initBasicFileStream(STATEPARAMS)
 }
 
 
-boolean __invalidFileNumber(short fileNumber)
+boolean __invalidFileNumber(STATEPARAMS, short fileNumber)
 /*
  *  Checks if the specified fileNumber is out of range.
  *
@@ -42,7 +40,8 @@ boolean __invalidFileNumber(short fileNumber)
     return (fileNumber < 1 || fileNumber > 511);
 }
 
-__PBasicFileStream __getFileStream(short fileNumber)
+
+__PBasicFileStream __getFileStream(STATEPARAMS, short fileNumber)
 /*
  *  Returns a pointer to file stream data.  If the file stream structure
  *   hasn't been created, the return value is NULL.
@@ -51,7 +50,7 @@ __PBasicFileStream __getFileStream(short fileNumber)
  *  returns : See description
  */
 {   
-    if(__invalidFileNumber(fileNumber))
+    if(__invalidFileNumber(STATEARGS, fileNumber))
         return NULL;
                                     /* Return a pointer to file stream data. */
                                     /*  This will be NULL if the file stream */
@@ -59,7 +58,7 @@ __PBasicFileStream __getFileStream(short fileNumber)
     return __fileNumbers[fileNumber];
 }
 
-boolean __deleteFileStream(short fileNumber)
+boolean __deleteFileStream(STATEPARAMS, short fileNumber)
 /*
  *  De-allocates memory associated with the fileNumber.
  *
@@ -70,14 +69,14 @@ boolean __deleteFileStream(short fileNumber)
                                     /* Temporary file stream pointer */
     __PBasicFileStream pFileStream;
 
-    pFileStream = __getFileStream(fileNumber);
+    pFileStream = __getFileStream(STATEARGS, fileNumber);
 
                                     /* If invalid file stream */
     if(pFileStream == NULL)
         return false;   
 
                                     /* Free pathname string in structure */
-    __freeString(pFileStream->pathName);
+    __freeString(STATEARGS, pFileStream->pathName);
                                     /* Free structure memory */
     free(pFileStream);
                                     /* Set pointer to NULL indicating it */
@@ -87,7 +86,7 @@ boolean __deleteFileStream(short fileNumber)
     return true;
 }
 
-__PBasicFileStream __createFileStream(short fileNumber)
+__PBasicFileStream __createFileStream(STATEPARAMS, short fileNumber)
 /*
  *  Allocates memory associated with the fileNumber.
  *
@@ -98,7 +97,7 @@ __PBasicFileStream __createFileStream(short fileNumber)
                                     /* Temporary file stream pointer */
     __PBasicFileStream pFileStream;
 
-    if(__invalidFileNumber(fileNumber))
+    if(__invalidFileNumber(STATEARGS, fileNumber))
         return NULL;
                                     /* Allocate memory for a new stream */
     pFileStream = (__PBasicFileStream)malloc(sizeof(__BasicFileStream));
@@ -111,8 +110,11 @@ __PBasicFileStream __createFileStream(short fileNumber)
 
                                     /* Save newly allocated pointer */
     __fileNumbers[fileNumber] = pFileStream;
-    
+
     return pFileStream;             /* Return pointer to new structure */
 }
 
 /*** End File stream functions ***/
+
+/* end of BasicFileStream.c ... */
+
