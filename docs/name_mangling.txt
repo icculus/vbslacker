@@ -29,6 +29,7 @@ These chars can be:
 'd' == "double BYVAL"
 's' == "string BYVAL" (*see note)
 'v' == "Variant BYVAL" (*see note)
+'a' == "Any variable BYVAL" (**see note)
 'B' == "boolean BYREF"
 'I' == "integer BYREF"
 'L' == "long BYREF"
@@ -36,12 +37,12 @@ These chars can be:
 'D' == "double BYREF"
 'S' == "String BYREF" (*see note)
 'V' == "Variant BYREF" (*see note)
-'A' == "Any variable BYREF" (**see note)
 'O' == "OnOffStopType" (***see note)
 'N' == "Null argument" (****see note)
 '1' == "File mode" (*****see note)
 '2' == "Access mode" (*****see note)
 '3' == "Lock mode" (*****see note)
+'A' == "Array BYREF" (******see note)
 
 *Strings and Variants are actually structures, so passing them by
 reference passes a pointer to the structure. Passing them by value
@@ -67,6 +68,9 @@ we made it a type of its own.
 blank argument.
 
 *****These are for the OPEN calls. It's ugly. Sorry.
+
+******Arrays are always passed as a pointer to a C structure that stores
+not only the array, but other information about bounds, etc...
 
 '$' chars, like "RTRIM$()", are encoded as "_DC_" (for "dollar
 character"), as you can see above. Other potential ones are "_NC_"
