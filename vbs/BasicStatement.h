@@ -17,7 +17,7 @@ class BasicStatement
                                 // It also must call the base class
                                 //  constructor FIRST.
         BasicStatement(void *pBasicContext);
-        ~BasicStatement();
+        virtual ~BasicStatement();
 
                                 // Derived classes should override this function.
                                 //  The new function must return TRUE if the
