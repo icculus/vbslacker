@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include "InternalMemManager.h"
+#include "ErrorFunctions.h"
 
 void *__memAlloc(size_t byteCount)
 /*
@@ -21,7 +22,7 @@ void *__memAlloc(size_t byteCount)
 {
     void *retVal;
 
-    retVal = malloc(oldPtr, byteCount);
+    retVal = malloc(byteCount);
     if (retVal == NULL)
         __runtimeError(OUT_OF_MEMORY);
     
@@ -30,6 +31,7 @@ void *__memAlloc(size_t byteCount)
 
 
 void *__memRealloc(void *oldPtr, size_t byteCount)
+/*
  * Allocate or resize a block of memory. Works like realloc(), except
  *  it throws a runtime error if there isn't enough memory for the
  *  (re)allocation. Therefore this function never returns a NULL pointer.
@@ -37,6 +39,7 @@ void *__memRealloc(void *oldPtr, size_t byteCount)
  *     params : oldPtr == pointer to reallocate. NULL allocates a new block.
  *              byteCount == number of bytes to allocate.
  *    returns : pointer to newly allocated memory.
+ */
 {
     void *retVal;
 

@@ -7,6 +7,8 @@
 #ifndef _INCLUDE_TIMEDATEFUNCTIONS_H_
 #define _INCLUDE_TIMEDATEFUNCTIONS_H_
 
+#include "BasicString.h"
+
 typedef enum {ON, OFF, STOP} TimerArgEnum;
 
 double func_timer(void);

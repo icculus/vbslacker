@@ -4,10 +4,11 @@
  *   Copyright (c) 1998 Ryan C. Gordon and Gregory S. Read.
  */
 
-#include "BasicError.h"
+#include <math.h>
+#include "MathFunctions.h"
 
 
-double abs(double x)
+double func_abs(double x)
 /*
  * Returns the absolute value of a numeric.
  *
@@ -16,10 +17,10 @@ double abs(double x)
  */
 {
     return((x < 0) ? -x : x);
-} /* abs */
+} /* func_abs */
 
 
-double sqr(double x)
+double func_sqr(double x)
 /*
  * Returns the square root of a numeric.
  *
@@ -28,9 +29,7 @@ double sqr(double x)
  */
 {
     return(sqrt(x));
-} /* sqrt */
-
-
+} /* func_sqr */
 
 
 /* end of MathFunctions.c ... */

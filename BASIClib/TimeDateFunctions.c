@@ -6,8 +6,12 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
 #include <ctype.h>
+#include <errno.h>
 #include "TimeDateFunctions.h"
+#include "BasicString.h"
+#include "ErrorFunctions.h"
 #include "Boolean.h"
 
 #define SECONDS_IN_A_DAY 86400
@@ -15,7 +19,8 @@
     /* to save every byte of storage, these are stored as chars. */
 static char daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
 static char daysInLeapYearMonth[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
-static TimerArgEnum timerSetting = TimerArgEnum.OFF;
+static TimerArgEnum timerSetting = OFF;
+static time_t todaySecs;
 
 
 struct tm *__getBrokenTime(void)
@@ -62,6 +67,12 @@ time_t __getTodaySecs()
 } /* __getTodaySecs */
 
 
+void __initTimeDateFunctions(void)
+{
+    todaySecs = __getTodaySecs();
+} /* __initTimeDateFunctions */
+
+
 double func_timer(void)
 /*
  * Returns the number of seconds elasped since midnight, with two
@@ -71,7 +82,6 @@ double func_timer(void)
  *  returns : see above.
  */
 {
-    static time_t todaySecs = __getTodaySecs();
     struct timeval currentTime;  /* high resolution time. */
     double retVal;
 
@@ -118,7 +128,7 @@ PBasicString __makeTimeDateString(int size, char *fmt)
     if (rc == sizeof (buffer))  /* not enough space? */
         __runtimeError(INTERNAL_ERROR);
     else
-        retVal = createString(buffer, false);
+        retVal = __createString(buffer, false);
 
     return(retVal);
 } /* __makeTimeDateString */
@@ -140,7 +150,7 @@ PBasicString func_time_DC_(void)
 
 void proc_time_DC_(PBasicString newTimeStr)
 {
-    /* !!! compare to proc_date_DC_()...
+    /* !!! compare to proc_date_DC_()... */
 } /* proc_time_DC_ */
 
 
@@ -237,7 +247,7 @@ boolean __prepareDateString(char *str)
 
 
 boolean __setSystemDate(int month, int day, int year,
-                                PRuntimeErrorEnum pErrVal)
+                        PRuntimeErrEnum pErrVal)
 /*
  * Set system clock to new date.
  *
@@ -260,18 +270,18 @@ boolean __setSystemDate(int month, int day, int year,
     tv.tv_sec = mktime(brokenTime);
     if (tv.tv_sec == -1)
     {
-        *pErrVal = RuntimeErrEnum.INTERNAL_ERROR;
+        *pErrVal = INTERNAL_ERROR;
         retVal = false;
     } /* if */
     else
     {
-        if (settimeofday(tv) == -1)
+        if (settimeofday(&tv, NULL) == -1)
         {
             retVal = false;
             if (errno == EPERM)     /* access denied. */
-                *pErrVal = RuntimeErrEnum.PERMISSION_DENIED;
+                *pErrVal = PERMISSION_DENIED;
             else
-                *pErrVal = RuntimeErrEnum.INTERNAL_ERROR;
+                *pErrVal = INTERNAL_ERROR;
         } /* if */
     } /* else */
 
@@ -302,7 +312,7 @@ void proc_date_DC_(PBasicString newDateStr)
     int year;
     char str[newDateStr->length + 1];
     char *next;
-    RuntimeErrorEnum errVal;
+    RuntimeErrEnum errVal;
 
     memcpy(str, newDateStr->data, newDateStr->length);
     str[newDateStr->length] = '\0';
