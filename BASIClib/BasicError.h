@@ -101,14 +101,14 @@ __long __getBasicErrno(void);
                                                          NULL}
                                                           
 
-#define __ONERRORINIT      __getBasePointer(__onError.basePtr);   \
+#define __ONERRORINIT()    __getBasePointer(__onError.basePtr);   \
                            __getStackPointer(__onError.stackPtr)
 
 
 #define __setOnErrorHandler(addr) __getLabelAddr(addr, __onError.handlerAddr);\
                                   __registerOnErrorHandler(&__onError)
 
-#define __setOnErrorHandlerOff    __registerOnErrorHandler(NULL)
+#define __setOnErrorHandlerOff()  __registerOnErrorHandler(NULL)
 
 #define __setInstructs(iThis, iNext)  if (!__onError.isActive)              \
                                       {                                     \
@@ -118,19 +118,19 @@ __long __getBasicErrno(void);
                                                 __onError.nextInstruction); \
                                       }
 
-#define __resumeNext        __prepareResume(&__onError);  \
-                            __jump(__onError.nextInstruction)
+#define __resumeNext()           __prepareResume(&__onError);  \
+                                 __jump(__onError.nextInstruction)
 
-#define __resumeZero        __prepareResume(&__onError);  \
-                            __jump(__onError.thisInstruction)
+#define __resumeZero()           __prepareResume(&__onError);  \
+                                 __jump(__onError.thisInstruction)
 
-#define __resumeLabel(addr) __prepareResume(&__onError);  \
-                            __jumpLabel(addr)
+#define __resumeLabel(addr)      __prepareResume(&__onError);  \
+                                 __jumpLabel(addr)
 
-#define __exitCleanupOnError __deregisterOnErrorHandler(&__onError)
+#define __exitCleanupOnError()   __deregisterOnErrorHandler(&__onError)
 
 #define __insertResumeNextHandler(label)  __insertLineLabel(label); \
-                                          __resumeNext
+                                          __resumeNext()
 
 #ifdef __cplusplus
 }
