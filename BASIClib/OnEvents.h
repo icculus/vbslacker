@@ -17,7 +17,12 @@ typedef enum
 
 typedef OnEventTypeEnum *POnEventTypeEnum;
 
-/* DO NOT REORDER THIS STRUCTURE! Assembly code expects this format. */
+/* 
+ * DO NOT REORDER THE FOLLOWING STRUCTURE! Assembly code expects this format.
+ *
+ *  Adding fields to the bottom should be okay, since the ASM code
+ *   references fields by their offsets to the structure's base pointer.
+ */
 typedef struct
 {
     void *handlerAddr;
@@ -27,6 +32,15 @@ typedef struct
 } OnEventHandler;
 
 typedef OnEventHandler *POnEventHandler;
+
+
+/* !!! ...hope I'm doing this right...
+ * God, inline assembly is SCARY lookin' in gcc, isn't it?
+ *
+ *  Get the stack pointer, and store it in *retVal.
+ */
+#define __getStackPointer(retVal) __asm__ __volatile__ ("movl %%esp, %0\n\t" \
+                                                        : "=q" (*retVal) )
 
 POnEventHandler __getOnEventHandler(OnEventTypeEnum evType);
 void __initOnEvents();
