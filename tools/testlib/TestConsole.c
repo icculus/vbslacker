@@ -1,4 +1,4 @@
-#include <unistd.h>
+#include <unistd.h>     /* for sleep()... */
 #include "BasicLib.h"
 
 
@@ -151,6 +151,32 @@ void testViewPrint()
 } /* testViewPrint */
 
 
+void testColor(void)
+{
+    int i;
+    char buffer[10];
+
+    _vbp_cls();
+    __printAsciz("About to test COLOR command...");
+    __printNewLine();
+    __printNewLine();
+
+    for (i = 0; i <= 15; i++)
+    {
+        sprintf(buffer, " %d ", i);
+        _vbpi_color(i);
+        __printAsciz(buffer);
+    } /* for */
+
+    _vbpi_color(7);  /* default color? */
+    __printNewLine();
+    __printNewLine();
+    __printAsciz("Color testing complete. Waiting 5 seconds...");
+    __printNewLine();
+    sleep(5);
+} /* testColor */
+
+
 void cleanup(void)
 {
     _vbp_cls();
@@ -167,6 +193,7 @@ void testConsole(void)
     testLocate();
     testScrolling();
     testViewPrint();
+    testColor();
     cleanup();
 } /* testConsole */
 
