@@ -36,7 +36,7 @@ void testGarbageCollector(int skipCollector)
     char *ptr;
     int tmp;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     printf("\n[TESTING GARBAGE COLLECTOR. THIS MAY TAKE A LONG TIME...]\n");
 
@@ -67,7 +67,7 @@ void testGarbageCollector(int skipCollector)
         } /* for */
     } /* else */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
     return;
 
 __insertLineLabel(__memAllocBailed);

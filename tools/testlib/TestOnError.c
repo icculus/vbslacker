@@ -191,7 +191,7 @@ void testOnErrorGotoHandling(int runCount)
     char testVar3[] = TESTVAR_VALUE3;
     int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     __getBasePointer(_base_ptr_);      /* set up globals for comparison. */
     __getStackPointer(_stack_ptr_);
@@ -267,7 +267,7 @@ __insertLineLabel(endTest1);
 
     testVar3[0] = '\0';  /* stops compiler whining. */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* testOnErrorGotoHandling */
 
 
@@ -289,7 +289,7 @@ void testOnErrorGotoStackedHandling2(void)
 {
     __ONERRORVARS;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     __setOnErrorHandler(errHandler2);
     __runtimeError(ERR_PERMISSION_DENIED);
@@ -301,7 +301,7 @@ __insertLineLabel(errHandler2);
     __runtimeError(ERR_PATH_NOT_FOUND);
 
 __insertLineLabel(missedHandler2);
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* testOnErrorGotoStackedHandling2 */
 
 
@@ -327,7 +327,7 @@ void testOnErrorGotoStackedHandling1(int runCount)
     char testVar3[] = TESTVAR_VALUE3;
     int landed = 0xEDFE;  /* looks like "FEED" in intel hexdump. */
 
-    __ONERRORINIT;
+    __ONERRORINIT();
 
     __getBasePointer(_base_ptr_);      /* set up globals for comparison. */
     __getStackPointer(_stack_ptr_);
@@ -403,7 +403,7 @@ __insertLineLabel(endTest2);
 
     testVar3[0] = '\0';  /* stops compiler whining. */
 
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* testOnErrorGotoStackedHandling1 */
 
 
@@ -419,7 +419,7 @@ void testResumeNext(int runCount)
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __getBasePointer(_base_ptr_);
     __getStackPointer(_stack_ptr_);
     __setInstructs(resumeZeroWrong, resumeNextRight);
@@ -432,7 +432,7 @@ void testResumeNext(int runCount)
     __jumpLabel(resumeNextEnd);
 
 __insertLineLabel(resumeNextErrHandler);
-    __resumeNext;
+    __resumeNext();
     printf(FAILED);
     errors++;
     __jumpLabel(resumeNextEnd);
@@ -477,7 +477,7 @@ __insertLineLabel(resumeNextRight);
     } /* if */
 
 __insertLineLabel(resumeNextEnd);
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* testResumeNext */
 
 
@@ -493,7 +493,7 @@ void testResumeZero(int runCount)
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __getBasePointer(_base_ptr_);
     __getStackPointer(_stack_ptr_);
     __setInstructs(resumeZeroRight, resumeNextWrong);
@@ -506,7 +506,7 @@ void testResumeZero(int runCount)
     __jumpLabel(resumeZeroEnd);
 
 __insertLineLabel(resumeZeroErrHandler);
-    __resumeZero;
+    __resumeZero();
     printf(FAILED);
     errors++;
     __jumpLabel(resumeZeroEnd);
@@ -552,7 +552,7 @@ __insertLineLabel(resumeNextWrong);
     __jumpLabel(resumeZeroEnd);
 
 __insertLineLabel(resumeZeroEnd);
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* testResumeNext */
 
 
@@ -569,7 +569,7 @@ void testResumeLabel(int runCount)
     int testVar2 = TESTVAR_VALUE2;
     char testVar3[] = TESTVAR_VALUE3;
 
-    __ONERRORINIT;
+    __ONERRORINIT();
     __getBasePointer(_base_ptr_);
     __getStackPointer(_stack_ptr_);
 
@@ -624,7 +624,7 @@ __insertLineLabel(resumeLabel);
     __jumpLabel(resumeLabelEnd);
 
 __insertLineLabel(resumeLabelEnd);
-    __exitCleanupOnError;
+    __exitCleanupOnError();
 } /* testResumeLabel */
 
 
