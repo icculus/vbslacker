@@ -105,7 +105,7 @@ void __fatalRuntimeError(int errorNum);
 void __runtimeError(int errorNum);
 void __registerOnErrorHandler(__POnErrorHandler pHandler);
 void __deregisterOnErrorHandler(__POnErrorHandler pHandler);
-void __prepareResume(void *base);
+void __prepareResume(__POnErrorHandler pHandler);
 int __getBasicErrno(void);
 
 #define __ONERRORVARS      __OnErrorHandler __onError = {NULL,  \

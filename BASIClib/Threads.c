@@ -20,9 +20,11 @@
 
 #if (!defined SINGLE_THREADED)
 #   include <stdlib.h>
+#   include <string.h>
 #   include <pthread.h>
 #   include <sched.h>
 #   include <signal.h>
+
     /*
      * This structure contains the arguments to be
      *  passed via a (void *) to the entry function of
@@ -37,10 +39,10 @@
 
     typedef ThreadEntryArgs *PThreadEntryArgs;
 
-    ThreadLock lock;              /* module-scope thread lock.        */
-    pthread_t *indexes;           /* Vector of actual TIDs...         */
-    int threadCount = 0; /* Count of total existing threads. */
-    int maxIndex = -1;   /* Size of (indexes) vector.        */
+    static ThreadLock lock;              /* module-scope thread lock.        */
+    static pthread_t *indexes;           /* Vector of actual TIDs...         */
+    static int threadCount = 0; /* Count of total existing threads. */
+    static int maxIndex = -1;   /* Size of (indexes) vector.        */
 #endif /* !defined SINGLE_THREADED */
 
 
@@ -371,12 +373,18 @@ void __createThreadLock_f(PThreadLock pThreadLock)
  */
 {
     int errType;
+    pthread_mutexattr_t attr;
 
-    if (pthread_mutex_init(pThreadLock, NULL) != 0)
+    pthread_mutexattr_init(&attr);
+    attr.mutexkind = PTHREAD_MUTEX_RECURSIVE_NP;
+
+    if (pthread_mutex_init(pThreadLock, &attr) != 0)
     { 
         errType = ((errno == ENOMEM) ? ERR_OUT_OF_MEMORY : ERR_INTERNAL_ERROR);
         __runtimeError(errType);
     } /* if */
+
+    pthread_mutexattr_destroy(&attr);
 } /* __createThreadLock_f */
 
 

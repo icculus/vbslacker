@@ -72,9 +72,9 @@
                                                     "movl %1, %%esp \n\t"   \
                                                     "jmp  *%2       \n\t"   \
                                                         :                   \
-                                                        : "q" (base),       \
-                                                          "q" (stack),      \
-                                                          "q" (addr)        \
+                                                        : "r" (base),       \
+                                                          "r" (stack),      \
+                                                          "r" (addr)        \
                                                   )
 
         /*

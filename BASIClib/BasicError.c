@@ -10,17 +10,17 @@
 #include "BasicError.h"
 
 
-int *basicErrno = NULL;
+static int *basicErrno = NULL;
 
     /*
      * These are the strings for ERROR$()...
      */
-char *errStrings[MAX_ERRS];
+static char *errStrings[MAX_ERRS];
 
     /*
      * module-scope ThreadLock.
      */
-ThreadLock basicErrorLock;
+static ThreadLock basicErrorLock;
 
     /*
      * onErrorThreadStates stores the start of the handler list used by each
@@ -28,7 +28,7 @@ ThreadLock basicErrorLock;
      *  ThreadLocks when accessing this dynamic array, and not the individual
      *  structures.
      */
-__POnErrorHandler *onErrorThreadStates = NULL;
+static __POnErrorHandler *onErrorThreadStates = NULL;
 
 
 static void __initErrorStringTable(void);
@@ -76,7 +76,6 @@ void __initThreadBasicError(int tidx)
     __obtainThreadLock(&basicErrorLock);
     onErrorThreadStates = realloc(onErrorThreadStates,
                                   maxThreads * sizeof (__POnErrorHandler *));
-
 
     basicErrno = realloc(basicErrno, maxThreads * sizeof (int));
 
@@ -333,7 +332,7 @@ static __boolean __triggerOnError(void)
 } /* __triggerOnError */
 
 
-void __prepareResume(void *base)
+void __prepareResume(__POnErrorHandler pHandler)
 /*
  * Basic's RESUME command support. A (probably fatal) runtime error is
  *  thrown if you call RESUME when no handlers are active for a given point
@@ -342,15 +341,15 @@ void __prepareResume(void *base)
  *  perform an unconditional jump to somewhere...
  *
  * DO NOT CALL THIS FUNCTION DIRECTLY. Please use the macro __resumeNext,
- *  __resumeZero, or __resumeLabel(addr) (defined in OnError.h).
+ *  __resumeZero, or __resumeLabel(addr) (defined in BasicError.h).
  *
- *     params : void.
+ *     params : pHandler == ptr to calling function's OnErrorHandler struct.
  *    returns : Should never return, as code jumps elsewhere.
  */
 {
-    __POnErrorHandler pHandler = __getOnErrorThreadState();
+    __POnErrorHandler state = __getOnErrorThreadState();
 
-    if ((pHandler->basePtr != base) || (pHandler->isActive == false))
+    if ((state != pHandler) || (pHandler->isActive == false))
         __runtimeError(ERR_RESUME_WITHOUT_ERROR);
     else
         pHandler->isActive = false;
@@ -358,21 +357,16 @@ void __prepareResume(void *base)
 
 
 static void __defaultRuntimeErrorHandler(void)
+#warning Do something about __defaultRuntimeErrorHandler()!
 {
-    char *errStr;
     int bErr = __getBasicErrno();
-    char msg[strlen(errStr) + 300];   /* !!! generalize? */
-
-    errStr = ((bErr > MAX_ERRS) ?
-                STR_UNKNOWN_ERR : errStrings[bErr]);
+    char *errStr = ((bErr > MAX_ERRS) ? STR_UNKNOWN_ERR : errStrings[bErr]);
 
     if (errStr == NULL)
         errStr = STR_UNKNOWN_ERR;
 
-    sprintf(msg, "\n\n***Unhandled runtime error***\n"
-                 "  \"%s\" (#%d)\n\n", errStr, bErr);
-
-    __printAsciz(msg);
+    printf("\n\n***Unhandled runtime error***\n"
+           "  \"%s\" (#%d)\n\n", errStr, bErr);
 
     exit(bErr);
 } /* __defaultRuntimeErrorHandler */
@@ -393,6 +387,18 @@ void __fatalRuntimeError(int errorNum)
 
 
 void __runtimeError(int errorNum)
+/*
+ * This is the backend of the BASIC ERROR statement, and what BASIClib
+ *  calls internally to throw non-fatal runtime errors. The appropriately
+ *  named "__fatalRuntimeError" should be used for terminal errors.
+ *
+ * The current thread's BASIC errno is set to (errorNum). If the error
+ *  number is ERR_NO_ERROR, then processing continues, otherwise, a
+ *  runtime error is thrown (refer to the OnError subsystem docs).
+ *
+ *    params : errorNum == new error number.
+ *   returns : void. May jump to arbitrary address if not ERR_NO_ERROR.
+ */
 {
     basicErrno[__getCurrentThreadIndex] = errorNum;
 

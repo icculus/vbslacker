@@ -29,7 +29,6 @@ int vbiS_asc(PBasicString pBasicStr)
 } /* vbiS_asc */
 
 
-
 PBasicString vbSi_chr_DC_(int asciiValue)
 /*
  * Returns a new basic string of one character length based on the ascii

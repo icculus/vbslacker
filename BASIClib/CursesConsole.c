@@ -15,8 +15,8 @@ __boolean __initCursesConsole(void) { return(false); }
 #include <string.h>
 #include <curses.h>
 
-WINDOW *cons = NULL;     /* WINDOW structure for printable window. */
-ThreadLock consoleLock;
+static WINDOW *cons = NULL;     /* WINDOW structure for printable window. */
+static ThreadLock consoleLock;
 
 static int __curs_openConsole(void)
 /*
