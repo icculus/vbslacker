@@ -34,10 +34,7 @@ __PBasicFileStream __getFileStream(short fileNumber)
  *   params : fileNumber    ==  Any number that represents an valid file number.
  *  returns : See description
  */
-{
-    __initFileStreamArray();
-
-    
+{   
     if(__invalidFileNumber(fileNumber))
         return NULL;
                                     /* Return a pointer to file stream data. */
@@ -83,8 +80,6 @@ __PBasicFileStream __createFileStream(short fileNumber)
                                     /* Temporary file stream pointer */
     __PBasicFileStream pFileStream;
 
-    __initFileStreamArray();
-
     if(__invalidFileNumber(fileNumber))
         return NULL;
                                     /* Allocate memory for a new stream */
@@ -102,7 +97,7 @@ __PBasicFileStream __createFileStream(short fileNumber)
     return pFileStream;             /* Return pointer to new structure */
 }
 
-void __initFileStreamArray(void)
+void __initBasicFileStream(void)
 /*
  *  Initializes the file stream array if it hasn't already been initialized.
  *
@@ -110,11 +105,7 @@ void __initFileStreamArray(void)
  *  returns : void
  */
 {
-                                    /* If array not already initialized */
-    if(!__bStreamArrayInitialized)
-    {
                                     /* Reset entire array to NULL pointers */
-        memset(__fileNumbers, 0, MAX_FILE_HANDLES * sizeof(__PBasicFileStream));
-    }
+    memset(__fileNumbers, 0, MAX_FILE_HANDLES * sizeof(__PBasicFileStream));
 }
 /*** End File stream functions ***/
