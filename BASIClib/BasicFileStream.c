@@ -14,6 +14,23 @@
 static __PBasicFileStream __fileNumbers[MAX_FILE_HANDLES + 1];
 
 /*** File stream functions ***/
+
+#warning BasicFileStream.[c,h] still needs REGSTATE stuff...
+
+void __initBasicFileStream(STATEPARAMS)
+/*
+ *  Initializes the file stream array if it hasn't already been initialized.
+ *
+ *   params : void
+ *  returns : void
+ */
+{
+                                    /* Reset entire array to NULL pointers */
+                                    /* Compensate for 1-based array also. */
+    memset(__fileNumbers, 0, (MAX_FILE_HANDLES + 1) * sizeof(__PBasicFileStream));
+}
+
+
 boolean __invalidFileNumber(short fileNumber)
 /*
  *  Checks if the specified fileNumber is out of range.
@@ -98,16 +115,4 @@ __PBasicFileStream __createFileStream(short fileNumber)
     return pFileStream;             /* Return pointer to new structure */
 }
 
-void __initBasicFileStream(void)
-/*
- *  Initializes the file stream array if it hasn't already been initialized.
- *
- *   params : void
- *  returns : void
- */
-{
-                                    /* Reset entire array to NULL pointers */
-                                    /* Compensate for 1-based array also. */
-    memset(__fileNumbers, 0, (MAX_FILE_HANDLES + 1) * sizeof(__PBasicFileStream));
-}
 /*** End File stream functions ***/
