@@ -31,7 +31,7 @@ void test_chr_DC_(void)
 
     for (i = -32767; i <= 32767; i++)
     {
-        __basicErrno = ERR_NO_ERROR;
+        __runtimeError(ERR_NO_ERROR);
 
 __insertLineLabel(chrErrorResume);
 
@@ -39,10 +39,10 @@ __insertLineLabel(chrErrorResume);
 
 __insertLineLabel(chrErrorResumeNext);
 
-        if (__basicErrno == ERR_NO_ERROR)
+        if (vbi_err() == ERR_NO_ERROR)
         {
             if (rc->length != 1)
-            {
+            {  
                 printf("  - CHR$(%d) returned incorrect string length [%d]!\n",
                    (int) i, rc->length);
             } /* if */
