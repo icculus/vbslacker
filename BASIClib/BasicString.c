@@ -165,6 +165,22 @@ void __catString(PBasicString *ppBasicStr, PBasicString pStrToCat)
 } /* __catString */
 
 
+char *__basicStringToAsciz(PBasicString pStr)
+/*
+ * Copy the data of a BasicString to a C-style ASCIZ (ASCIi-Zero
+ *  terminated) string. Please call __memFree() on the returned 
+ *  value when done with it.
+ *
+ *     params : pStr == BasicString to convert.
+ *    returns : newly allocated C string.
+ */
+{
+    char *retVal = __memAlloc(pStr->length + 1);
+    memcpy(retVal, pStr->data, pStr->length);
+    retVal[pStr->length] = '\0';
+    return(retVal);
+} /* __basicStringToAsciz */
+
 /* end of BasicString.c ... */
 
 
