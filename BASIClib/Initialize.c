@@ -32,10 +32,10 @@ void __initBasicLib(void)
 
 void __deinitBasicLib(void)
 /*
- * Call this before exiting a program using BASIClib. Currently, it does
- *  nothing. This might change in the future.
+ * Call this before exiting a program using BASIClib.
  */
 {
+    __deinitThreads();
 } /* __deinitBasicLib */
 
 
