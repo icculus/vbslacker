@@ -7,21 +7,40 @@
 
 /*
  * If you are translating to a new language, do this:
- *  1. Change the "This text written by" line above to contain your
- *     name. DO NOT CHANGE THE COPYRIGHT.
- *  2. Change any occurence of the word "english" to the language you
+ *
+ *  1. Ask yourself, "Do I have a good grasp of C and BASIC to understand
+ *     this file, and what it's purpose is? Do I have sufficient translating
+ *     skills? Do I have the ethics to NOT put naughty words that the
+ *     BASIClib maintainers will not understand in here?" If you answered
+ *     "no" to any of these questions, stop now.
+ *  2. Change the "This text written by" line above to contain your
+ *     name. DO NOT CHANGE THE COPYRIGHT. You will be given credit for your
+ *     work, but by submitting your work, the maintainers of BASIClib gain
+ *     sole ownership of it.
+ *  3. Change any occurence of the word "ENGLISH" to the language you
  *     have translated this file to.
- *  3. Don't change the identifiers. For example, you should not
+ *  4. Don't change the identifiers. For example, you should not
  *     change STR_NO_ERROR, but you SHOULD translate "No error" ...
- *  4. Rename the file to fit the language, like "German.h", or whatever.
- *  5. E-mail your completed work to ryan_gordon@hotmail.com. He'll
- *     incorporate it into the next release.
- *  6. Expect to be notified if we have more translating work for you
+ *     Exceptions are noted below.
+ *  5. Rename the file to fit the language, like "German.h", or whatever.
+ *     We'd appreciate if you named the file by the english version of your
+ *     language. That is, name it "Spanish.h", not "Espanol.h". Gracias.
+ *  6. E-mail your completed work to ryan_gordon@hotmail.com. He'll
+ *     incorporate it into the next release of BASIClib.
+ *  7. Expect to be notified if we have more translating work for you
  *     in the future.  :)
  *
  *                                   Have fun,
  *                                      --ryan.
  */
+
+
+/*
+ * Change both occurances of the below constant to _INCLUDE_MYLANGUAGE_H_ ...
+ *  that is, _INCLUDE_SPANISH_H_ or _INCLUDE_GREEK_H_ or whatever...
+ */
+#ifndef _INCLUDE_ENGLISH_H_
+#define _INCLUDE_ENGLISH_H_
 
 
 /*
@@ -84,6 +103,8 @@
 #define STR_PATH_FILE_ACCESS_ERROR          "Path/File access error"
 #define STR_PATH_NOT_FOUND                  "Path not found"
 #define STR_UNKNOWN_ERR                     "Unknown Error"
+
+#endif   /* don't touch this line. */
 
 /* end of English.h ... */
 
