@@ -90,6 +90,7 @@ void _vbpSS_deletesetting(PBasicString appName, PBasicString section)
     else
     {
         __obtainThreadLock(&registryLock);
+#warning write me!
         __releaseThreadLock(&registryLock);
     } /* else */
 } /* _vbpSS_deletesetting */
@@ -100,6 +101,7 @@ void _vbpSSS_deletesetting(PBasicString appName,
                            PBasicString section,
                            PBasicString key)
 {
+#warning write me!
     if (registryFileHandle == -1)
         __runtimeError(ERR_PERMISSION_DENIED);   /* !!! better error? */
     else
@@ -123,6 +125,7 @@ void _vbpSSSV_savesetting(PBasicString appName, PBasicString section,
     else
     {
         __obtainThreadLock(&registryLock);
+#warning write me!
         __releaseThreadLock(&registryLock);
     } /* else */
 } /* _vbpSSSV_savesetting */
