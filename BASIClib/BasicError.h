@@ -80,14 +80,71 @@
 #define ERR_PATH_NOT_FOUND                 76
 #define MAX_ERRS                           76
 
+typedef struct _ONERRORHANDLER
+{
+    void *thisInstruction;
+    void *nextInstruction;
+    void *handlerAddr;            /* Code address of handler.             */
+    void *basePtr;                /* Base pointer in handler's function.  */
+    void *stackPtr;               /* Stack pointer in handler's function. */
+    __boolean isActive;           /* Is handler active?                   */
+    struct _ONERRORHANDLER next;  /* linked list stuff.                   */
+} OnErrorHandler;
+
+typedef OnErrorHandler *POnErrorHandler;
+
+
+/* function prototypes... */
+
 extern int __basicErrno;
 
 void __initErrorFunctions(STATEPARAMS);
+void __deinitErrorFunctions(STATEPARAMS);
+void __initThreadErrorFunctions(STATEPARAMS, int tidx);
+
 void __fatalRuntimeError(STATEPARAMS, int errorNum);
 void __runtimeError(STATEPARAMS, int errorNum);
+void __registerOnErrorHandler(STATEPARAMS, POnErrorHandler pHandler, void *handlerAddr);
+void __deregisterOnErrorHandler(STATEPARAMS, POnErrorHandler pHandler);
+void __prepareResume(STATEPARAMS, void *base);
 
-#endif
-#endif
+
+#define __ONERRORVARS      __OnErrorHandler __onError = {NULL,  \
+                                                         NULL,  \
+                                                         NULL,  \
+                                                         NULL,  \
+                                                         NULL,  \
+                                                         false, \
+                                                         NULL}
+                                                          
+
+#define __INITONERROR      __getBasePointer(&__onError.basePtr);  \
+                           __getStackPointer(&__onError.stackPtr)
+
+
+#define __setOnErrorHandler(addr)  __registerOnErrorHandler(STATEPARAMS, \
+                                                            &__onError,  \
+                                                            addr)
+
+#define __setInstructs(iThis, iNext)  if (!__onError.isActive)              \
+                                      {                                     \
+                                         __onError.thisInstruction = iThis; \
+                                         __onError.nextInstruction = iNext; \
+                                      }
+
+#define __resumeNext        __prepareResume(STATEARGS, &__onError);  \
+                            __jump(__onError.nextInstruction)
+
+#define __resumeZero        __prepareResume(STATEARGS, &__onError);  \
+                            __jump(__onError.thisInstruction)
+
+#define __resumeLabel(addr) __prepareResume(STATEARGS, &__onError);  \
+                            __jump(addr)
+
+#define __exitCleanupOnError __deregisterOnErrorHandler(STATEARGS, &__onError)
+
+#endif  /* _INCLUDE_BASICERROR_H_ */
+#endif  /* _INCLUDE_STDBASIC_H_   */
 
 /* end of BasicError.h ... */
 
