@@ -70,30 +70,30 @@ PBasicString i1;
 
 void throwsError(STATEPARAMS)
 {
-    __setResumeStacks;
+    __setStateStacks;
 
-    __setResumeInstructs(&&ln0, &&ln1);
+    __setStateInstructs(&&ln0, &&ln1);
 ln0:
     __registerOnEventHandler(STATEARGS, &&ln3, ONERROR);
 
-    __setResumeInstructs(&&ln1, &&ln2);
+    __setStateInstructs(&&ln1, &&ln2);
 ln1:
     vbpiS_Print_NC_(STATEARGS, 15, i0);
 
-    __setResumeInstructs(&&ln2, &&ln3);
+    __setStateInstructs(&&ln2, &&ln3);
 ln2:
     __deregisterOnEventHandlers(STATEARGS);
     return;
 
-    __setResumeInstructs(&&ln3, &&ln4);
+    __setStateInstructs(&&ln3, &&ln4);
 ln3:
     vbpS1i_open(STATEARGS, i1, VBOPEN_OUTPUT, 15);
 
-    __setResumeInstructs(&&ln4, &&ln5);
+    __setStateInstructs(&&ln4, &&ln5);
 ln4:
     __resumeZero(STATEARGS);
 
-    __setResumeInstructs(&&ln5, &&ln5);
+    __setStateInstructs(&&ln5, &&ln5);
 ln5:
     __deregisterOnEventHandlers(STATEARGS);
     return;
@@ -115,8 +115,8 @@ int main(int argc, char **argv, char **envp)
 /* end of program. */
 
 If vbSlacker optimizations are enabled, specifically "disable RESUME",
-then the code becomes a LOT more efficient. The __setResumeStacks and
-__setResumeInstructs commands are not used, and the line labels are not
+then the code becomes a LOT more efficient. The __setStateStacks and
+__setStateInstructs commands are not used, and the line labels are not
 generated, except "ln3", which translates directly to "fixme" in the BASIC
 version. The RESUME command needs to know the instruction pointer before each
 line of code for "RESUME 0" calls, which rerun lines of code, and the next
@@ -129,7 +129,7 @@ Here's how it works:
 
 ON EVENT GOTO commands can be more than just error handlers, although this is
 the most common use. Other uses historically have been ON TIMER, ON COM,
-ON STRIG, etc...most of these have been removed in recent Visual BASICs, but
+ON STRIG, etc...all of these have been removed in recent Visual BASICs, but
 the generic event support has been constructed in vbSlacker anyhow.
 
 A statement on the continual passing of STATEARGS. 
@@ -167,7 +167,7 @@ continue the duplication of this data if nothing else.
 But there's an exception. Declaring a function as CDECL prevents the STATEARGS
 from being implicitly passed. BUT -- you need to verify that OnEvents will
 never be triggered in your code; this means no calling BASIC functions (either
-user-written or in BASIClib), and making sure things like ON TIMER GOTO aren't
+user-written or in BASIClib), and making sure things like ON TIMER GOSUB aren't
 going to interrupt your code. Generally, unless this is a tight, speed-driven
 function, or you expect stack space to be VERY tight, it's generally safer to
 use STATEPARAMS.
@@ -184,9 +184,100 @@ files.
 When an OnEvent is triggered, it sees if there is an OnEvent handler for that
 event type registered. (So if an ON TIMER event is triggered, no one cares how
 many ON ERROR handlers exist) OnEvent handlers are registered with the
-__registerOnEventHandler() function.  !!!
+__registerOnEventHandler() function.
+
+void __registerOnEventHandler(STATEPARAMS, void *handlerAddr,
+                              OnEventTypeEnum evType);
 
 
+All you need to do is pass the type of OnEvent you want to handle, and the
+address of the handler. Then, when that OnEvent is triggered, BASIClib will
+adjusts the stack, and transfer control to that address.
+
+Adjusts the stack?
+
+Let me clarify. Let's say you have a procedure, butts(), and it registers an
+OnEvents handler. It then calls another procedure, which calls another one.
+A couple of procedures down the line (and on the stack), one of the procedures
+triggers an OnEvent.
+
++---------+
+| proc3() | <---- OnEvent triggered here.
++---------+
+| proc2() |
++---------+
+| proc1() |
++---------+
+| butts() |
++---------+
+
+Control has to drop back into butts() for the handler, which means that we
+need to adjust the stack and base pointers to where they were for butts().
+This also means that if inside the handler, butts() makes a function call or
+allocates any more stack space, proc1() (any maybe proc2 and proc3)'s stack
+is overwritten. So, we need to protect that data, in case of a RESUME
+statement, which will return us back to otherwise potentially destroyed data.
+SO, we allocate memory, copy all the stack beyond butts() to that memory,
+set the stack and base pointers back to butts(), and unconditionally jump into
+it. If butts() returns from within the handler, we just free that protected
+stack buffer, deregister the OnEvent handler, and continue as normal. If a
+RESUME command of any type is reached inside the handler, the protected
+stack buffer is copied back to the stack, the stack and base pointers are
+restored to their pre-event state, and we unconditionally jump back into the
+procedure that triggered the OnEvent.
+
+After the OnEvent has been triggered, and before the handler is called, the
+return address from butts() is read from the stack, and our cleanup
+routine address is patched in, so we can cleanup even if butts() returns.
+The stack is repatched from within the cleanup routine and the RESUME functions
+with the original address, to prevent crashes.
+
+Events are triggered like this:
+
+void __triggerOnEventByType(STATEPARAMS, OnEventTypeEnum evType);
+
+All you need to know is the type of OnEvent you want to trigger. To generate
+a runtime error, you CAN do this (but shouldn't):
+
+__triggerOnEventByType(STATEARGS, ONERROR);
+
+Tada!
+
+Actually, it's wiser to use __runtimeError(), which allows you to specify
+what error you want to throw, and abstracts the interface somewhat.
 
 
-!!! write more.
+For ON ERROR RESUME NEXT statements, the parser/compiler needs to generate
+code like this:
+
+
+BASIC:
+
+SUB OPENFILE ()
+    ON ERROR RESUME NEXT
+    OPEN "FEH.TXT" FOR INPUT AS #1
+END SUB
+
+
+C:
+
+void vbp_openfile(STATEPARAMS)
+{
+    __registerOnEventHandler(STATEARGS, &&l1, ONERROR);
+    vbp_open(STATEARGS, "FEH.TXT", 1, INPUT);
+    return;
+
+l1:
+    __resumeNext(STATEARGS);
+}
+
+(This has obviously been simplified for the purpose of illustration...)
+
+
+Lastly, we've been very careful to always specify these as OnEvents, and not
+merely events. These are not to be confused with the event-handling subsystem
+of Visual Basic GUI. Those are VERY different.
+
+/* end of on_events.txt ... */
+
+
