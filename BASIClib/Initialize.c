@@ -117,6 +117,7 @@ void __initBasicLib(__long flags, int argc, char **argv, char **envp)
         __initTimeDateFunctions();
         __initRegistryFunctions();
         __initGUIFrontEnd();
+        __initFileSystemFunctions();
         __initThreads();    /* Make sure this is last init call. */
 
         atexit(__deinitBasicLib);
@@ -134,6 +135,7 @@ void __deinitBasicLib(void)
     if (initialized == true)
     {
         initFlags = INITFLAG_NOT_INITIALIZED;
+        __deinitFileSystemFunctions();
         __deinitRegistryFunctions();
         __deinitEnvrFunctions();
         __deinitThreads();
@@ -156,6 +158,7 @@ void __initThread(__integer tidx)
  */
 {
     __initThreadBasicError(tidx);
+    __initThreadFileSystemFunctions(tidx);
 } /* __initThread */
 
 
@@ -169,7 +172,7 @@ void __deinitThread(__integer tidx)
  *   returns : void.
  */
 {
-    /* Hhm, nothing here, right now! */
+    /* Hhmm... nothing here, right now! */
 } /* __deinitThread */
 
 
