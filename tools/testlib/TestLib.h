@@ -7,6 +7,7 @@
 #ifndef _INCLUDE_TESTLIB_H_
 #define _INCLUDE_TESTLIB_H_
 
+void testOnEvents(void);
 void testConversions(void);
 
 #endif
