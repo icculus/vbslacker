@@ -14,7 +14,7 @@ LOPTIONS = -Wall -L $(GCLIBDIR) -L $(BASICLIBDIR) -lpthread -lgc -lBASIC -lm -ln
 
 all : linux
 
-linux : testlib testconsole
+linux : testlib testconsole testsegfault teststackoverflow
 
 testlib : $(OBJS)
 	$(LINKER) $(LOPTIONS) testlib $(OBJS)
@@ -55,6 +55,21 @@ testconsole : TestConsole.o
 
 TestConsole.o : TestConsole.c
 	$(CC) $(COPTIONS) TestConsole.o TestConsole.c
+
+
+testsegfault : TestSegFault.o
+	$(LINKER) $(LOPTIONS) testsegfault TestSegFault.o
+
+TestSegFault.o : TestSegFault.c
+	$(CC) $(COPTIONS) TestSegFault.o TestSegFault.c
+
+
+teststackoverflow : TestStackOverflow.o
+	$(LINKER) $(LOPTIONS) teststackoverflow TestStackOverflow.o
+
+TestStackOverflow.o : TestStackOverflow.c
+	$(CC) $(COPTIONS) TestStackOverflow.o TestStackOverflow.c
+
 
 standalone : $(EXES)
 
