@@ -1,0 +1,62 @@
+vbSlacker console:
+
+Older versions of BASIC were text-based ("Console apps"). Some later console
+versions could do graphics through the SCREEN command, but nothing too fancy.
+
+Visual BASIC removed the ability to make console applications. While a
+"Hello, World" program under Visual BASIC was still simpler than its Visual
+C++ equivalent, you just can't beat the one-line program under Qbasic.
+
+If nothing else, writing quick, text-based apps to perform simple tasks was
+sorely missed in Visual BASIC.
+
+vbSlacker fills this gap, by allowing programmers to write not only
+GUI-windowing apps, like Visual BASIC, but also "console" apps, like
+QuickBASIC.
+
+Or both, at the same time, if you want to have a console window along with
+GUI widgets.
+
+When building a vbSlacker project, one option presented to the developer is
+to "Disable console", which has two distinct effects. First, a text window
+won't be created when the program runs, so GUI apps look "pure." Secondly,
+any calls to console functions (like PRINT and INPUT$) throw the runtime error
+ERR_CANNOT_CONTINUE (error #17)
+
+If you don't disable the console, a couple of things can happen. At program
+startup, BASIClib determines the best way to handle console output. If output
+IS being redirected (through a shell's ">" pipe operator, for instance),
+BASIClib will write plain text to stdout. APIs like VIEW PRINT do nothing.
+
+If output is NOT being redirected, BASIClib determines if we are at a virtual
+console (full-screen text mode). If so, direct video writes (or the closest
+approximation) are done for speed. Thus far, this is equivalent to how
+QuickBASIC 4.5 handles console routines.
+
+An extra feature is added, however. For output destined for a terminal (that
+isn't a local virtual console; this may be anything from an xterm to a serial
+connection to a telnet session) the ncurses library (or whatever equivalent
+is available on a given platform) is used.
+
+If the console needs to be switched to a graphics mode (via the SCREEN
+command), SVGAlib (or whatever equivalent is available on a given platform) is
+used. If graphics are not a possibility, ERR_CANNOT_CONTINUE is thrown.
+
+Therefore the APIs would need to check all sorts of conditions for each call:
+a) see if they are being redirected,
+b) see if they are at a virtual console,
+c) see if they are a terminal,
+d) see if they are in graphics mode,
+and e) see if console APIs have been disabled.
+
+Rather than have the overhead of all these checks every call, not to mention
+the bulky code, BASIClib sets up a bunch of pointers to the correct set of
+functions at startup. When a mode switch occurs (due to a SCREEN command),
+those pointers are modified to point to different functions. So, in effect,
+we overload APIs like PRINT with four different versions: direct, graphical,
+stdout, and ncurses. The overhead for choosing the correct version each time
+is eliminated by using function pointers.
+
+/* end of console.txt ... */
+
+
