@@ -25,14 +25,16 @@
 #       define _INCLUDING_LOCAL_ASM_CODE_
 
 #       if (defined __GNUC__)
-#           if (defined __I386)
+#           if (defined __vbArch_I386)
 #               include "Asm_I386_GNU.h"
+#           elif (defined __vbArch_PPC)
+#               include "Asm_PPC_GNU.h"
 #           else
 #               define ___NOASM___
 #           endif
 
 #       elif (defined __MSVC__)
-#           if (defined __I386)
+#           if (defined __vbArch_I386)
 #               include "Asm_I386_MSVC.h"
 #           else
 #               define ___NOASM___
