@@ -1,5 +1,6 @@
 TODO list:
 
+- HOWTO on adding new modules to BASIClib.
 - Testlib code for boxcar system.
 - Documentation: mem_management.txt and on_events.txt
 - Streamline makefiles. Most of it is just duplication.
