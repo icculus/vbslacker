@@ -1,5 +1,6 @@
 TODO list:
 
+- Put StdBasic.h in dependencies...
 - Complete console drivers.
 - Catch up testlib, in general.
 - Move RANDOMIZE and RND from MathFunctions to a new module
@@ -8,7 +9,6 @@ TODO list:
 - RESUME NEXT recursive testing.
 - Documentation: mem_management.txt and on_events.txt
 - Streamline makefiles. Most of it is just duplication.
-- Find good way to generate dependencies.
 - Examine/eliminate the "!!!" comments in the source.
 - Eliminate #warnings in the source, as well.
 - GOSUB/RETURN support.
