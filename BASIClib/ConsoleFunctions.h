@@ -29,6 +29,7 @@ extern void (*_vbpii_locate)(__integer newY, __integer newX);
 extern void (*_vbpNi_locate)(__integer newX);
 extern void (*_vbpiN_locate)(__integer newY);
 extern void (*_vbp_locate)(void);
+extern void (*__playSound)(__integer freq, __single duration);
 extern void (*_vbp_beep)(void);
 
 
@@ -38,6 +39,7 @@ void __deinitConsoleFunctions(void);
 void _vbpV_print(PVariant pVar);
 void _vbpS_print(PBasicString str);
 void __printAsciz(__byte *str);
+void _vbpif_sound(__integer frequency, __single duration);
 
 #ifdef __cplusplus
 }
