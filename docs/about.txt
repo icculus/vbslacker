@@ -8,4 +8,7 @@ This only (possibly) works on ELF-based i386 Linux at this point.
  If it breaks, you get to keep both SHINY pieces!
 
 
- 
+(If you are seeing this when running GNU MAKE, you probably need to
+ specify a target platform. Try: 'make linux' or 'make win32'...)
+
+
