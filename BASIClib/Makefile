@@ -18,15 +18,14 @@ LINKER = gcc
 ASM = nasm
 
 # Shipping command lines
-#COPTIONS = -Wall -fPIC -fasm -finline-functions -O2 -s -c -o
-#LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
-
-# Debug command lines...
-COPTIONS = -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
-LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -o
+COPTIONS = -D_REENTRANT -Wall -fPIC -fasm -finline-functions -s -O2 -c -o
+LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -s -O2 -o
 ASMOPTIONS = -f elf -o
 
-# end of makelib ...
+# Debug command lines...
+#COPTIONS = -D_REENTRANT -Wall -fPIC -fasm -finline-functions -DDEBUG -g -c -o
+#LOPTIONS = -shared -Wl,-soname,$(DYNLIBMAJOR) -o
+#ASMOPTIONS = -f elf -o
 
 all : $(DYNLIBBASE)
 
