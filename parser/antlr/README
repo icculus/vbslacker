@@ -9,6 +9,5 @@ Instructions
 NOTE:
    Some compilers, namely gcc (atleast under Linux) doesn't have the istream
    header file.  It has an istream.h file however.  Included in this directory
-   is an istream include file that should be placed in your standard C++
-   include directory if it doesn't exist.  This file simply provides a link
-   to the istream.h file.
+   is an istream include file that should be placed in your ANTLR-2.6.1/cpp
+   folder.
