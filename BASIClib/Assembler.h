@@ -14,8 +14,8 @@
 
 #else
 
-#ifndef _INCLUDE_REGSTATE_H_
-#define _INCLUDE_REGSTATE_H_
+#ifndef _INCLUDE_ASSEMBLER_H_
+#define _INCLUDE_ASSEMBLER_H_
 
 #if (defined I386)
 
@@ -111,9 +111,9 @@
 #define __setStateInstructs(ptr1, ptr2)  __stIP = ptr1; \
                                          __stNextIP = ptr2
 
-#endif /* defined _INCLUDE_REGSTATE_H_ */
+#endif /* defined _INCLUDE_ASSEMBLER_H_ */
 #endif /* defined _INCLUDE_STDBASIC_H_ */
 
-/* end of RegState.h ... */
+/* end of Assembler.h ... */
 
 
