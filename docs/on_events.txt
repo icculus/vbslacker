@@ -1,6 +1,193 @@
-This will eventually document the OnEvents subsystem, and how to use it,
-especially for error handlers, but it doesn't do any of that, yet.
+The vbSlacker OnEvents subsystem.
 
---ryanmikeyrootdownfunkyhellonastymuthafuckah.
+Part of the reason why BASIC isn't so cross-platform is not because there's
+no desire for it in the cyber community, but because to implement a BASIC
+system, you need a development team that codes like a god, but thinks like
+a kindergartener.
+
+The biggest stumbling block in making a BASIC system is the error handling.
+It's kinda like C++ and Java's try/catch blocks, but considerably less
+structured. Here's a brief comparison between BASIC and Java:
+
+public void throwsError(PrintWriter writer)
+{
+    try
+    {
+        writer.println("Write this string to file.");
+    } // try
+
+    catch (IOException ioe)
+    {
+        System.err.println("IOException reading file!");
+    } // catch
+} // throwsError
 
 
+in BASIC:
+
+SUB throwsError(fileNo AS INTEGER)
+    ON ERROR GOTO IOEXCEPTION
+    PRINT #fileNo, "Write this string to file."
+    ON ERROR GOTO 0
+    EXIT SUB
+
+IOEXCEPTION:
+    PRINT "IOException reading file!"
+END SUB
+
+
+Implementation of this sort of error handler is complicated enough, since we
+need to play with the stack, but when we consider the the language's RESUME
+command, we have something truely complicated.
+
+Here's our solution, in a nutshell.
+
+First a practical example is needed, then we'll break it down.
+
+Here's an error handler in BASIC, and what vbSlacker (roughly) produces from it:
+
+---
+
+SUB throwsError
+    ON ERROR GOTO fixme
+    PRINT #15, "Text!"
+    EXIT SUB
+
+fixme:
+    OPEN "text.txt" FOR OUTPUT AS #15
+    RESUME 0
+END SUB
+
+throwsError
+
+REM end of program...
+
+---
+
+#include "BasicLib.h"
+
+PBasicString i0 = __constString("Text!");
+PBasicString i1 = __constString("text.txt");
+
+void throwsError(STATEPARAMS)
+{
+    void *_base_ptr_;
+    void *_stack_ptr_;
+
+    __setResumeStacks;
+
+    __setResumeInstructs(&&ln0, &&ln1);
+ln0:
+    __getBasePointer(&_base_ptr_);
+    __getStackPointer(&_stack_ptr_);
+    __registerOnEventHandler(STATEARGS, &&ln3, _base_ptr_, _stack_ptr_, ONERROR);
+
+    __setResumeInstructs(&&ln1, &&ln2);
+ln1:
+    vbPrint_NC_(STATEARGS, IP, nextIP, 15, i0);
+
+    __setResumeInstructs(&&ln2, &&ln3);
+ln2:
+    __deregisterOnEventHandlers(STATEARGS);
+    return;
+
+    __setResumeInstructs(&&ln3, &&ln4);
+ln3:
+    vbOpen(STATEARGS, i1, VBOPEN_OUTPUT, 15);
+
+    __setResumeInstructs(&&ln4, &&ln5);
+ln4:
+    __resumeZero();
+
+    __setResumeInstructs(&&ln5, &&ln5);
+ln5:
+    __deregisterOnEventHandlers(STATEARGS);
+    return;
+}
+
+
+int main(int argc, char **argv, char **envp)
+{
+    __initBasicLib(NULLSTATEARGS, INITFLAG_NO_FLAGS);
+    throwsErrors(NULLSTATEARGS, NULL);
+    __deinitBasicLib(NULLSTATEARGS);
+}
+
+/* end of program. */
+
+If vbSlacker optimizations are enabled, specifically "disable RESUME", then the
+code becomes a LOT more efficient. The __setResumeStacks and
+__setResumeInstructs commands are not used, and the line labels are not
+generated, except "ln3", which translates directly to "fixme" in the BASIC
+version. The RESUME command needs to know the instruction pointer before each
+line of code for "RESUME 0" calls, which rerun lines of code, and the next
+line of code's instruction pointer for "RESUME NEXT" calls, which skips
+arbitrary instructions. If you "disable OnEvents," not only do you lose the
+previously mentioned overhead, but -fomit-frame-pointer is passed to GCC,
+which makes a pretty significant difference in code performance,
+too.
+
+Here's how it works:
+
+ON EVENT GOTO commands can be more than just error handlers, although this is
+the most common use. Other uses historically have been ON TIMER, ON COM,
+ON STRIG, etc...most of these have been removed in recent Visual BASICs, but the
+generic event support has been constructed in vbSlacker anyhow.
+
+A statement on the continual passing of STATEARGS. 
+
+STATEPARAMS looks like this:
+
+#define STATEPARAMS void *__stIP, void *__stNextIP, void *__stBP, void *__stSP
+
+STATEARGS:
+
+#define STATEARGS __stIP, __stNextIP, __stBP, __stSP
+
+These variables store the addresses of potential locations of RESUME commands,
+and their base and stack pointers. State information, y'know? Good.
+
+This adds 16 extra bytes to the stack for every function call. No one complains
+when C++ adds (this) to every non-static function call, and the return address
+and base pointer is saved there too in every program...not to mention your
+compiler usually allocates more space on the stack than the local variables
+need for the sake of optimizations. It's much more efficient than figuring out
+in every function not only where to store the current pointers, but it
+automatically thread-proofs that data. Without this, we'd have to keep a stack
+in memory of all these pointers, which we'd have to concern ourselves with
+dynamic resizing of that stack, knowing where the current data is, and for which
+thread...no, it's much simple to have the CPU handle it for us with the rest
+of the thread's stack. No more on that.
+
+If external code links with BASIClib, it will need to accept STATEPARAMS as its
+FIRST parameter, and pass it on, even if it does not explicitly handle OnEvents.
+Besides the fact the calling BASIC code will be passing them on whether your C
+code uses them or not, the OnEvent handler will grab them from the stack at the
+point where the event was triggered, so you'll need to continue the duplication
+of this data if nothing else.
+
+But there's an exception. Declaring a function as CDECL prevents the STATEARGS
+from being implicitly passed. BUT -- you need to verify that OnEvents will never
+be triggered in your code; this means no calling BASIC functions (either user-
+written or in BASIClib), and making sure things like ON TIMER GOTO aren't going
+to interrupt your code. Generally, unless this is a tight, speed-driven
+function, or you expect stack space to be VERY tight, it's generally safer to
+use STATEPARAMS.
+
+If you are brave enough to not use STATEPARAMS in your code, you CAN call
+BASIC code by using the NULLSTATEARGS macro in place of STATEARGS. Do so at
+your own risk. You cannot use STATEARGS unless you used STATEPARAMS, for
+obvious reasons.
+
+STATEPARAMS and other declarations can be found in RegState.h, which is
+automagically included by BasicLib.h, and most other subheader files.
+
+When an OnEvent is triggered, it sees if there is an OnEvent handler for that
+event type registered. (So if an ON TIMER event is triggered, no one cares how
+many ON ERROR handlers exist) OnEvent handlers are registered with the
+__registerOnEventHandler() function.  !!!
+
+
+
+
+!!! write more.
