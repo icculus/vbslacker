@@ -1,93 +1,97 @@
-<html>
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Version" CONTENT="8.0.3410">
+   <META NAME="Date" CONTENT="10/11/96">
+   <META NAME="Template" CONTENT="C:\Program Files\Microsoft Office\Office\HTML.DOT">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.05 [en] (Win95; I) [Netscape]">
+   <TITLE>VBSlacker - Design Specification - Parser</TITLE>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#800080">
 
-<head>
-<meta http-equiv="Content-Type"
-content="text/html; charset=iso-8859-1">
-<meta name="Version" content="8.0.3410">
-<meta name="Date" content="10/11/96">
-<meta name="Template"
-content="C:\Program Files\Microsoft Office\Office\HTML.DOT">
-<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
-<title>VBSlacker - Design Specification - Parser</title>
-</head>
+<CENTER>
+<H1>
+<B><FONT FACE="Arial"><FONT SIZE=+1>VBSlacker - Design Specification</FONT></FONT></B></H1></CENTER>
 
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
-vlink="#800080">
+<CENTER>
+<H2>
+<B><I><FONT FACE="Arial">Parser</FONT></I></B></H2></CENTER>
 
-<h1 align="center"><font size="4" face="Arial"><b>VBSlacker -
-Design Specification</b></font></h1>
+<H3>
+<B><I><FONT FACE="Arial">Introduction</FONT></I></B></H3>
+The VBSlacker Parser, to put it simply, is a Visual Basic language interpreter
+that converts Visual Basic compatible source-code into C. It relies on
+VBSlacker's BasicLIB library for many of the C functions calls that it
+generates from interpretation. The parser is also responsible for interpreting
+NON-VB files such as…
+<BLOCKQUOTE>
+<UL>
+<LI>
+Visual Basic Project Files (.vbp)</LI>
 
-<h2 align="center"><font face="Arial"><b><i>Parser</i></b></font></h2>
+<LI>
+Forms (.frm)</LI>
 
-<h3><font face="Arial"><b><i>Introduction</i></b></font></h3>
+<LI>
+Form binary data (.frx)</LI>
 
-<p>The VBSlacker Parser, to put it simply, is a Visual
-Basic&trade; language interpreter that converts Visual Basic
-compatible source-code into C. It relies on VBSlacker's BasicLIB
-library for many of the C functions calls that it generates from
-interpretation. The parser is also responsible for interpreting
-NON-VB files such as&#133;</p>
+<LI>
+<I>…probably some others I missed.</I></LI>
+</UL>
+</BLOCKQUOTE>
 
-<blockquote>
-    <ul>
-        <li>Visual Basic Project Files (.vbp)</li>
-        <li>Forms (.frm)</li>
-        <li>Form binary data (.frx)</li>
-        <li><i>&#133;probably some others I missed.</i></li>
-    </ul>
-</blockquote>
+<H3>
+<B><I><FONT FACE="Arial">Overview</FONT></I></B></H3>
+The parser will be nothing more than a command-line application…much like
+gcc, awk, and so forth. It will have various command-line arguments for
+various parsing options, and also options to pass to the C compiler that
+it will eventually spawn to.
 
-<h3><font face="Arial"><b><i>Overview</i></b></font></h3>
+<P>From here on out, the parser will be referred to as 'vbs'.
 
-<p>The parser will be nothing more than a command-line
-application&#133;much like gcc, awk, and so forth. It will have
-various command-line arguments for various parsing options, and
-also options to pass to the C compiler that it will eventually
-spawn to.</p>
+<P>Below is a diagram of the interpretation procedure…
+<BLOCKQUOTE>
+<OL>
+<LI>
+<B><I>vbs (converts to C code)</I></B></LI>
 
-<p>From here on out, the parser will be referred to as 'vbs'.</p>
+<LI>
+<B><I>gcc/egcs/some C compiler</I></B></LI>
 
-<p>Below is a diagram of the interpretation procedure&#133;</p>
+<LI>
+<B><I>link with BasicLIB and other libraries</I></B></LI>
 
-<blockquote>
-    <ol>
-        <li><b><i>vbs (converts to C code)</i></b></li>
-        <li><b><i>gcc/egcs/some C compiler</i></b></li>
-        <li><b><i>link with BasicLIB and other libraries</i></b></li>
-        <li><b><i>final executable</i></b></li>
-    </ol>
-</blockquote>
+<LI>
+<B><I>final executable</I></B></LI>
+</OL>
+</BLOCKQUOTE>
 
-<h3><font face="Arial"><b><i>Source Code Structure</i></b></font></h3>
+<H3>
+<B><I><FONT FACE="Arial">Source Code Structure</FONT></I></B></H3>
+'vbs' will be written in C++ given it's object oriented structure. Below
+is the internal class structure...
 
-<p>'vbs' will be written in C++ given it's object oriented
-structure. Below is the internal class structure...</p>
+<P><B><U>CvbsProject (Base Class)</U></B>
 
-<p><strong><u>CvbsProject (Base Class)</u></strong></p>
+<P>This class is a base class for all project types. It includes code that
+parses .VBP files, and creates appropriate CvbsModule instances based on
+the modules it finds in the project.
+<BLOCKQUOTE><I>Derived Classes...</I>
 
-<p>This class is a base class for all project types. It includes
-code that parses .VBP files, and creates appropriate CvbsModule
-instances based on the modules it finds in the project.</p>
+<P><B>CvbsActiveX_EXE</B>
+<BR><B>CvbsActiveX_OCX</B>
+<BR><B>CvbsActiveX_DLL</B>
+<BR><B>CvbsStandard_EXE</B></BLOCKQUOTE>
+<B><U>CvbsModule (Base Class)</U></B>
 
-<blockquote>
-    <p><em>Derived Classes...</em></p>
-    <p><strong>CvbsActiveX_EXE<br>
-    CvbsActiveX_OCX<br>
-    CvbsActiveX_DLL<br>
-    CvbsStandard_EXE</strong></p>
-</blockquote>
+<P>All Visual Basic module classes are based on this class. It includes
+standard parsing code, plus the ability to override for special parsing
+of special modules like Forms, etc...
+<BLOCKQUOTE><I>Derived Classes...</I>
 
-<p><strong><u>CvbsModule (Base Class)</u></strong></p>
+<P><B>CvbsBAS_Module</B>
+<BR><B>CvbsForm_Module</B>
+<BR><B>CvbsClass_Module</B></BLOCKQUOTE>
 
-<p>All Visual Basic module classes are based on this class. It
-includes standard parsing code, plus the ability to override for
-special parsing of special modules like Forms, etc...</p>
-
-<blockquote>
-    <p><em>Derived Classes...</em></p>
-    <p><strong>CvbsBAS_Module<br>
-    CvbsForm_Module<br>
-    CvbsClass_Module</strong></p>
-</blockquote>
-</body>
-</html>
+</BODY>
+</HTML>
