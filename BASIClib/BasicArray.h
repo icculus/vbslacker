@@ -22,6 +22,8 @@ typedef struct
     long end;       /* End of index range.   */
 } BasicArray;
 
+typedef BasicArray *PBasicArray;
+
 #endif
 #endif
 
