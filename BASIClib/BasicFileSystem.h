@@ -48,10 +48,13 @@ __byte   *__convertPathWinToUnix(__byte *pathName);
 __byte   *__convertPathUnixToWin(__byte *pathName);
 __byte    __getCurrentDriveLetter(void);
 __long    __vbFileSystemErrors(void);
-__boolean __getCasedDirEntry(DIR *dir, __byte *path, __byte *origFile);
-  void    __parsePathForInsensitiveMatches(__byte *dirToParse)
-  void    __parseDir(__byte *dirToParse, DIR **dirInfo,
-                     __byte **fileName, __byte **path);
+
+#ifdef __VBUNIXDIRDEFINED__
+    __boolean __getCasedDirEntry(DIR *dir, __byte *path, __byte *origFile);
+      void    __parsePathForInsensitiveMatches(__byte *dirToParse)
+      void    __parseDir(__byte *dirToParse, DIR **dirInfo,
+                         __byte **fileName, __byte **path);
+#endif
 
 
 #ifdef __cplusplus
