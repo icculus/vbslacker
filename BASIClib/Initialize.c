@@ -172,7 +172,7 @@ void __deinitThread(__integer tidx)
  *   returns : void.
  */
 {
-    /* Hhmm... nothing here, right now! */
+    __deinitThreadFileSystemFunctions(tidx);
 } /* __deinitThread */
 
 
